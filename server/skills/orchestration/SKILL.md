@@ -153,6 +153,42 @@ def safety_payload(output) -> dict            # 安全门输出 → safety 帧
 def done_payload(*, references, candidates, coverage_note, degraded, cost_time, trace_id) -> dict
 ```
 
+### 1.7 可观测性接口的 seam 签名（TICKET-011）
+
+```python
+# server/skills/trace.py —— B-4 的检索半边（内存替身与持久化仓储同签名）
+@dataclass(frozen=True)
+class TraceQuery:                    # trace_id?, skill?, start?, end?, degraded?, limit, offset
+    ...
+
+class TraceReader(Protocol):
+    async def spans_for(self, trace_id: str) -> Sequence[Span]: ...
+    async def route_for(self, trace_id: str) -> RouteDecision | None: ...
+    async def traces_between(self, start, end) -> Sequence[TraceSummary]: ...
+    async def search(self, query: TraceQuery) -> tuple[Sequence[TraceSummary], int]: ...
+
+class Span(BaseModel):               # 新增结构化 detail，不受 DIGEST_LIMIT 约束
+    ...; detail: dict | None = None
+
+# server/core/deps.py —— 权限从属 seam
+@dataclass(frozen=True)
+class Principal:                     # 三角色模型：user / doctor / admin
+    user_id: int
+    role: str
+def require_authenticated(principal) -> Principal   # 无身份 → 401
+def require_admin(principal) -> Principal           # 已认证但非管理员 → 403
+
+# server/api/v1/observability.py —— 对外端点（include_in_schema=False，contracts/ 不动）
+GET /api/v1/traces/{trace_id}  -> Envelope[TraceView]                       # admin；不存在 → 404
+GET /api/v1/traces             -> Envelope[PagePayload[TraceSummaryView]]   # admin；trace_id/skill/start/end/degraded + page/page_size
+GET /api/v1/skills             -> Envelope[list[SkillManifestView]]          # 任意已认证
+```
+
+`SkillManifestView` 的五个条目由 `skills/manifest.py` 的 `SKILL_MANIFESTS` 提供，
+版本号从各 Skill 模块读取（不重抄）。追踪检索端点只对管理员开放；`/skills` 任意已认证用户可读
+（`SPEC.md` 5.4）。这些端点对 OpenAPI 隐藏，是为了让本票不改动冻结的 `contracts/`
+（本票边界），端点本身照常服务。
+
 HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 `data: <JSON>\n\n` 写出，返回 `text/event-stream; charset=utf-8`。
 
@@ -316,12 +352,26 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 
 ### c) trace 审计的结构化 detail
 
-**结算：本票不解决，明确由 TICKET-011 承接。**
-本票的审计能力仍走 TICKET-002 的既有形态：受限摘要 + 字段顺序（安全门把
-`rule_version`/`red_flags[].id`/`matched_surface` 排在输出最前，归一化/检索/图谱把
-截断参数排在前面）。要回答「为什么走了这条路由」已经足够（`orchestration` span 的
-输出摘要含 `skills_run`/`skills_skipped`/引用数/候选数/降级支路）。
-`Span` 增加结构化 `detail` 字段、由可观测性接口读回，是 TICKET-011 的范围。
+**结算（TICKET-011 拍板）：为 `Span` 增加结构化 `detail` 字段（动 B-4 / B-5），并由可观测性接口读回。**
+
+TICKET-007 当时沿用 TICKET-002 的「受限摘要 + 字段顺序」，但 `output_digest` 的 200 字
+上限在**多红旗 / 多引用**输入下会截断后面的条目，丢掉它们的命中标识、匹配片段与规则版本
+—— 而这正是 `SPEC.md` 6.1 AC-B-15（trace 记录命中红旗标识、匹配片段与规则版本）与
+AC-B-33（trace 足以在不访问外部依赖的前提下重放）要求保住的。字段顺序只能缓解，不能保证。
+
+| 层 | 落地内容 |
+|---|---|
+| `skills/trace.py` | `Span` 新增 `detail: dict \| None`，**不受 `DIGEST_LIMIT` 约束**；`TraceReader` 新增 `search(TraceQuery)`；`TraceSummary` 补 `skills_run` / `degraded` |
+| `skills/protocol.py` | B-2 协议新增可覆写钩子 `Skill.trace_detail(request, response) → dict \| None`，默认 `None` |
+| `models/trace.py` + 迁移 `0004` | `trace_span` 新增 `detail` JSON 列 |
+| `repositories/trace.py` | 持久化并读回 `detail`；实现 `search` |
+| 各 Skill | 安全门写规则版本 + 每条红旗；归一化写词表版本 + 标准症状；检索写每条引用的序号/文件名/距离；图谱写排序参数 + 全部候选；编排写路由与计数；`llm` span 写长度类事实 |
+| 可观测性接口 | `GET /traces/{trace_id}` 原样返回 `detail` |
+
+`detail` 只放结构化事实，**不落患者原文与大模型完整输出**（`SPEC.md` 3.7）：安全门只留
+命中的原文片段（`matched_surface`），`llm` span 只留长度，检索不落 `snippet` / `context`。
+证据：`tests/test_trace_detail.py`（多红旗/多引用截断下的审计断言）、
+`tests/test_observability_api.py::test_trace_by_id_exposes_the_structured_audit_detail`。
 
 ### d) Neo4j 依赖：真实驱动还是假端口
 
@@ -396,6 +446,25 @@ TICKET-005 的 `RetrievalReference` 当时只带 `snippet`，编排无从取得�
 也无需收回为 `503`。本票据此**不修改 `contracts/`**，只固化一条断言：
 `test_the_error_frame_contract_places_no_enum_on_the_code` 直接读契约，
 断言 `$defs.error.properties.code` 是整数且无枚举。
+
+### h) 助手消息与 trace 的同事务语义（TICKET-010 挂账第 1 条，TICKET-011 结算）
+
+**结算：保持同事务提交，不改为分事务；把语义写清并在接口侧声明。**
+
+`api/v1/chat.py` 的 `_commit_turn` 在**同一个** `AsyncSession` / 同一个事务里写助手消息、
+`references_json` / `graph_json`，以及本次问诊的全部 span 与路由决策，然后一次提交。因此：
+
+- 助手消息写失败 ⇒ 整笔回滚 ⇒ 该次问诊的 trace 也不存在；
+- trace 写失败 ⇒ 整笔回滚 ⇒ 助手消息也不写、消息计数不加。
+
+由此，可观测性接口查不到某次 trace 只可能是两种情形之一：这次问诊**从未跑完**，或它
+**写库失败并整体回滚**。二者在数据上不可区分，`GET /traces/{trace_id}` 一律返回 404
+（`api/v1/observability.py` 的模块 docstring 同步声明这条语义）。
+
+**为什么不改成分事务**：trace 是回放的证据来源（`SPEC.md` 4.4），它必须与它所描述的
+回合同时成立。分事务会引入「有助手消息却无 trace」或「有 trace 却无助手消息」的偏斜记录，
+回放时无法判断该以哪一侧为准。同事务把「trace 存在」与「回合真正落库」绑成一个原子事实，
+是更小、更少自相矛盾的可观测性承诺。
 
 ### 仍在本票之外、留给后续票的接口
 

@@ -141,6 +141,12 @@
 `rule_version` 与 `red_flags` 排在输出字段最前（且每条命中项里 `id`、`matched_surface` 又排在
 `severity`、`label` 之前），因此输出摘要一旦被截断，**优先保留**的正是审计三元组。
 
+自 TICKET-011 起，span 另带一份结构化 `detail`（`{"rule_version", "decision", "level",
+"red_flags": [...]}`），**不受 200 字摘要上限约束**：多条红旗同时命中时，摘要会在中途
+截断、丢掉后面的条目，而 `detail.red_flags` 保留**每一条**的 `id` / `matched_surface` /
+`severity` / `label`，审计三元组不再丢失（003 挂账第 1 条，`SPEC.md` 6.1 AC-B-15）。
+`detail` 只含命中的原文片段，不含整段患者原文（`SPEC.md` 3.7）。
+
 ---
 
 ## 3. 边界情况

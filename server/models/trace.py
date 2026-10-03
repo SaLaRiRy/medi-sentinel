@@ -25,6 +25,9 @@ class TraceSpanRow(Base):
     input_digest: Mapped[str] = mapped_column(String(DIGEST_LIMIT))
     output_digest: Mapped[str] = mapped_column(String(DIGEST_LIMIT))
     started_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    # Structured audit detail (TICKET-011). Not width-bound like the digests: a
+    # call with many red flags / references keeps every entry's audit fields.
+    detail: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
 
 class RouteDecisionRow(Base):

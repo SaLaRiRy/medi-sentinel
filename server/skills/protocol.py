@@ -37,6 +37,18 @@ class Skill:
     async def run(self, data: BaseModel) -> BaseModel:
         raise NotImplementedError
 
+    def trace_detail(
+        self, request: BaseModel, response: BaseModel
+    ) -> dict[str, Any] | None:
+        """Structured, audit-relevant facts for this call's span (B-4, TICKET-011).
+
+        Recorded as-is, so unlike `output_digest` it is not truncated: the audit
+        facts of a call with many hits (red flags, references, candidates) survive
+        in full. It must not carry raw patient text or full model output
+        (SPEC.md 3.7) — only the Skill's own structured output.
+        """
+        return None
+
     async def invoke(self, payload: Mapping[str, Any], context: SkillContext) -> SkillOutcome:
         started = time.perf_counter()
         started_at = datetime.now(UTC)
@@ -58,7 +70,13 @@ class Skill:
             )
 
         await self._record(
-            context, started, started_at, "ok", payload_digest, digest(response)
+            context,
+            started,
+            started_at,
+            "ok",
+            payload_digest,
+            digest(response),
+            detail=self.trace_detail(request, response),
         )
         return SkillOutcome(status="ok", output=response)
 
@@ -70,6 +88,7 @@ class Skill:
         status: Literal["ok", "error", "cancelled"],
         input_digest: str,
         output_digest: str,
+        detail: dict[str, Any] | None = None,
     ) -> None:
         await context.sink.record_span(
             Span(
@@ -80,5 +99,6 @@ class Skill:
                 input_digest=input_digest,
                 output_digest=output_digest,
                 started_at=started_at,
+                detail=detail,
             )
         )

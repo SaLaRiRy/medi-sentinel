@@ -42,6 +42,9 @@ GRAPH_INFERENCE = "graph-inference"
 ORCHESTRATION = "orchestration"
 LLM_SPAN = "llm"
 
+#: Schema 版本，与 `SKILL.md` 声明一致；`GET /skills` 从这里读取（TICKET-011）。
+SCHEMA_VERSION = "orchestration-schema-v1"
+
 GRAPH_SKIPPED_REASON = "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
 SAFETY_INTERCEPT_REASON = (
     "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
@@ -289,7 +292,7 @@ class Orchestrator:
         except Exception as error:
             await self._record_span(
                 trace_id, LLM_SPAN, "error", llm_started, llm_started_at,
-                digest(prompt), "",
+                digest(prompt), "", detail=_llm_detail(prompt, answer),
             )
             raise _generation_failure(error) from error
         except BaseException:
@@ -303,12 +306,14 @@ class Orchestrator:
             await self._record_span(
                 trace_id, LLM_SPAN, "ok", llm_started, llm_started_at,
                 digest(prompt), digest("".join(answer)),
+                detail=_llm_detail(prompt, answer),
             )
         finally:
             if cancelled:
                 await self._record_span(
                     trace_id, LLM_SPAN, "cancelled", llm_started, llm_started_at,
                     digest(prompt), digest("".join(answer)),
+                    detail=_llm_detail(prompt, answer),
                 )
         summary["answer_length"] = sum(len(chunk) for chunk in answer)
 
@@ -383,6 +388,7 @@ class Orchestrator:
         started_at: datetime,
         input_digest: str,
         output_digest: str,
+        detail: dict | None = None,
     ) -> None:
         await self._sink.record_span(
             Span(
@@ -393,6 +399,7 @@ class Orchestrator:
                 input_digest=input_digest,
                 output_digest=output_digest,
                 started_at=started_at,
+                detail=detail,
             )
         )
 
@@ -414,7 +421,30 @@ class Orchestrator:
             started_at,
             digest({"session_id": session_id, "message": request.message}),
             digest({"session_id": session_id, "status": status, **summary}),
+            detail={
+                "session_id": session_id,
+                "status": status,
+                "skills_run": summary.get("skills_run", []),
+                "skills_skipped": summary.get("skills_skipped", []),
+                "references": summary.get("references"),
+                "graph_candidates": summary.get("graph_candidates"),
+                "degraded": summary.get("degraded", []),
+                "answer_length": summary.get("answer_length"),
+            },
         )
+
+
+def _llm_detail(prompt: str, answer: Sequence[str]) -> dict:
+    """Generation's structured facts: sizes only, never the prompt or the answer text.
+
+    The prompt embeds the patient's own words and the answer is the full model
+    output, so only their lengths land in the trace (SPEC.md 3.7).
+    """
+    return {
+        "prompt_chars": len(prompt),
+        "chunk_count": len(answer),
+        "answer_length": sum(len(chunk) for chunk in answer),
+    }
 
 
 def _output(model: type[BaseModel], outcome: SkillOutcome) -> BaseModel | None:

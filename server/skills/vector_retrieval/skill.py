@@ -4,6 +4,8 @@
 图库或向量索引，也不声明 `LlmPort`（嵌入模型调用不算大模型调用，SPEC.md 3.4）。
 """
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from skills.ports import RetrievalPort
@@ -39,6 +41,29 @@ class VectorRetrievalSkill(Skill):
 
     def __init__(self, retrieval: RetrievalPort) -> None:
         self._retrieval = retrieval
+
+    def trace_detail(
+        self, request: VectorRetrievalInput, response: VectorRetrievalOutput
+    ) -> dict[str, Any]:
+        """逐条记录命中的序号、文件名与距离（TICKET-005 要求），不受摘要上限约束。
+
+        多引用时 `output_digest` 只装得下前几条；`detail` 让每一条都可审计。
+        不落 `snippet` / `context`：正文既不必要，也避免正文重复落库。
+        """
+        return {
+            "top_k": response.top_k,
+            "snippet_length": response.snippet_length,
+            "degraded": response.degraded,
+            "degraded_reason": response.degraded_reason,
+            "references": [
+                {
+                    "index": reference.index,
+                    "file_name": reference.file_name,
+                    "distance": reference.distance,
+                }
+                for reference in response.references
+            ],
+        }
 
     async def run(self, data: VectorRetrievalInput) -> VectorRetrievalOutput:
         try:

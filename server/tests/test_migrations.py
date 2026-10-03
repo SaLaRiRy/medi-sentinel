@@ -35,7 +35,7 @@ def test_upgrade_head_brings_an_empty_database_to_the_current_revision(tmp_path)
 
     command.upgrade(_config(db_path), "head")
 
-    assert _stamped_revisions(db_path) == ["0003"]
+    assert _stamped_revisions(db_path) == ["0004"]
 
 
 def test_upgrade_head_twice_is_a_no_op(tmp_path):
@@ -45,7 +45,26 @@ def test_upgrade_head_twice_is_a_no_op(tmp_path):
     command.upgrade(config, "head")
     command.upgrade(config, "head")
 
-    assert _stamped_revisions(db_path) == ["0003"]
+    assert _stamped_revisions(db_path) == ["0004"]
+
+
+def test_upgrade_head_adds_the_trace_span_detail_column(tmp_path):
+    """TICKET-011: the structured detail column lands with the model (ADR-0001)."""
+    db_path = tmp_path / "empty.db"
+
+    command.upgrade(_config(db_path), "head")
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    try:
+        with engine.connect() as connection:
+            columns = {
+                row[1]
+                for row in connection.execute(text("PRAGMA table_info(trace_span)"))
+            }
+    finally:
+        engine.dispose()
+
+    assert "detail" in columns
 
 
 def test_upgrade_head_creates_the_trace_store(tmp_path):

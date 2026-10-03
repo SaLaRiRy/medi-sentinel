@@ -4,7 +4,7 @@
 向量索引与大模型，因此同一输入的结果可复现（SPEC.md 3.4 / 3.5）。
 """
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -102,6 +102,21 @@ class SafetyGateSkill(Skill):
     name = "safety-gate"
     input_schema = SafetyGateInput
     output_schema = SafetyGateOutput
+
+    def trace_detail(
+        self, request: SafetyGateInput, response: SafetyGateOutput
+    ) -> dict[str, Any]:
+        """把审计三元组结构化落库：规则版本 + 每条命中项的 id / 匹配片段 / 严重级。
+
+        多条红旗同时命中时，`output_digest` 会在 200 字处截断、丢掉后面的条目；
+        `detail` 不受该上限约束，因此 AC-B-15 的审计信息不再丢失（003 挂账第 1 条）。
+        """
+        return {
+            "rule_version": response.rule_version,
+            "decision": response.decision,
+            "level": response.level,
+            "red_flags": [flag.model_dump(mode="json") for flag in response.red_flags],
+        }
 
     async def run(self, data: SafetyGateInput) -> SafetyGateOutput:
         matches = detect_red_flags(data.message)

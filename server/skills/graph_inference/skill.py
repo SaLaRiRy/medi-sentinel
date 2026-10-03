@@ -6,6 +6,8 @@
 （SPEC.md 3.6 / 6.1 AC-B-18）。
 """
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from skills.graph_inference.inference import (
@@ -45,6 +47,22 @@ class GraphInferenceSkill(Skill):
 
     def __init__(self, graph: GraphPort) -> None:
         self._graph = graph
+
+    def trace_detail(
+        self, request: GraphInferenceInput, response: GraphInferenceOutput
+    ) -> dict[str, Any]:
+        """排序/截断参数、输入症状与全部候选疾病结构化落库（回放可复现）。"""
+        return {
+            "limit": response.limit,
+            "coverage_decimals": response.coverage_decimals,
+            "degraded": response.degraded,
+            "degraded_reason": response.degraded_reason,
+            "symptoms": list(response.symptoms),
+            "candidates": [
+                candidate.model_dump(mode="json")
+                for candidate in response.candidates
+            ],
+        }
 
     async def run(self, data: GraphInferenceInput) -> GraphInferenceOutput:
         symptoms = normalize_terms(data.symptoms)

@@ -4,6 +4,8 @@
 与大模型，因此同一输入的结果可复现（SPEC.md 3.4 / 3.6）。
 """
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from skills.protocol import Skill
@@ -28,6 +30,15 @@ class SymptomNormalizationSkill(Skill):
     name = "symptom-normalization"
     input_schema = SymptomNormalizationInput
     output_schema = SymptomNormalizationOutput
+
+    def trace_detail(
+        self, request: SymptomNormalizationInput, response: SymptomNormalizationOutput
+    ) -> dict[str, Any]:
+        """词表版本与全部标准症状结构化落库（回放时据此重建归一化结果）。"""
+        return {
+            "vocabulary_version": response.vocabulary_version,
+            "symptoms": list(response.symptoms),
+        }
 
     async def run(self, data: SymptomNormalizationInput) -> SymptomNormalizationOutput:
         return SymptomNormalizationOutput(

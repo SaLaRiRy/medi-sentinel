@@ -180,9 +180,15 @@ class VectorRetrievalSkill(Skill):
 | `status` | `ok`（正常，含无命中与降级）/ `error`（输入非法或内部异常） |
 | `input_digest` | 检索问句的受限摘要（`SPEC.md` 3.7） |
 | `output_digest` | 截断参数（`top_k`、`snippet_length`）+ 降级标记 + 引用序号/文件名 |
+| `detail` | 结构化审计：`top_k` / `snippet_length` / `degraded` / `degraded_reason`，以及**每一条**命中的 `index` / `file_name` / `distance`（TICKET-011） |
 
 `top_k` 与 `snippet_length` 排在输出字段最前，因此输出摘要一旦被截断，
 「按什么规则截断」这一审计信息优先保留。
+
+自 TICKET-011 起，span 另带一份结构化 `detail`，**不受 200 字摘要上限约束**：
+一次检索返回多条引用时，`output_digest` 只装得下最前面几条，而 `detail.references`
+保留**每一条**的序号、文件名与距离（TICKET-005 要求逐条记录距离）。
+`detail` 不落 `snippet` / `context`，正文不重复落库（`SPEC.md` 3.7）。
 
 ---
 
