@@ -26,6 +26,7 @@ build/
 # Runtime data
 server/chroma_db/
 uploads/
+.tmp/
 
 # Logs
 *.log

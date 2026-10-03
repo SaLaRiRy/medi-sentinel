@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SaLaRiRy/medi-sentinel/contracts/sse-events.json",
+  "title": "MediSentinel SSE event schema",
+  "description": "Every frame of POST /api/v1/chat/send. Frames arrive as `data: <JSON>\\n\\n`; the type is the JSON field `type`, never the SSE `event:` field. Unknown `type` values must be ignored by consumers.",
+  "oneOf": [
+    { "$ref": "#/$defs/session" },
+    { "$ref": "#/$defs/trace" },
+    { "$ref": "#/$defs/route" },
+    { "$ref": "#/$defs/safety" },
+    { "$ref": "#/$defs/content" },
+    { "$ref": "#/$defs/done" },
+    { "$ref": "#/$defs/error" }
+  ],
+  "$defs": {
+    "session": {
+      "type": "object",
+      "required": ["type", "session_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "session" },
+        "session_id": { "type": "integer" }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "required": ["type", "trace_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "trace" },
+        "trace_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "route": {
+      "type": "object",
+      "required": ["type", "skills_run", "skills_skipped"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "route" },
+        "skills_run": { "type": "array", "items": { "type": "string" } },
+        "skills_skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["skill", "reason"],
+            "additionalProperties": false,
+            "properties": {
+              "skill": { "type": "string" },
+              "reason": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "type",
+        "decision",
+        "level",
+        "red_flags",
+        "message",
+        "suggested_action"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "safety" },
+        "decision": { "const": "intercept" },
+        "level": { "enum": ["emergency", "urgent"] },
+        "red_flags": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "matched_surface", "severity"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string" },
+              "label": { "type": "string" },
+              "matched_surface": { "type": "string" },
+              "severity": { "enum": ["emergency", "urgent"] }
+            }
+          }
+        },
+        "message": { "type": "string", "minLength": 1 },
+        "suggested_action": { "type": "string", "minLength": 1 }
+      }
+    },
+    "content": {
+      "type": "object",
+      "required": ["type", "content"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "content" },
+        "content": { "type": "string" }
+      }
+    },
+    "done": {
+      "type": "object",
+      "required": [
+        "type",
+        "references",
+        "graph",
+        "coverage_note",
+        "degraded",
+        "cost_time",
+        "trace_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "done" },
+        "references": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/reference" }
+        },
+        "graph": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/disease_candidate" }
+        },
+        "coverage_note": { "type": ["string", "null"] },
+        "degraded": {
+          "type": "array",
+          "items": { "enum": ["retrieval", "graph"] }
+        },
+        "cost_time": { "type": "integer", "minimum": 0 },
+        "trace_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["type", "code", "message", "trace_id"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "const": "error" },
+        "code": { "type": "integer" },
+        "message": { "type": "string", "minLength": 1 },
+        "trace_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["index", "file_name", "snippet"],
+      "additionalProperties": false,
+      "properties": {
+        "index": { "type": "integer" },
+        "file_name": { "type": "string" },
+        "snippet": { "type": "string" }
+      }
+    },
+    "disease_candidate": {
+      "type": "object",
+      "required": [
+        "disease",
+        "match_count",
+        "coverage",
+        "department",
+        "matched_symptoms"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "disease": { "type": "string" },
+        "match_count": { "type": "integer" },
+        "coverage": { "type": "number" },
+        "department": { "type": ["string", "null"] },
+        "matched_symptoms": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

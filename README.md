@@ -2,7 +2,7 @@
 
 AI 智能医疗问诊平台 —— 异步、Skill 化重建。
 
-> **当前状态：规格阶段。** 仓库目前只包含规格文档与工程约定，尚无实现代码。下文「架构」描述的是 `SPEC.md` 规定的目标形态；「启动方式」在实现落地前不可执行。
+> **当前状态：骨架阶段。** TICKET-001 已落地 monorepo 骨架、契约 seam（B-1…B-5、F-1…F-3、C-1）与 Alembic 迁移；目前只有 `/api/v1/health` 一个端点，五个 Skill 与各业务域尚未实现。下文「架构」描述的是 `SPEC.md` 规定的目标形态。
 
 ## 文档
 
@@ -72,13 +72,13 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 
 ## 启动方式
 
-实现落地后按下述方式启动。
+后端骨架与前端外壳已可启动；五个 Skill 与业务域尚未实现，界面目前展示后端健康状态。
 
 ### 前置依赖
 
 - Python 3.11+
 - Node.js 18+
-- MySQL（`utf8mb4`）与 Neo4j，两者均需先启动
+- MySQL（`utf8mb4`）与 Neo4j —— 只有跑真实业务时才需要；不启动也能起服务与跑测试
 - 大模型/嵌入服务的 API Key
 
 ### 后端
@@ -87,13 +87,16 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 cd server
 python -m venv .venv
 .venv\Scripts\activate          # Windows；Linux/macOS 用 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # 含测试依赖；只运行服务可用 requirements.txt
 
+alembic upgrade head            # 建表：应用 Schema 迁移，可重复执行
 set OPENAI_API_KEY=<your-key>   # Windows；Linux/macOS 用 export OPENAI_API_KEY=<your-key>
 uvicorn main:app --reload --port 8000
 ```
 
 接口文档：`http://127.0.0.1:8000/docs`
+
+MySQL 未启动时健康端点不会崩，而是把 `database` 报成 `unavailable`。
 
 ### 前端
 
@@ -116,6 +119,34 @@ python scripts/init_knowledge.py  # 知识库种子文档灌入并向量化（�
 ```
 
 种子文档位于 `server/docs_seed/`，由 `init_knowledge.py` 读取；该目录缺失时脚本提示并退出。
+
+## 测试
+
+```bash
+cd server
+.venv\Scripts\python.exe -m pytest -q     # 后端
+
+cd ../client
+npm test                                  # 前端
+```
+
+后端默认连 MySQL，测试则用 SQLite，不需要启动任何外部服务。
+
+## 契约
+
+`contracts/` 是前后端共同的事实来源，独立于两侧实现：
+
+- `contracts/openapi.json` —— REST 契约，由应用生成后提交
+- `contracts/sse-events.json` —— SSE 帧 Schema（`POST /api/v1/chat/send`）
+
+应用改动后重新生成 REST 契约：
+
+```bash
+cd server
+.venv\Scripts\python.exe scripts\export_contract.py
+```
+
+两侧测试都对着这两份文件校验：后端断言产出满足契约，前端断言能解析契约声明的全部形状；契约与实现不一致时测试会失败。
 
 ## 工程约定
 
