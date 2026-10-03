@@ -114,6 +114,40 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ method: 'DELETE', path: `/knowledge/${fileId}`, authed: true })
     },
 
+    // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
+    // endpoints are public; inference and stats carry the token.
+    async graphOverview() {
+      return call({ path: '/graph' })
+    },
+
+    async graphNeighbors(name, depth = 1) {
+      return call({
+        path: `/graph/entities/${encodeURIComponent(name)}/neighbors`,
+        query: { depth },
+      })
+    },
+
+    async graphSearch(keyword) {
+      return call({ path: '/graph/search', query: { keyword } })
+    },
+
+    async graphDisease(name) {
+      return call({ path: `/graph/diseases/${encodeURIComponent(name)}` })
+    },
+
+    async inferGraph(symptoms) {
+      return call({
+        method: 'POST',
+        path: '/graph/infer',
+        body: { symptoms },
+        authed: true,
+      })
+    },
+
+    async graphStats() {
+      return call({ path: '/graph/stats', authed: true })
+    },
+
     async chatSessions() {
       return call({ path: '/chat/sessions', authed: true })
     },

@@ -30,6 +30,21 @@ describe('resolveRoute (TICKET-014)', () => {
     })
   })
 
+  it('maps the graph and symptom-inference paths to their own screens (TICKET-016)', () => {
+    expect(resolveRoute('/admin/graph')).toEqual({
+      path: '/admin/graph',
+      screen: 'graph',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+    expect(resolveRoute('/portal/symptom')).toEqual({
+      path: '/portal/symptom',
+      screen: 'symptom',
+      requiresAuth: true,
+      roles: ['user'],
+    })
+  })
+
   it('falls back to the shell home for routes not built yet', () => {
     expect(resolveRoute('/portal/appointment')).toMatchObject({
       screen: 'home',

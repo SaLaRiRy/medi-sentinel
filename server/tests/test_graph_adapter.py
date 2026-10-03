@@ -181,3 +181,166 @@ async def test_close_releases_the_driver():
     await adapter.close()
 
     assert driver.closed
+
+
+async def test_full_graph_projects_every_node_and_directed_edge():
+    node_rows = [
+        {"name": "高血压", "labels": ["Disease"]},
+        {"name": "头痛", "labels": ["Symptom"]},
+    ]
+    edge_rows = [
+        {
+            "source_name": "高血压",
+            "source_labels": ["Disease"],
+            "target_name": "头痛",
+            "target_labels": ["Symptom"],
+            "rel_type": "HAS_SYMPTOM",
+        }
+    ]
+    adapter, driver = adapter_with(node_rows, edge_rows)
+
+    payload = await adapter.full_graph()
+
+    assert payload == {
+        "nodes": [
+            {"id": "Disease:高血压", "name": "高血压", "label": "Disease"},
+            {"id": "Symptom:头痛", "name": "头痛", "label": "Symptom"},
+        ],
+        "edges": [
+            {
+                "source": "Disease:高血压",
+                "target": "Symptom:头痛",
+                "type": "HAS_SYMPTOM",
+            }
+        ],
+    }
+    assert "MATCH (n)" in driver.log[0][0]
+    assert "MATCH (a)-[r]->(b)" in driver.log[1][0]
+
+
+async def test_neighbours_bind_depth_into_the_query_and_return_the_subgraph():
+    root_rows = [{"name": "高血压", "labels": ["Disease"]}]
+    node_rows = [{"name": "头痛", "labels": ["Symptom"]}]
+    edge_rows = [
+        {
+            "source_name": "高血压",
+            "source_labels": ["Disease"],
+            "target_name": "头痛",
+            "target_labels": ["Symptom"],
+            "rel_type": "HAS_SYMPTOM",
+        }
+    ]
+    adapter, driver = adapter_with(root_rows, node_rows, edge_rows)
+
+    payload = await adapter.neighbors("高血压", depth=2)
+
+    assert payload == {
+        "nodes": [
+            {"id": "Disease:高血压", "name": "高血压", "label": "Disease"},
+            {"id": "Symptom:头痛", "name": "头痛", "label": "Symptom"},
+        ],
+        "edges": [
+            {
+                "source": "Disease:高血压",
+                "target": "Symptom:头痛",
+                "type": "HAS_SYMPTOM",
+            }
+        ],
+    }
+    neighbour_queries = [query for query, _ in driver.log[1:]]
+    assert len(neighbour_queries) == 2
+    assert all("[*1..2]" in query for query in neighbour_queries)
+    assert all(params == {"entity": "高血压"} for _, params in driver.log)
+
+
+async def test_neighbours_return_none_for_an_unknown_entity():
+    adapter, driver = adapter_with([])
+
+    payload = await adapter.neighbors("不存在", depth=1)
+
+    assert payload is None
+    assert len(driver.log) == 1
+
+
+async def test_neighbours_reject_a_depth_outside_the_supported_range():
+    adapter, driver = adapter_with()
+
+    for depth in (0, 6):
+        with pytest.raises(ValueError):
+            await adapter.neighbors("高血压", depth=depth)
+
+    assert driver.log == []
+
+
+async def test_search_entities_filters_by_name_with_the_declared_limit():
+    rows = [
+        {"name": "高血压", "labels": ["Disease"]},
+        {"name": "高血脂", "labels": ["Disease"]},
+    ]
+    adapter, driver = adapter_with(rows)
+
+    results = await adapter.search_entities("高")
+
+    query, params = driver.log[-1]
+    assert "CONTAINS $keyword" in query
+    assert "LIMIT 20" in query
+    assert params == {"keyword": "高"}
+    assert results == [
+        {"id": "Disease:高血压", "name": "高血压", "label": "Disease"},
+        {"id": "Disease:高血脂", "name": "高血脂", "label": "Disease"},
+    ]
+
+
+async def test_disease_detail_returns_none_for_an_unknown_disease():
+    adapter, driver = adapter_with([])
+
+    payload = await adapter.disease_detail("不存在")
+
+    assert payload is None
+    assert len(driver.log) == 1
+
+
+async def test_disease_detail_projects_department_relations_and_missing_department():
+    root_rows = [{"name": "高血压"}]
+    relation_rows = [
+        {"rel_type": "HAS_SYMPTOM", "name": "头痛", "labels": ["Symptom"]},
+        {"rel_type": "RECOMMEND_DRUG", "name": "氨氯地平", "labels": ["Drug"]},
+    ]
+    adapter, driver = adapter_with(root_rows, [{"department": "-"}], relation_rows)
+
+    payload = await adapter.disease_detail("高血压")
+
+    assert payload == {
+        "disease": "高血压",
+        "department": None,
+        "nodes": [
+            {"id": "Disease:高血压", "name": "高血压", "label": "Disease"},
+            {"id": "Symptom:头痛", "name": "头痛", "label": "Symptom"},
+            {"id": "Drug:氨氯地平", "name": "氨氯地平", "label": "Drug"},
+        ],
+        "edges": [
+            {
+                "source": "Disease:高血压",
+                "target": "Symptom:头痛",
+                "type": "HAS_SYMPTOM",
+            },
+            {
+                "source": "Disease:高血压",
+                "target": "Drug:氨氯地平",
+                "type": "RECOMMEND_DRUG",
+            },
+        ],
+    }
+    assert "BELONGS_TO" in driver.log[1][0]
+    assert "type(r) AS rel_type" in driver.log[2][0]
+
+
+async def test_node_counts_returns_the_label_counts():
+    adapter, driver = adapter_with(
+        [{"label": "Disease", "count": 3}, {"label": "Symptom", "count": 19}]
+    )
+
+    counts = await adapter.node_counts()
+
+    assert counts == {"Disease": 3, "Symptom": 19}
+    assert "UNWIND labels(n) AS label" in driver.log[-1][0]

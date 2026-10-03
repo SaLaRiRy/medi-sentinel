@@ -10,10 +10,12 @@ import { applyApiError } from './session/guard.js'
 import { layoutFor } from './session/navigation.js'
 import { resolveNavigation } from './session/routes.js'
 import ChatView from './views/ChatView.vue'
+import GraphView from './views/GraphView.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
 import HealthView from './views/HealthView.vue'
 import KnowledgeView from './views/KnowledgeView.vue'
+import SymptomView from './views/SymptomView.vue'
 
 const session = createSessionStore()
 const client = createApiClient({ session })
@@ -101,11 +103,21 @@ function handleError(error) {
         @navigate="onNavigate"
       >
         <ChatView v-if="screen === 'chat'" :client="client" @error="handleError" />
+        <SymptomView
+          v-else-if="screen === 'symptom'"
+          :client="client"
+          @error="handleError"
+        />
         <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
         <KnowledgeView
           v-if="screen === 'knowledge'"
+          :client="client"
+          @error="handleError"
+        />
+        <GraphView
+          v-else-if="screen === 'graph'"
           :client="client"
           @error="handleError"
         />

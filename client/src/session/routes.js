@@ -13,11 +13,13 @@ export const ROUTE_TABLE = [
   { path: '/register', screen: 'register', requiresAuth: false },
   { path: '/portal/home', screen: 'home', requiresAuth: true, roles: ['user'] },
   { path: '/portal/chat', screen: 'chat', requiresAuth: true, roles: ['user'] },
+  { path: '/portal/symptom', screen: 'symptom', requiresAuth: true, roles: ['user'] },
   { path: '/portal/profile', screen: 'profile', requiresAuth: true, roles: ['user'] },
   { path: '/doctor/dashboard', screen: 'home', requiresAuth: true, roles: ['doctor'] },
   { path: '/doctor/profile', screen: 'profile', requiresAuth: true, roles: ['doctor'] },
   { path: '/admin/dashboard', screen: 'home', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/knowledge', screen: 'knowledge', requiresAuth: true, roles: ['admin'] },
+  { path: '/admin/graph', screen: 'graph', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/profile', screen: 'profile', requiresAuth: true, roles: ['admin'] },
 ]
 

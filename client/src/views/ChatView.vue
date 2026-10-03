@@ -10,6 +10,7 @@ import { onMounted, reactive, ref } from 'vue'
 
 import { renderMarkdown } from '../chat/markdown.js'
 import SafetyCard from '../components/SafetyCard.vue'
+import { coveragePercent, sortedCandidates } from '../graph/candidates.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -29,12 +30,6 @@ let nextId = 0
 
 function degradedLabel(part) {
   return DEGRADED_LABELS[part] ?? part
-}
-
-function sortedCandidates(turn) {
-  return [...(turn.graph ?? [])].sort(
-    (left, right) => (right.coverage ?? -1) - (left.coverage ?? -1)
-  )
 }
 
 function turnFromMessage(message) {
@@ -172,7 +167,7 @@ onMounted(loadSessions)
             </div>
             <div v-if="turn.graph.length" data-candidates class="chat__candidates">
               <div
-                v-for="candidate in sortedCandidates(turn)"
+                v-for="candidate in sortedCandidates(turn.graph)"
                 :key="candidate.disease"
                 :data-candidate="candidate.disease"
                 :data-disease="candidate.disease"
@@ -183,9 +178,9 @@ onMounted(loadSessions)
                 <span class="chat__candidate-count">命中 {{ candidate.match_count }} 项</span>
                 <div class="chat__coverage">
                   <div
-                    v-if="typeof candidate.coverage === 'number'"
+                    v-if="coveragePercent(candidate.coverage) !== null"
                     data-coverage-bar
-                    :style="{ width: `${Math.round(candidate.coverage * 100)}%` }"
+                    :style="{ width: `${coveragePercent(candidate.coverage)}%` }"
                   ></div>
                 </div>
               </div>

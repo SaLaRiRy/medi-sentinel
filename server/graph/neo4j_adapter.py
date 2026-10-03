@@ -16,14 +16,62 @@ from collections.abc import Sequence
 from typing import Any, Mapping
 
 from graph.ontology import NODE_LABELS, RELATIONSHIP_TYPES
+from graph.query import (
+    disease_detail_payload,
+    edge_from_row,
+    graph_view,
+    node_from_row,
+)
 from graph.store import GraphStats
 
 # 实体邻域子图的关系条数上限（`FUNCTIONAL_SPEC.md` 2.4 `get_entity_subgraph`）。
 MAX_NEIGHBORS = 30
 MAX_DEPTH = 5
+# 实体搜索条数上限（`FUNCTIONAL_SPEC.md` 2.4 `search_entities`）。
+SEARCH_LIMIT = 20
 
 _NODE_COUNTS = "MATCH (n) UNWIND labels(n) AS label RETURN label, count(*) AS count"
 _REL_COUNTS = "MATCH ()-[r]->() RETURN type(r) AS rel_type, count(r) AS count"
+_FULL_NODES = "MATCH (n) RETURN n.name AS name, labels(n) AS labels ORDER BY name"
+_FULL_EDGES = (
+    "MATCH (a)-[r]->(b) "
+    "RETURN a.name AS source_name, labels(a) AS source_labels, "
+    "b.name AS target_name, labels(b) AS target_labels, type(r) AS rel_type "
+    "ORDER BY rel_type, source_name, target_name"
+)
+_SEARCH = (
+    "MATCH (n) WHERE n.name CONTAINS $keyword "
+    f"RETURN n.name AS name, labels(n) AS labels ORDER BY n.name LIMIT {SEARCH_LIMIT}"
+)
+_ENTITY = "MATCH (root {name: $entity}) RETURN root.name AS name, labels(root) AS labels"
+# The Cypher contains literal `{name: $entity}` maps, so the validated depth is
+# substituted through a plain token instead of `str.format` (which would read
+# those braces as replacement fields).
+DEPTH_TOKEN = "__DEPTH__"
+_NEIGHBOUR_NODES = (
+    f"MATCH (root {{name: $entity}}) MATCH (root)-[*1..{DEPTH_TOKEN}]-(m) "
+    "RETURN DISTINCT m.name AS name, labels(m) AS labels "
+    f"ORDER BY name LIMIT {MAX_NEIGHBORS}"
+)
+_NEIGHBOUR_EDGES = (
+    f"MATCH (root {{name: $entity}}) MATCH (root)-[*1..{DEPTH_TOKEN}]-(m) "
+    "WITH collect(DISTINCT m) + root AS nodes UNWIND nodes AS a "
+    "MATCH (a)-[r]->(b) WHERE b IN nodes "
+    "RETURN DISTINCT a.name AS source_name, labels(a) AS source_labels, "
+    "b.name AS target_name, labels(b) AS target_labels, type(r) AS rel_type "
+    f"ORDER BY rel_type, source_name, target_name LIMIT {MAX_NEIGHBORS}"
+)
+_DISEASE_ROOT = "MATCH (d:Disease {name: $name}) RETURN d.name AS name"
+_DISEASE_DEPARTMENT = (
+    "MATCH (d:Disease {name: $name}) "
+    "OPTIONAL MATCH (d)-[:BELONGS_TO]->(dept:Department) "
+    "RETURN dept.name AS department"
+)
+_DISEASE_RELATIONS = (
+    "MATCH (d:Disease {name: $name})-[r]->(m) "
+    "RETURN type(r) AS rel_type, m.name AS name, labels(m) AS labels "
+    "ORDER BY rel_type, name"
+)
 
 
 def _require_label(label: str) -> None:
@@ -154,17 +202,58 @@ class Neo4jGraphAdapter:
             symptoms=list(symptoms),
         )
 
-    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
-        """实体邻域子图，`depth` 真实生效（`SPEC.md` 3.6「无无效参数」）。"""
+    async def full_graph(self) -> Mapping[str, Any]:
+        """全图（节点 + 有向关系），供 `GET /graph` 可视化（FUNCTIONAL_SPEC 2.4）。"""
+        node_rows = await self._run(_FULL_NODES)
+        edge_rows = await self._run(_FULL_EDGES)
+        return graph_view(node_rows, edge_rows)
+
+    async def neighbors(
+        self, entity: str, depth: int = 1
+    ) -> Mapping[str, Any] | None:
+        """实体邻域子图，`depth` 真实生效；实体不存在时返回 `None`。
+
+        `depth` 是 1..5 的整数（`_require_depth` 校验后插入已限定的 Cypher），
+        返回以该实体为中心、最多 `MAX_NEIGHBORS` 个相关节点的子图
+        （`SPEC.md` 3.6「无无效参数」）。
+        """
         validated = _require_depth(depth)
-        rows = await self._run(
-            "MATCH (n {name: $entity}) "
-            f"OPTIONAL MATCH (n)-[rels*1..{validated}]->(m) "
-            "WITH n, m, rels WHERE m IS NOT NULL "
-            "RETURN m.name AS name, labels(m) AS labels, "
-            "[rel IN rels | type(rel)] AS rel_types "
-            "ORDER BY name "
-            f"LIMIT {MAX_NEIGHBORS}",
-            entity=entity,
+        root_rows = await self._run(_ENTITY, entity=entity)
+        if not root_rows:
+            return None
+        node_rows = await self._run(
+            _NEIGHBOUR_NODES.replace(DEPTH_TOKEN, str(validated)), entity=entity
         )
-        return {"entity": entity, "depth": validated, "neighbors": rows}
+        edge_rows = await self._run(
+            _NEIGHBOUR_EDGES.replace(DEPTH_TOKEN, str(validated)), entity=entity
+        )
+        nodes: dict[str, dict[str, str]] = {}
+        for row in [*root_rows, *node_rows]:
+            node = node_from_row(row)
+            nodes[node["id"]] = node
+        return {
+            "nodes": list(nodes.values()),
+            "edges": [edge_from_row(row) for row in edge_rows],
+        }
+
+    async def search_entities(
+        self, keyword: str
+    ) -> Sequence[Mapping[str, Any]]:
+        """按名称包含匹配的实体搜索，上限 `SEARCH_LIMIT`（FUNCTIONAL_SPEC 2.4）。"""
+        rows = await self._run(_SEARCH, keyword=keyword)
+        return [node_from_row(row) for row in rows]
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any] | None:
+        """疾病详情子图：科室 + 全部出边；疾病不存在时返回 `None`。"""
+        root_rows = await self._run(_DISEASE_ROOT, name=name)
+        if not root_rows:
+            return None
+        department_rows = await self._run(_DISEASE_DEPARTMENT, name=name)
+        relation_rows = await self._run(_DISEASE_RELATIONS, name=name)
+        department = department_rows[0]["department"] if department_rows else None
+        return disease_detail_payload(name, department, relation_rows)
+
+    async def node_counts(self) -> Mapping[str, int]:
+        """按标签的节点计数（`GET /graph/stats`，FUNCTIONAL_SPEC 2.4）。"""
+        rows = await self._run(_NODE_COUNTS)
+        return {str(row["label"]): int(row["count"]) for row in rows}

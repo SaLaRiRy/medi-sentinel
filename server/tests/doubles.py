@@ -13,8 +13,24 @@ class CountingGraphPort:
         self.calls.append(("infer_diseases", tuple(symptoms)))
         return []
 
+    async def full_graph(self) -> Mapping[str, Any]:
+        self.calls.append(("full_graph",))
+        return {"nodes": [], "edges": []}
+
     async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
         self.calls.append(("neighbors", entity, depth))
+        return {}
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        self.calls.append(("search_entities", keyword))
+        return []
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any]:
+        self.calls.append(("disease_detail", name))
+        return {}
+
+    async def node_counts(self) -> Mapping[str, int]:
+        self.calls.append(("node_counts",))
         return {}
 
 
@@ -42,6 +58,18 @@ class HitsGraphPort:
     async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
         return {}
 
+    async def full_graph(self) -> Mapping[str, Any]:
+        return {"nodes": [], "edges": []}
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        return []
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any]:
+        return {}
+
+    async def node_counts(self) -> Mapping[str, int]:
+        return {}
+
 
 class ThrowingGraphPort:
     """Any query fails, as an unavailable graph store does (SPEC.md 3.6)."""
@@ -49,7 +77,19 @@ class ThrowingGraphPort:
     async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
         raise RuntimeError("graph unavailable")
 
+    async def full_graph(self) -> Mapping[str, Any]:
+        raise RuntimeError("graph unavailable")
+
     async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+        raise RuntimeError("graph unavailable")
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        raise RuntimeError("graph unavailable")
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any]:
+        raise RuntimeError("graph unavailable")
+
+    async def node_counts(self) -> Mapping[str, int]:
         raise RuntimeError("graph unavailable")
 
 
@@ -222,6 +262,18 @@ class BarrierGraphPort:
         return []
 
     async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+        return {}
+
+    async def full_graph(self) -> Mapping[str, Any]:
+        return {"nodes": [], "edges": []}
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        return []
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any]:
+        return {}
+
+    async def node_counts(self) -> Mapping[str, int]:
         return {}
 
 

@@ -109,8 +109,14 @@ describe('C-1 from the consuming side', () => {
     await client.uploadKnowledge({ name: '指南.md' })
     await client.revectorizeKnowledge(1)
     await client.deleteKnowledge(1)
+    await client.graphOverview()
+    await client.graphNeighbors('高血压', 1)
+    await client.graphSearch('高')
+    await client.graphDisease('高血压')
+    await client.inferGraph(['头痛'])
+    await client.graphStats()
 
-    expect(requested).toHaveLength(8)
+    expect(requested).toHaveLength(14)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
@@ -120,5 +126,11 @@ describe('C-1 from the consuming side', () => {
     expect(matchesDeclaredPath('POST', '/knowledge')).toBe(true)
     expect(matchesDeclaredPath('POST', '/knowledge/1/revectorize')).toBe(true)
     expect(matchesDeclaredPath('DELETE', '/knowledge/1')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/graph')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/graph/entities/高血压/neighbors')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/graph/search')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/graph/diseases/高血压')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/graph/infer')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/graph/stats')).toBe(true)
   })
 })

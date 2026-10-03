@@ -20,6 +20,7 @@ from core.roles import ROLE_ADMIN, ROLE_DOCTOR, ROLE_USER
 from core.security import decode_access_token
 from db.session import Database
 from repositories.accounts import AccountRepository, AccountRow
+from skills.ports import GraphPort
 
 __all__ = [
     "ROLE_ADMIN",
@@ -29,6 +30,7 @@ __all__ = [
     "Principal",
     "get_active_settings",
     "get_current_user",
+    "get_graph_port",
     "get_principal",
     "get_session",
     "require_admin",
@@ -69,6 +71,11 @@ def _bearer_token(request: Request) -> str | None:
 
 def get_active_settings(request: Request) -> Settings:
     return request.app.state.settings
+
+
+def get_graph_port(request: Request) -> GraphPort:
+    """The B-3 graph port the running app was built with (TICKET-016)."""
+    return request.app.state.orchestration_ports.graph
 
 
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:

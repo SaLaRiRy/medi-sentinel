@@ -9,7 +9,20 @@ from typing import Any, Mapping, Protocol, runtime_checkable
 class GraphPort(Protocol):
     async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]: ...
 
-    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]: ...
+    # The read-only view queries behind the graph-view API (TICKET-016, SPEC.md
+    # 5.4「知识图谱」). They return the same node/edge payload shape, so the
+    # endpoints and the front-end render them with one projection.
+    async def full_graph(self) -> Mapping[str, Any]: ...
+
+    async def neighbors(
+        self, entity: str, depth: int = 1
+    ) -> Mapping[str, Any] | None: ...
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]: ...
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any] | None: ...
+
+    async def node_counts(self) -> Mapping[str, int]: ...
 
 
 @runtime_checkable
@@ -42,7 +55,21 @@ class UnavailableGraphPort:
     async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
         raise RuntimeError(self._reason)
 
-    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+    async def full_graph(self) -> Mapping[str, Any]:
+        raise RuntimeError(self._reason)
+
+    async def neighbors(
+        self, entity: str, depth: int = 1
+    ) -> Mapping[str, Any] | None:
+        raise RuntimeError(self._reason)
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        raise RuntimeError(self._reason)
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any] | None:
+        raise RuntimeError(self._reason)
+
+    async def node_counts(self) -> Mapping[str, int]:
         raise RuntimeError(self._reason)
 
 
