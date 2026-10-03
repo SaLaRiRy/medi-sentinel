@@ -10,24 +10,34 @@ export function createHttpTransport({
   baseUrl = '/api/v1',
 } = {}) {
   return {
-    async request({ method = 'GET', path, query, body }) {
-      const response = await fetchImpl(buildUrl(baseUrl, path, query), jsonInit(method, body))
+    async request({ method = 'GET', path, query, headers, body }) {
+      const response = await fetchImpl(
+        buildUrl(baseUrl, path, query),
+        initFor(method, body, headers)
+      )
       return { status: response.status, payload: await response.json() }
     },
 
-    async *stream({ method = 'POST', path, body }) {
-      const response = await fetchImpl(buildUrl(baseUrl, path), jsonInit(method, body))
+    async *stream({ method = 'POST', path, headers, body }) {
+      const response = await fetchImpl(
+        buildUrl(baseUrl, path),
+        initFor(method, body, headers)
+      )
       if (!response.body) return
       yield* parseSse(readChunks(response.body))
     },
   }
 }
 
-function jsonInit(method, body) {
-  if (body === undefined) return { method, headers: {} }
+function initFor(method, body, headers = {}) {
+  if (body === undefined) return { method, headers: { ...headers } }
+  // FormData sets its own multipart boundary, so it must pass through untouched.
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    return { method, headers: { ...headers }, body }
+  }
   return {
     method,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: { 'content-type': 'application/json; charset=utf-8', ...headers },
     body: JSON.stringify(body),
   }
 }

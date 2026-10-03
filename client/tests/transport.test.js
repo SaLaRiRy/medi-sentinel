@@ -78,4 +78,42 @@ describe('createHttpTransport (F-2)', () => {
 
     expect(fetchImpl.mock.calls[0][0]).toBe('/api/v1/health')
   })
+
+  it('forwards the caller headers, so the token reaches the server (F-1 → F-2)', async () => {
+    const fetchImpl = vi.fn(
+      async () => new Response('{"code":200,"data":{}}', { status: 200 })
+    )
+    const transport = createHttpTransport({ fetchImpl, baseUrl: '/api/v1' })
+
+    await transport.request({
+      method: 'GET',
+      path: '/profile/info',
+      headers: { Authorization: 'Bearer token-123' },
+    })
+
+    const [, init] = fetchImpl.mock.calls[0]
+    expect(init.headers.Authorization).toBe('Bearer token-123')
+  })
+
+  it('sends a FormData body unchanged, without a JSON content type', async () => {
+    const fetchImpl = vi.fn(
+      async () => new Response('{"code":200,"data":{"avatar":"/uploads33/avatar/x.png"}}', {
+        status: 200,
+      })
+    )
+    const transport = createHttpTransport({ fetchImpl, baseUrl: '/api/v1' })
+    const form = new FormData()
+    form.append('file', new Blob(['x']), 'x.png')
+
+    await transport.request({
+      method: 'POST',
+      path: '/profile/avatar',
+      body: form,
+      headers: { Authorization: 'Bearer token-123' },
+    })
+
+    const [, init] = fetchImpl.mock.calls[0]
+    expect(init.body).toBe(form)
+    expect(init.headers['content-type']).toBeUndefined()
+  })
 })

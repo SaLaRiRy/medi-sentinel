@@ -16,6 +16,21 @@ class Settings(BaseSettings):
     # hardcoded defaults, overridable by environment for tests only.
     database_url: str = "mysql+aiomysql://root:root@127.0.0.1:3306/medi_sentinel"
 
+    # Token rules stay exactly as the reference implementation had them
+    # (FUNCTIONAL_SPEC 5.8 / SPEC.md 7.1): HS256, a 24-hour lifetime and a
+    # hardcoded signing key. Environment overrides exist for tests only.
+    jwt_secret_key: str = "medi-sentinel-jwt-secret"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 1440
+
+    # Uploads keep the reference root and layout (FUNCTIONAL_SPEC 5.18): avatars
+    # under `<upload_dir>/avatar`, served under `/uploads33`. The avatar cap is
+    # what turns an oversized upload into 413 (SPEC.md 5.2).
+    upload_dir: str = "D:/uploads33"
+    uploads_url_prefix: str = "/uploads33"
+    avatar_subdir: str = "avatar"
+    avatar_max_bytes: int = 2 * 1024 * 1024
+
     # AC-B-24: during a 20-consult burst no single synchronous stall on the
     # event loop may exceed this. The blocking-call detection test reads it.
     event_loop_block_threshold_ms: int = 250

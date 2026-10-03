@@ -24,14 +24,68 @@ export class ApiError extends Error {
   }
 }
 
-export function createApiClient({ transport = createHttpTransport() } = {}) {
+export function createApiClient({ transport = createHttpTransport(), session = null } = {}) {
+  const bearer = () => {
+    const token = session && session.get().token
+    return token ? { Authorization: `Bearer ${token}` } : undefined
+  }
+
+  // The request shape is built once so `health` keeps sending exactly
+  // `{method, path}` and only the authed calls carry an Authorization header.
+  const shape = ({ method = 'GET', path, query, body, authed = false }) => {
+    const request = { method, path }
+    if (query !== undefined) request.query = query
+    if (body !== undefined) request.body = body
+    if (authed) {
+      const headers = bearer()
+      if (headers) request.headers = headers
+    }
+    return request
+  }
+
+  const call = async (args) => {
+    const { status, payload } = await transport.request(shape(args))
+    return unwrap(status, payload)
+  }
+
+  const remember = (data) => {
+    session?.set({ token: data.access_token, role: data.role, user: data })
+    return data
+  }
+
   return {
     async health() {
-      const { status, payload } = await transport.request({
-        method: 'GET',
-        path: '/health',
-      })
-      return unwrap(status, payload)
+      return call({ method: 'GET', path: '/health' })
+    },
+
+    async login(credentials) {
+      return remember(await call({ method: 'POST', path: '/auth/login', body: credentials }))
+    },
+
+    async register(payload) {
+      return remember(await call({ method: 'POST', path: '/auth/register', body: payload }))
+    },
+
+    logout() {
+      session?.clear()
+    },
+
+    async profileInfo() {
+      return call({ path: '/profile/info', authed: true })
+    },
+
+    async profileUpdate(fields) {
+      return call({ method: 'PUT', path: '/profile/update', body: fields, authed: true })
+    },
+
+    async changePassword(payload) {
+      return call({ method: 'PUT', path: '/profile/password', body: payload, authed: true })
+    },
+
+    async uploadAvatar(file) {
+      const form = new FormData()
+      form.append('file', file)
+      return call({ method: 'POST', path: '/profile/avatar', body: form, authed: true })
     },
 
     async *sendChat(request) {

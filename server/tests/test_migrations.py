@@ -35,7 +35,7 @@ def test_upgrade_head_brings_an_empty_database_to_the_current_revision(tmp_path)
 
     command.upgrade(_config(db_path), "head")
 
-    assert _stamped_revisions(db_path) == ["0004"]
+    assert _stamped_revisions(db_path) == ["0005"]
 
 
 def test_upgrade_head_twice_is_a_no_op(tmp_path):
@@ -45,7 +45,7 @@ def test_upgrade_head_twice_is_a_no_op(tmp_path):
     command.upgrade(config, "head")
     command.upgrade(config, "head")
 
-    assert _stamped_revisions(db_path) == ["0004"]
+    assert _stamped_revisions(db_path) == ["0005"]
 
 
 def test_upgrade_head_adds_the_trace_span_detail_column(tmp_path):
@@ -107,3 +107,25 @@ def test_upgrade_head_creates_the_consult_store(tmp_path):
         engine.dispose()
 
     assert {"t_consult_session", "t_consult_message"} <= tables
+
+
+def test_upgrade_head_creates_the_three_account_tables(tmp_path):
+    """TICKET-012: the token layer needs one table per role (FUNCTIONAL_SPEC 4.3.1-4.3.3)."""
+    db_path = tmp_path / "empty.db"
+
+    command.upgrade(_config(db_path), "head")
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    try:
+        with engine.connect() as connection:
+            tables = set(
+                connection.execute(
+                    text("SELECT name FROM sqlite_master WHERE type = 'table'")
+                )
+                .scalars()
+                .all()
+            )
+    finally:
+        engine.dispose()
+
+    assert {"t_admin", "t_user", "t_doctor"} <= tables

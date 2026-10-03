@@ -1,10 +1,6 @@
 /** F-3: route access and the 401/403 split — the only place either is decided. */
 
-const ROLE_HOME = {
-  user: '/portal/home',
-  doctor: '/doctor/dashboard',
-  admin: '/admin/dashboard',
-}
+import { ROLE_HOME } from './navigation.js'
 
 const KNOWN_ROLES = new Set(Object.keys(ROLE_HOME))
 

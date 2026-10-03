@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from api.v1 import api_router
 from core.config import Settings, get_settings
@@ -36,6 +38,7 @@ def create_app(
         app.state.database = Database(active_settings.database_url)
         app.state.orchestration_ports = active_ports
         app.state.generation_guard = SessionGenerationGuard()
+        _prepare_uploads(app, active_settings)
         yield
         await app.state.database.dispose()
 
@@ -55,6 +58,26 @@ def create_app(
     register_error_handlers(app)
     app.include_router(api_router, prefix=active_settings.api_prefix)
     return app
+
+
+def _prepare_uploads(app: FastAPI, settings: Settings) -> None:
+    """Create the upload layout and serve it (FUNCTIONAL_SPEC 5.18).
+
+    A read-only or sandboxed filesystem must not stop the app from starting, so
+    the mount is skipped when the directory cannot be created.
+    """
+    root = Path(settings.upload_dir)
+    try:
+        (root / settings.avatar_subdir).mkdir(parents=True, exist_ok=True)
+        (root / "knowledge").mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+    if root.is_dir():
+        app.mount(
+            settings.uploads_url_prefix,
+            StaticFiles(directory=root),
+            name="uploads",
+        )
 
 
 app = create_app()
