@@ -1,11 +1,19 @@
 """B-3: the three narrow ports that make 'was the LLM called at all?' countable."""
 
 from skills.ports import GraphPort, LlmPort, RetrievalPort
-from tests.doubles import CountingGraphPort, CountingRetrievalPort, ThrowingLlmPort
+from tests.doubles import (
+    CountingGraphPort,
+    CountingRetrievalPort,
+    HitsGraphPort,
+    ThrowingGraphPort,
+    ThrowingLlmPort,
+)
 
 
 def test_counting_fakes_satisfy_the_port_contracts():
     assert isinstance(CountingGraphPort(), GraphPort)
+    assert isinstance(HitsGraphPort(), GraphPort)
+    assert isinstance(ThrowingGraphPort(), GraphPort)
     assert isinstance(CountingRetrievalPort(), RetrievalPort)
     assert isinstance(ThrowingLlmPort(), LlmPort)
 

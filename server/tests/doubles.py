@@ -26,6 +26,32 @@ class CountingRetrievalPort:
         return []
 
 
+class HitsGraphPort:
+    """Returns canned disease records and records the symptom set it was asked
+    about (SPEC.md 4.1 B-3)."""
+
+    def __init__(self, records: Sequence[Mapping[str, Any]] = ()) -> None:
+        self.records = list(records)
+        self.calls: list[tuple[str, ...]] = []
+
+    async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
+        self.calls.append(tuple(symptoms))
+        return self.records
+
+    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+        return {}
+
+
+class ThrowingGraphPort:
+    """Any query fails, as an unavailable graph store does (SPEC.md 3.6)."""
+
+    async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
+        raise RuntimeError("graph unavailable")
+
+    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+        raise RuntimeError("graph unavailable")
+
+
 class HitsRetrievalPort:
     """Returns canned hits and records every query (SPEC.md 4.1 B-3)."""
 
