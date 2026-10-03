@@ -185,11 +185,14 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | `vector-retrieval` | B-2 调用检索 | `ok` / `error`（降级与无命中都是 `ok`） |
 | `graph-inference` | B-2 调用图谱（未跳过时才有） | `ok` / `error`（降级是 `ok`） |
 | `orchestration` | B-1 本体 | `ok` / `error` |
-| `llm` | 大模型调用 | `ok` / `error` |
+| `llm` | 大模型调用 | `ok` / `error` / `cancelled` |
 
 安全门命中时（拦截路径）只产生 **1 条 span**：`safety-gate`。编排在跑成一个 Skill
 之前就短路返回，因此不写 `orchestration` span，也没有任何下游 span 与大模型 span
 （`SPEC.md` 6.3 AC-E-02）。
+
+客户端中途断开时，`llm` span 记 `cancelled`（下游调用确实被取消）。这一轮没有
+`orchestration` 收尾 span，因为编排本体是被取消的，而不是跑完的（TICKET-010）。
 
 另有 1 条路由记录（`RouteDecision`）：`skills_run`、`skills_skipped` 与跳过理由，
 与 `route` 帧一致。`orchestration` span 的输出摘要含本轮路由、引用数、候选数、降级支路
@@ -216,7 +219,9 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | 大模型返回空串片段 | 不发出内容帧；`content` 帧数可为 0，`done` 仍然发出 |
 | 图谱候选超过 5 条 | 提示词只取前 5 条，`done.graph` 返回全部最多 10 条，`coverage_note` 说明该截断 |
 | 两条支路均无结果 | 上下文取固定兜底文本，模型仍被调用 |
-| 客户端中途断开 | 下游调用被取消，`cancelled` 状态的 span 与 409 并发控制由 TICKET-010 实现 |
+| 客户端中途断开 | 不论取消落在 `LlmPort.stream` 的等待上（`CancelledError`）还是落在两帧之间（`GeneratorExit`），下游调用都被取消；`llm` span 记 `cancelled`，已发出的 `content` 帧保留，**不发 `done`**，助手消息不落库；请求的会话在取消后仍提交 trace、归还连接并释放守卫（TICKET-010） |
+| 同一会话已有一轮生成在飞 | 路由在进入 B-1 之前返回真实 HTTP `409`（响应体 `code == 409`，`SPEC.md` 5.4）：不打开回合、不调用任何端口；守卫在流结束（正常、报错或断开）时释放（TICKET-010） |
+| 20 个问诊并发 | 请求路径无同步数据库会话 / 同步图数据库会话 / 同步 HTTP 客户端；事件循环单次阻塞不超过 `Settings.event_loop_block_threshold_ms`（`SPEC.md` 6.1 AC-B-24，TICKET-010） |
 | 同一输入、同一配置重复运行 | `skills_run` / `skills_skipped` 与 `done` 形状完全一致（无随机排序、无时间参与路由） |
 
 ---
@@ -269,6 +274,17 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | 会话：历史取最近 6 条 | 8 条历史 + 本轮提问 | 提示词只含第 3..8 条，不含第 1、2 条与本轮提问 | `test_only_the_most_recent_six_prior_messages_reach_the_model` |
 | 会话：未知会话号 | `session_id=999999` | 新建会话并正常结束，不报错 | `test_an_unknown_session_id_starts_a_new_session_instead_of_failing` |
 | 契约：迁移与文档一致 | 空库 | `alembic upgrade head` 得到 `t_consult_session` / `t_consult_message` | `test_upgrade_head_creates_the_consult_store` |
+| 并发：同会话第二个请求 | 会话已在生成中，再发一次 `/chat/send` | 第二个返回真实 HTTP `409`；模型只被调用一次；不新增消息 | `test_a_second_concurrent_send_on_the_same_session_returns_409` |
+| 并发：新会话不受守卫影响 | 两个并发的全新会话请求 | 两个都正常生成，各自成会话 | `test_a_fresh_session_is_never_blocked_by_another_requests_generation` |
+| 边界：客户端断开取消生成 | 第一段 `content` 已发出后断开（取消落在模型等待上） | 下游 `LlmPort.stream` 收到取消；`llm` span 为 `cancelled` | `test_a_client_disconnect_cancels_the_downstream_model_call` |
+| 边界：断开落在两帧之间 | 生成器停在 `yield` 上被关闭（`GeneratorExit`） | `llm` span 同样记 `cancelled` | `test_closing_the_stream_between_frames_still_marks_the_model_cancelled` |
+| 边界：取消不发终帧 | 同上 | 已发出的 `content` 保留，既无 `done` 也无 `error` | `test_a_cancelled_stream_ends_with_neither_done_nor_error` |
+| 边界：`done` 与 `error` 互斥 | 正常路径 / 生成失败 | 两者恰好出现一个，绝不并存（`SPEC.md` 5.5 不变量 4） | `test_the_stream_ends_with_done_or_error_but_never_both` |
+| 生命周期：断开后收尾 | HTTP 层断开 | `llm` span 落库为 `cancelled`；助手消息不写；守卫与连接都归还 | `test_an_http_disconnect_cancels_the_model_and_settles_the_request` |
+| 生命周期：每请求一个会话 | 一次 `/chat/send` | 请求只打开一个 `AsyncSession` | `test_the_request_opens_exactly_one_async_session` |
+| 生命周期：连接归还池 | 生成过程中与结束后 | 生成期间连接池无占用；请求结束后无占用 | `test_the_request_releases_its_connection_to_the_pool` |
+| 异步：无同步 I/O | 请求路径源码 | 不存在同步数据库会话 / 同步图库会话 / 同步 HTTP 客户端 | `test_the_request_path_declares_no_synchronous_io` |
+| 异步：20 并发不阻塞 | 20 个并发问诊 | 事件循环单次阻塞 ≤ `Settings.event_loop_block_threshold_ms` | `test_twenty_concurrent_consults_do_not_block_the_event_loop` |
 
 ---
 
@@ -370,11 +386,22 @@ TICKET-005 的 `RetrievalReference` 当时只带 `snippet`，编排无从取得�
 - **覆盖**：`tests/test_degraded_branches.py`（B-1 + B-3 + B-4）与
   `tests/test_chat_send_degraded_api.py`（路由 + B-5，含 AC-E-04）。
 
+### g) TICKET-009 遗留：`error` 帧的 `code` 是否有 enum 约束（TICKET-010 结算）
+
+**结算：契约对 `error.code` 没有枚举约束，TICKET-009 的 `500` 映射合法，不动契约。**
+
+`contracts/sse-events.json` 的 `error` 帧把 `code` 定义为 `{"type": "integer"}`，
+**没有** `enum` / `const`。因此 `503`（上游不可用）、`504`（上游超时）与
+`500`（服务内部错误，`SPEC.md` 5.2）都落在契约内，无需把 `500` 补进契约，
+也无需收回为 `503`。本票据此**不修改 `contracts/`**，只固化一条断言：
+`test_the_error_frame_contract_places_no_enum_on_the_code` 直接读契约，
+断言 `$defs.error.properties.code` 是整数且无枚举。
+
 ### 仍在本票之外、留给后续票的接口
 
 | 项 | 归属 |
 |---|---|
 | `GET /api/v1/chat/sessions`、`GET /api/v1/chat/sessions/{id}/messages`（会话列表与历史，`SPEC.md` 5.4） | TICKET-014 的前端需要它们；读取端点不在本票清单内 |
 | `/chat/send` 的 401 / 403 | TICKET-012（令牌身份接入，同时收紧 `t_consult_session.user_id`） |
-| `/chat/send` 的 409 并发生成控制 | TICKET-010 |
+| `/chat/send` 的 409 并发生成控制 | TICKET-010 已结算（同会话守卫见第 3 节） |
 | `/chat/send` 的 503 / 504 生成不可用 | TICKET-009 已结算（见 f） |

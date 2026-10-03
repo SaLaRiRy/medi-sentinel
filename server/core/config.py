@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # hardcoded defaults, overridable by environment for tests only.
     database_url: str = "mysql+aiomysql://root:root@127.0.0.1:3306/medi_sentinel"
 
+    # AC-B-24: during a 20-consult burst no single synchronous stall on the
+    # event loop may exceed this. The blocking-call detection test reads it.
+    event_loop_block_threshold_ms: int = 250
+
     cors_allow_origins: list[str] = ["*"]
     cors_allow_credentials: bool = True
 

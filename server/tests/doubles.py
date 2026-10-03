@@ -1,5 +1,6 @@
 """The doubles SPEC.md 4.1 names: counting fakes, and a throwing LLM port."""
 
+import asyncio
 from collections.abc import AsyncIterator, Sequence
 from typing import Any, Mapping
 
@@ -133,6 +134,77 @@ class ScriptedLlmPort:
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         self.prompts.append(prompt)
         for chunk in self.chunks:
+            yield chunk
+
+
+class GatedLlmPort:
+    """Generation does not produce until the test releases it.
+
+    `started` fires as soon as a generation begins and `calls` counts how many
+    began, so a concurrent second request can be proven not to start a second
+    generation (SPEC.md 6.1 AC-B-25).
+    """
+
+    def __init__(
+        self, chunks: Sequence[str] = ("好的",), *, expected_calls: int = 1
+    ) -> None:
+        self._chunks = list(chunks)
+        self._expected_calls = expected_calls
+        self._release = asyncio.Event()
+        self.started = asyncio.Event()
+        self.all_started = asyncio.Event()
+        self.calls = 0
+
+    def release(self) -> None:
+        self._release.set()
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        self.calls += 1
+        self.started.set()
+        if self.calls >= self._expected_calls:
+            self.all_started.set()
+        await self._release.wait()
+        for chunk in self._chunks:
+            yield chunk
+
+
+class BlockingLlmPort:
+    """Streams one chunk, then holds the model call open until it is cancelled.
+
+    It records *how* the downstream call ended, so a client disconnect can be
+    asserted to cancel the model rather than leak it (SPEC.md 6.1 AC-B-26).
+    """
+
+    def __init__(self, first_chunk: str = "您好，") -> None:
+        self._first_chunk = first_chunk
+        self.waiting = asyncio.Event()
+        self.cancelled = False
+        self.closed = False
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        try:
+            yield self._first_chunk
+            self.waiting.set()
+            await asyncio.Event().wait()
+            yield "第二段"  # pragma: no cover - the test cancels before this
+        except asyncio.CancelledError:
+            self.cancelled = True
+            raise
+        except GeneratorExit:
+            self.closed = True
+            raise
+
+
+class PacedLlmPort:
+    """Yields canned chunks with a real suspension between them, so twenty
+    concurrent consults actually interleave on the loop (SPEC.md 6.1 AC-B-24)."""
+
+    def __init__(self, chunks: Sequence[str] = ("好的",)) -> None:
+        self.chunks = list(chunks)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        for chunk in self.chunks:
+            await asyncio.sleep(0)
             yield chunk
 
 

@@ -118,16 +118,17 @@ class Orchestrator:
         started_at = datetime.now(UTC)
         trace_id = new_trace_id()
         summary: dict = {}
+        stream = self._run(
+            request,
+            session_id=session_id,
+            history=history,
+            trace_id=trace_id,
+            started=started,
+            summary=summary,
+        )
 
         try:
-            async for frame in self._run(
-                request,
-                session_id=session_id,
-                history=history,
-                trace_id=trace_id,
-                started=started,
-                summary=summary,
-            ):
+            async for frame in stream:
                 yield frame
         except LlmUnavailableError as error:
             await self._record_orchestration_span(
@@ -153,6 +154,13 @@ class Orchestrator:
                 "trace_id": trace_id,
             }
             return
+        finally:
+            # A consumer that stops early (a hung-up client) closes this
+            # generator, which would otherwise leave the inner generator parked on
+            # its own yield — and the cancelled `llm` span unrecorded. Closing it
+            # here settles the trace no matter which side of the yield the
+            # cancellation landed on (SPEC.md 6.1 AC-B-26).
+            await stream.aclose()
 
         # The intercept path short-circuits before orchestration runs as a Skill,
         # so it leaves no orchestration span — just the gate's (AC-E-02).
@@ -271,6 +279,7 @@ class Orchestrator:
         llm_started = time.perf_counter()
         llm_started_at = datetime.now(UTC)
         answer: list[str] = []
+        cancelled = False
         try:
             async for chunk in self._ports.llm.stream(prompt):
                 if not chunk:
@@ -283,10 +292,24 @@ class Orchestrator:
                 digest(prompt), "",
             )
             raise _generation_failure(error) from error
-        await self._record_span(
-            trace_id, LLM_SPAN, "ok", llm_started, llm_started_at,
-            digest(prompt), digest("".join(answer)),
-        )
+        except BaseException:
+            # A client that hangs up cancels this task; the cancellation lands on
+            # the downstream call, whose span must say `cancelled` rather than
+            # vanish (SPEC.md 6.1 AC-B-26). CancelledError and GeneratorExit are
+            # both BaseExceptions, so they need their own arm ahead of `finally`.
+            cancelled = True
+            raise
+        else:
+            await self._record_span(
+                trace_id, LLM_SPAN, "ok", llm_started, llm_started_at,
+                digest(prompt), digest("".join(answer)),
+            )
+        finally:
+            if cancelled:
+                await self._record_span(
+                    trace_id, LLM_SPAN, "cancelled", llm_started, llm_started_at,
+                    digest(prompt), digest("".join(answer)),
+                )
         summary["answer_length"] = sum(len(chunk) for chunk in answer)
 
         yield done_payload(

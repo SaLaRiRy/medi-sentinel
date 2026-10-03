@@ -8,6 +8,7 @@ from core.config import Settings, get_settings
 from core.errors import register_error_handlers
 from core.response import EnvelopeJSONResponse
 from db.session import Database
+from services.generation import SessionGenerationGuard
 from skills.orchestration import OrchestrationPorts
 from skills.ports import (
     UnavailableGraphPort,
@@ -34,6 +35,7 @@ def create_app(
         app.state.settings = active_settings
         app.state.database = Database(active_settings.database_url)
         app.state.orchestration_ports = active_ports
+        app.state.generation_guard = SessionGenerationGuard()
         yield
         await app.state.database.dispose()
 
