@@ -106,6 +106,21 @@ async def test_snippet_is_the_first_200_characters(context):
     assert snippet == content[:SNIPPET_LENGTH]
 
 
+async def test_reference_carries_the_whole_chunk_for_prompt_context(context):
+    # 引用项给 wire 契约前 200 字符，同时保留整块正文供编排拼提示词
+    # （FUNCTIONAL_SPEC 5.3：context 片段是「[文档N] <整块正文>」）。
+    content = "高血压患者应低盐饮食。" * 40
+    port = HitsRetrievalPort([_hit("高血压防治指南.md", content, 0.12)])
+
+    outcome = await VectorRetrievalSkill(retrieval=port).invoke(
+        {"query": "高血压"}, context
+    )
+
+    reference = outcome.output.references[0]
+    assert reference.snippet == content[:SNIPPET_LENGTH]
+    assert reference.context == content
+
+
 async def test_no_hits_is_ok_with_empty_references(context):
     port = HitsRetrievalPort([])
 

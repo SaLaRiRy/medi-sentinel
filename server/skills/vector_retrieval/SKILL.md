@@ -69,6 +69,12 @@
 | `file_name` | `string` | 是 | 非空 | 命中所属知识库文件名 |
 | `snippet` | `string` | 是 | 长度 ≤ `snippet_length` | 命中分块正文的前 200 字符 |
 | `distance` | `float` | 是 | — | 该条命中的距离（越小越近），**逐条记录** |
+| `context` | `string` | 是 | 非空 | 同一命中的**整块正文**，供编排拼上下文用；不进 wire 契约 |
+
+`snippet` 与 `context` 是同一命中的两种投影：`snippet` 是契约 `reference` 的正文
+（前 200 字符），`context` 是 `FUNCTIONAL_SPEC.md` 5.3 规定的上下文片段正文
+「[文档N] <整块正文>」。`distance` 与 `context` 都只留在 Skill 输出与 trace，
+`done.references[]` 只投影 `index` / `file_name` / `snippet`。
 
 输出示例（正常命中两条）：
 
@@ -79,8 +85,8 @@
   "degraded": false,
   "degraded_reason": null,
   "references": [
-    {"index": 1, "file_name": "高血压防治指南.md", "snippet": "高血压患者应……", "distance": 0.12},
-    {"index": 2, "file_name": "糖尿病健康管理.md", "snippet": "日常饮食应……", "distance": 0.35}
+    {"index": 1, "file_name": "高血压防治指南.md", "snippet": "高血压患者应……", "distance": 0.12, "context": "高血压患者应低盐饮食……（整块正文）"},
+    {"index": 2, "file_name": "糖尿病健康管理.md", "snippet": "日常饮食应……", "distance": 0.35, "context": "日常饮食应注意……（整块正文）"}
   ]
 }
 ```
@@ -136,7 +142,7 @@
 RETRIEVAL_TOP_K: int          # 5
 SNIPPET_LENGTH: int           # 200
 
-class RetrievalReference(BaseModel):   # index, file_name, snippet, distance
+class RetrievalReference(BaseModel):   # index, file_name, snippet, distance, context
     ...
 
 def snippet_of(content: str, limit: int = SNIPPET_LENGTH) -> str
@@ -208,6 +214,7 @@ class VectorRetrievalSkill(Skill):
 |---|---|---|---|
 | 正例：返回知识片段与引用来源 | 问句 + 端口返回 2 条命中 | `references` 的 `index == [1, 2]`；逐条保留 `file_name`、`distance`；`snippet` 为正文前 200 字符 | `test_references_carry_index_file_name_snippet_and_distance` |
 | 正例：正文截断到前 200 字符 | 命中正文长度 > 200 | `len(snippet) == 200` 且 `snippet == content[:200]` | `test_snippet_is_the_first_200_characters` |
+| 正例：保留整块正文供拼上下文 | 命中正文长度 > 200 | `snippet == content[:200]` 且 `context == content` | `test_reference_carries_the_whole_chunk_for_prompt_context` |
 | 边界：无命中仍是成功 | 端口返回 `[]` | `status == "ok"`；`references == []`；`degraded == false` | `test_no_hits_is_ok_with_empty_references` |
 | 边界：无最低命中阈值 | 一条 `distance == 0.99`（很远）的命中 | 照常返回该条，不被过滤 | `test_a_far_hit_is_kept_because_there_is_no_threshold` |
 | 边界：超过上限被截断 | 端口返回 8 条命中 | 只保留前 5 条；`index == [1, 2, 3, 4, 5]` | `test_hits_beyond_top_k_are_truncated_with_contiguous_indices` |

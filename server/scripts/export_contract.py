@@ -21,7 +21,9 @@ def main() -> None:
     contract = create_app(Settings()).openapi()
     target = CONTRACTS_DIR / "openapi.json"
     target.write_text(
-        json.dumps(contract, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(contract, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",  # tracked as LF (see .gitattributes); keeps the diff clean
     )
     print(f"wrote {target}")
 

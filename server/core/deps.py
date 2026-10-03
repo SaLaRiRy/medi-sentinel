@@ -13,6 +13,16 @@ def get_active_settings(request: Request) -> Settings:
     return request.app.state.settings
 
 
+def get_current_user_id(request: Request) -> int | None:
+    """The authenticated patient's id for the endpoints that need an owner.
+
+    Token auth arrives with TICKET-012; until then a middleware may set
+    `request.state.user_id`, and otherwise the consult is stored without an
+    owner rather than with a fabricated one.
+    """
+    return getattr(request.state, "user_id", None)
+
+
 async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
     """One session per request: commit on success, roll back on failure."""
     database: Database = request.app.state.database

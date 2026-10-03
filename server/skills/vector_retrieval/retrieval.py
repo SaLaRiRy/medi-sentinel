@@ -15,12 +15,20 @@ SNIPPET_LENGTH = 200
 
 
 class RetrievalReference(BaseModel):
-    """一条引用来源：序号、文件名、正文前若干字符，以及该条命中的距离。"""
+    """一条引用来源：序号、文件名、正文前若干字符、距离，以及提示词用的整块正文。
+
+    `snippet` 与 `context` 来自同一条命中：前者是 wire 契约 `reference` 的正文
+    （前 `SNIPPET_LENGTH` 字符），后者是编排拼上下文用的整块正文
+    （`FUNCTIONAL_SPEC.md` 5.3「[文档N] <整块正文>」）。`distance` 与 `context`
+    都只写入 Skill 输出与 trace，不进入契约 —— 契约 `reference` 是
+    `additionalProperties: false` 且只含 `index` / `file_name` / `snippet`。
+    """
 
     index: int
     file_name: str
     snippet: str
     distance: float
+    context: str
 
 
 def snippet_of(content: str, limit: int = SNIPPET_LENGTH) -> str:
@@ -41,6 +49,7 @@ def to_references(hits: Sequence[Mapping[str, Any]]) -> list[RetrievalReference]
             file_name=hit["metadata"]["file_name"],
             snippet=snippet_of(hit["content"]),
             distance=hit["distance"],
+            context=hit["content"],
         )
         for position, hit in enumerate(hits[:RETRIEVAL_TOP_K], start=1)
     ]

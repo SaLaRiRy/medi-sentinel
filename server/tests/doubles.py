@@ -82,3 +82,48 @@ class ThrowingLlmPort:
 class StubLlmPort:
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         yield ""
+
+
+class ScriptedLlmPort:
+    """Streams canned chunks and records every prompt it was handed, so prompt
+    assembly and "the LLM was called exactly once" are both assertable
+    (SPEC.md 4.1 B-3)."""
+
+    def __init__(self, chunks: Sequence[str] = ("好的", "请及时就医")) -> None:
+        self.chunks = list(chunks)
+        self.prompts: list[str] = []
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        self.prompts.append(prompt)
+        for chunk in self.chunks:
+            yield chunk
+
+
+class BarrierGraphPort:
+    """Arrives at a shared barrier before answering, so a test can prove the
+    graph branch and the retrieval branch run concurrently (SPEC.md 2.3 / 6.1)."""
+
+    def __init__(self, barrier: "object") -> None:
+        self._barrier = barrier
+        self.calls: list[tuple[str, ...]] = []
+
+    async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
+        self.calls.append(tuple(symptoms))
+        await self._barrier.wait()
+        return []
+
+    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any]:
+        return {}
+
+
+class BarrierRetrievalPort:
+    """The retrieval half of the same barrier."""
+
+    def __init__(self, barrier: "object") -> None:
+        self._barrier = barrier
+        self.calls: list[tuple[str, int]] = []
+
+    async def search(self, query: str, top_k: int = 5) -> Sequence[Mapping[str, Any]]:
+        self.calls.append((query, top_k))
+        await self._barrier.wait()
+        return []
