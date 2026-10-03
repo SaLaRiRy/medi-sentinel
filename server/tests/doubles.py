@@ -26,6 +26,25 @@ class CountingRetrievalPort:
         return []
 
 
+class HitsRetrievalPort:
+    """Returns canned hits and records every query (SPEC.md 4.1 B-3)."""
+
+    def __init__(self, hits: Sequence[Mapping[str, Any]] = ()) -> None:
+        self.hits = list(hits)
+        self.calls: list[tuple[str, int]] = []
+
+    async def search(self, query: str, top_k: int = 5) -> Sequence[Mapping[str, Any]]:
+        self.calls.append((query, top_k))
+        return self.hits
+
+
+class ThrowingRetrievalPort:
+    """Any call fails, as an unavailable vector index does (SPEC.md 3.6)."""
+
+    async def search(self, query: str, top_k: int = 5) -> Sequence[Mapping[str, Any]]:
+        raise RuntimeError("vector index unavailable")
+
+
 class ThrowingLlmPort:
     """Any call to this port is a test failure (SPEC.md 4.1 B-3)."""
 
