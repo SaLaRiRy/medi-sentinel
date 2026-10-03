@@ -9,6 +9,7 @@
 import { onMounted, ref } from 'vue'
 
 import {
+  APPOINTMENT_STATUS_ACTIONS,
   appointmentStatusColor,
   appointmentStatusLabel,
 } from '../appointment/status.js'
@@ -17,12 +18,6 @@ const props = defineProps({
   client: { type: Object, required: true },
 })
 const emit = defineEmits(['error'])
-
-const STATUS_ACTIONS = [
-  { value: 1, label: '确认' },
-  { value: 2, label: '完成' },
-  { value: 3, label: '取消' },
-]
 
 const items = ref([])
 const loadError = ref(null)
@@ -82,7 +77,7 @@ onMounted(load)
           </td>
           <td class="doctor-appointments__actions">
             <button
-              v-for="action in STATUS_ACTIONS"
+              v-for="action in APPOINTMENT_STATUS_ACTIONS"
               :key="action.value"
               type="button"
               :data-set-status="action.value"

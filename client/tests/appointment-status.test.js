@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  APPOINTMENT_STATUS_ACTIONS,
   appointmentStatusColor,
   appointmentStatusLabel,
 } from '../src/appointment/status.js'
@@ -29,5 +30,14 @@ describe('appointment status mapping (TICKET-017)', () => {
       'danger',
     ])
     expect(appointmentStatusColor(9)).toBe('warning')
+  })
+
+  it('exposes the three target statuses the doctor and admin can write', () => {
+    expect(APPOINTMENT_STATUS_ACTIONS.map((action) => action.value)).toEqual([1, 2, 3])
+    expect(APPOINTMENT_STATUS_ACTIONS.map((action) => action.label)).toEqual([
+      '确认',
+      '完成',
+      '取消',
+    ])
   })
 })

@@ -21,6 +21,13 @@ export const APPOINTMENT_STATUS_COLORS = {
 
 export const UNKNOWN_APPOINTMENT_STATUS_LABEL = APPOINTMENT_STATUS_LABELS[0]
 
+/** 医生端与管理端可写入的三个目标状态（跳过默认态 0「待确认」）。 */
+export const APPOINTMENT_STATUS_ACTIONS = [
+  { value: 1, label: '确认' },
+  { value: 2, label: '完成' },
+  { value: 3, label: '取消' },
+]
+
 export function appointmentStatusLabel(status) {
   return APPOINTMENT_STATUS_LABELS[status] ?? UNKNOWN_APPOINTMENT_STATUS_LABEL
 }

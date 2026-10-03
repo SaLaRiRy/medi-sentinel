@@ -8,7 +8,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 
-import { appointmentStatusLabel } from '../appointment/status.js'
+import {
+  APPOINTMENT_STATUS_ACTIONS,
+  appointmentStatusLabel,
+} from '../appointment/status.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -16,12 +19,6 @@ const props = defineProps({
 const emit = defineEmits(['error'])
 
 const PAGE_SIZE = 10
-const STATUS_ACTIONS = [
-  { value: 1, label: '确认' },
-  { value: 2, label: '完成' },
-  { value: 3, label: '取消' },
-]
-
 const items = ref([])
 const total = ref(0)
 const page = ref(1)
@@ -139,7 +136,7 @@ onMounted(load)
           <td data-status>{{ appointmentStatusLabel(item.status) }}</td>
           <td class="admin-appointments__actions">
             <button
-              v-for="action in STATUS_ACTIONS"
+              v-for="action in APPOINTMENT_STATUS_ACTIONS"
               :key="action.value"
               type="button"
               :data-set-status="action.value"

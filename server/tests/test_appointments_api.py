@@ -11,7 +11,13 @@ import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from models.accounts import DoctorRow
-from models.appointment import APPOINTMENT_STATUS_PENDING, AppointmentRow
+from models.appointment import (
+    APPOINTMENT_STATUS_CANCELLED,
+    APPOINTMENT_STATUS_COMPLETED,
+    APPOINTMENT_STATUS_CONFIRMED,
+    APPOINTMENT_STATUS_PENDING,
+    AppointmentRow,
+)
 
 PASSWORDS = {"admin": "admin-pass", "user": "user-pass", "doctor": "doctor-pass"}
 
@@ -296,16 +302,28 @@ async def test_admin_list_paginates_and_filters(client, database_url):
         database_url, department_id=1, visit_date=date(2026, 10, 20), remark="复诊"
     )
     await _seed_appointment(
-        database_url, department_id=1, visit_date=date(2026, 10, 21), status=1
+        database_url,
+        department_id=1,
+        visit_date=date(2026, 10, 21),
+        status=APPOINTMENT_STATUS_CONFIRMED,
     )
     await _seed_appointment(
-        database_url, department_id=2, visit_date=date(2026, 10, 20), status=0
+        database_url,
+        department_id=2,
+        visit_date=date(2026, 10, 20),
+        status=APPOINTMENT_STATUS_PENDING,
     )
     third = await _seed_appointment(
-        database_url, department_id=2, visit_date=date(2026, 10, 20), status=3
+        database_url,
+        department_id=2,
+        visit_date=date(2026, 10, 20),
+        status=APPOINTMENT_STATUS_CANCELLED,
     )
     await _seed_appointment(
-        database_url, department_id=3, visit_date=date(2026, 10, 22), status=2
+        database_url,
+        department_id=3,
+        visit_date=date(2026, 10, 22),
+        status=APPOINTMENT_STATUS_COMPLETED,
     )
     token = await _token(client, role="admin")
 
@@ -338,11 +356,19 @@ async def test_admin_list_paginates_and_filters(client, database_url):
     by_date = (await _admin_list(client, token, _admin_query(visit_date="2026-10-20"))).json()
     assert by_date["data"]["total"] == 3
 
-    by_status = (await _admin_list(client, token, _admin_query(status=0))).json()
+    by_status = (
+        await _admin_list(client, token, _admin_query(status=APPOINTMENT_STATUS_PENDING))
+    ).json()
     assert by_status["data"]["total"] == 2
 
     combined = (
-        await _admin_list(client, token, _admin_query(department_id=2, status=3))
+        await _admin_list(
+            client,
+            token,
+            _admin_query(
+                department_id=2, status=APPOINTMENT_STATUS_CANCELLED
+            ),
+        )
     ).json()
     assert [item["id"] for item in combined["data"]["items"]] == [third]
 
@@ -394,25 +420,32 @@ async def test_admin_updates_the_status(client, database_url):
     )
     token = await _token(client, role="admin")
 
-    response = await _set_status(client, token, appointment_id, {"status": 2})
+    response = await _set_status(
+        client, token, appointment_id, {"status": APPOINTMENT_STATUS_COMPLETED}
+    )
 
     assert response.status_code == 200
     assert response.json()["data"] is None
     row = await _stored(database_url, appointment_id)
-    assert row.status == 2
+    assert row.status == APPOINTMENT_STATUS_COMPLETED
 
 
 async def test_doctor_updates_the_status(client, database_url):
     appointment_id = await _seed_appointment(
-        database_url, department_id=1, visit_date=date(2026, 10, 20), status=0
+        database_url,
+        department_id=1,
+        visit_date=date(2026, 10, 20),
+        status=APPOINTMENT_STATUS_PENDING,
     )
     token = await _token(client, role="doctor")
 
-    response = await _set_status(client, token, appointment_id, {"status": 1})
+    response = await _set_status(
+        client, token, appointment_id, {"status": APPOINTMENT_STATUS_CONFIRMED}
+    )
 
     assert response.status_code == 200
     row = await _stored(database_url, appointment_id)
-    assert row.status == 1
+    assert row.status == APPOINTMENT_STATUS_CONFIRMED
 
 
 async def test_status_update_writes_an_undefined_value_verbatim(
