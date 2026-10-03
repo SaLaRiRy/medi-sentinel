@@ -14,12 +14,30 @@ export const ROUTE_TABLE = [
   { path: '/portal/home', screen: 'home', requiresAuth: true, roles: ['user'] },
   { path: '/portal/chat', screen: 'chat', requiresAuth: true, roles: ['user'] },
   { path: '/portal/symptom', screen: 'symptom', requiresAuth: true, roles: ['user'] },
+  {
+    path: '/portal/appointment',
+    screen: 'appointment',
+    requiresAuth: true,
+    roles: ['user'],
+  },
   { path: '/portal/profile', screen: 'profile', requiresAuth: true, roles: ['user'] },
   { path: '/doctor/dashboard', screen: 'home', requiresAuth: true, roles: ['doctor'] },
+  {
+    path: '/doctor/appointments',
+    screen: 'doctor-appointments',
+    requiresAuth: true,
+    roles: ['doctor'],
+  },
   { path: '/doctor/profile', screen: 'profile', requiresAuth: true, roles: ['doctor'] },
   { path: '/admin/dashboard', screen: 'home', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/knowledge', screen: 'knowledge', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/graph', screen: 'graph', requiresAuth: true, roles: ['admin'] },
+  {
+    path: '/admin/appointments',
+    screen: 'admin-appointments',
+    requiresAuth: true,
+    roles: ['admin'],
+  },
   { path: '/admin/profile', screen: 'profile', requiresAuth: true, roles: ['admin'] },
 ]
 

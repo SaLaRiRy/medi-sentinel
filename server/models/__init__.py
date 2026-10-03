@@ -2,12 +2,14 @@
 so Alembic sees the same schema the application uses."""
 
 from models.accounts import AdminRow, DoctorRow, UserRow
+from models.appointment import AppointmentRow
 from models.consult import ConsultMessageRow, ConsultSessionRow
 from models.knowledge import KnowledgeChunkRow, KnowledgeFileRow
 from models.trace import RouteDecisionRow, TraceSpanRow
 
 __all__ = [
     "AdminRow",
+    "AppointmentRow",
     "ConsultMessageRow",
     "ConsultSessionRow",
     "DoctorRow",

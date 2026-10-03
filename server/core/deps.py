@@ -35,6 +35,8 @@ __all__ = [
     "get_session",
     "require_admin",
     "require_authenticated",
+    "require_doctor",
+    "require_doctor_or_admin",
     "require_patient",
     "resolve_optional_principal",
 ]
@@ -152,6 +154,22 @@ def require_patient(principal: Principal = Depends(require_authenticated)) -> Pr
     """403 when the caller is authenticated but not a patient (SPEC.md 5.4)."""
     if principal.role != ROLE_USER:
         raise ApiError(403, "需要患者权限")
+    return principal
+
+
+def require_doctor(principal: Principal = Depends(require_authenticated)) -> Principal:
+    """403 when the caller is authenticated but not a doctor (SPEC.md 5.4)."""
+    if principal.role != ROLE_DOCTOR:
+        raise ApiError(403, "需要医生权限")
+    return principal
+
+
+def require_doctor_or_admin(
+    principal: Principal = Depends(require_authenticated),
+) -> Principal:
+    """403 unless the caller is a doctor or an admin (预约状态更新，SPEC.md 5.4)."""
+    if principal.role not in (ROLE_DOCTOR, ROLE_ADMIN):
+        raise ApiError(403, "需要医生或管理员权限")
     return principal
 
 

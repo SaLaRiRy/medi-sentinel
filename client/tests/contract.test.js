@@ -115,8 +115,19 @@ describe('C-1 from the consuming side', () => {
     await client.graphDisease('高血压')
     await client.inferGraph(['头痛'])
     await client.graphStats()
+    await client.createAppointment({
+      doctor_id: 1,
+      department_id: 1,
+      visit_date: '2026-10-20',
+      time_slot: '上午',
+    })
+    await client.myAppointments()
+    await client.doctorAppointments()
+    await client.adminAppointments({ page: 1, page_size: 10 })
+    await client.updateAppointmentStatus(1, 0)
+    await client.deleteAppointment(1)
 
-    expect(requested).toHaveLength(14)
+    expect(requested).toHaveLength(20)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
@@ -132,5 +143,11 @@ describe('C-1 from the consuming side', () => {
     expect(matchesDeclaredPath('GET', '/graph/diseases/高血压')).toBe(true)
     expect(matchesDeclaredPath('POST', '/graph/infer')).toBe(true)
     expect(matchesDeclaredPath('GET', '/graph/stats')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/appointments')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/appointments/my')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/appointments/doctor')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/appointments/admin')).toBe(true)
+    expect(matchesDeclaredPath('PUT', '/appointments/1/status')).toBe(true)
+    expect(matchesDeclaredPath('DELETE', '/appointments/admin/1')).toBe(true)
   })
 })

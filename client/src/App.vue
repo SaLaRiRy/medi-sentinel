@@ -9,7 +9,10 @@ import { createSessionStore } from './session/store.js'
 import { applyApiError } from './session/guard.js'
 import { layoutFor } from './session/navigation.js'
 import { resolveNavigation } from './session/routes.js'
+import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
+import AppointmentView from './views/AppointmentView.vue'
 import ChatView from './views/ChatView.vue'
+import DoctorAppointmentsView from './views/DoctorAppointmentsView.vue'
 import GraphView from './views/GraphView.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
@@ -108,6 +111,11 @@ function handleError(error) {
           :client="client"
           @error="handleError"
         />
+        <AppointmentView
+          v-else-if="screen === 'appointment'"
+          :client="client"
+          @error="handleError"
+        />
         <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
@@ -118,6 +126,16 @@ function handleError(error) {
         />
         <GraphView
           v-else-if="screen === 'graph'"
+          :client="client"
+          @error="handleError"
+        />
+        <DoctorAppointmentsView
+          v-else-if="screen === 'doctor-appointments'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminAppointmentsView
+          v-else-if="screen === 'admin-appointments'"
           :client="client"
           @error="handleError"
         />

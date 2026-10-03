@@ -27,4 +27,4 @@ def test_upgrade_head_stamps_the_knowledge_revision(tmp_path):
     finally:
         engine.dispose()
 
-    assert revisions == ["0006"]
+    assert revisions == ["0007"]

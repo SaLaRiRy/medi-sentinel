@@ -46,7 +46,7 @@ describe('resolveRoute (TICKET-014)', () => {
   })
 
   it('falls back to the shell home for routes not built yet', () => {
-    expect(resolveRoute('/portal/appointment')).toMatchObject({
+    expect(resolveRoute('/portal/records')).toMatchObject({
       screen: 'home',
       roles: ['user'],
     })
@@ -57,6 +57,27 @@ describe('resolveRoute (TICKET-014)', () => {
     expect(resolveRoute('/doctor/consults')).toMatchObject({
       screen: 'home',
       roles: ['doctor'],
+    })
+  })
+
+  it('maps the appointment paths to their own screens (TICKET-017)', () => {
+    expect(resolveRoute('/portal/appointment')).toEqual({
+      path: '/portal/appointment',
+      screen: 'appointment',
+      requiresAuth: true,
+      roles: ['user'],
+    })
+    expect(resolveRoute('/doctor/appointments')).toEqual({
+      path: '/doctor/appointments',
+      screen: 'doctor-appointments',
+      requiresAuth: true,
+      roles: ['doctor'],
+    })
+    expect(resolveRoute('/admin/appointments')).toEqual({
+      path: '/admin/appointments',
+      screen: 'admin-appointments',
+      requiresAuth: true,
+      roles: ['admin'],
     })
   })
 

@@ -114,6 +114,58 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ method: 'DELETE', path: `/knowledge/${fileId}`, authed: true })
     },
 
+    // TICKET-017 appointment surface (SPEC.md 5.4「预约与健康档案」). The patient
+    // submits and reads their own; the doctor reads their schedule; the admin
+    // pages/filters the whole table and is the only role that deletes.
+    async createAppointment(payload) {
+      return call({
+        method: 'POST',
+        path: '/appointments',
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async myAppointments() {
+      return call({ path: '/appointments/my', authed: true })
+    },
+
+    async doctorAppointments() {
+      return call({ path: '/appointments/doctor', authed: true })
+    },
+
+    async adminAppointments({
+      page = 1,
+      page_size = 10,
+      keyword,
+      department_id,
+      visit_date,
+      status,
+    } = {}) {
+      return call({
+        path: '/appointments/admin',
+        query: { page, page_size, keyword, department_id, visit_date, status },
+        authed: true,
+      })
+    },
+
+    async updateAppointmentStatus(appointmentId, status) {
+      return call({
+        method: 'PUT',
+        path: `/appointments/${appointmentId}/status`,
+        body: { status },
+        authed: true,
+      })
+    },
+
+    async deleteAppointment(appointmentId) {
+      return call({
+        method: 'DELETE',
+        path: `/appointments/admin/${appointmentId}`,
+        authed: true,
+      })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {
