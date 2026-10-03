@@ -17,7 +17,6 @@ settled instead of leaking (TICKET-010).
 import json
 import logging
 from collections.abc import AsyncIterator
-from datetime import datetime
 
 import anyio
 from fastapi import APIRouter, Depends, Request
@@ -33,6 +32,7 @@ from core.deps import (
 )
 from core.errors import ApiError
 from core.response import Envelope, success
+from core.serialization import ApiDateTime
 from models.consult import ConsultMessageRow, ConsultSessionRow
 from repositories.consult import ConsultRepository
 from repositories.trace import TraceRepository
@@ -63,8 +63,8 @@ class SessionView(BaseModel):
     id: int
     title: str
     message_count: int
-    create_time: datetime | None = None
-    update_time: datetime | None = None
+    create_time: ApiDateTime | None = None
+    update_time: ApiDateTime | None = None
 
     @classmethod
     def of(cls, row: ConsultSessionRow) -> "SessionView":
@@ -85,7 +85,7 @@ class MessageView(BaseModel):
     references: list[dict] = []
     graph: list[dict] = []
     cost_time: int | None = None
-    create_time: datetime | None = None
+    create_time: ApiDateTime | None = None
 
     @classmethod
     def of(cls, row: ConsultMessageRow) -> "MessageView":

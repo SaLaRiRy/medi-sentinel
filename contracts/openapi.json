@@ -57,9 +57,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -120,9 +120,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -258,9 +258,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -300,9 +300,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -362,9 +362,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -403,9 +403,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -465,9 +465,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -506,9 +506,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -547,9 +547,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -635,9 +635,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -674,9 +674,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -716,9 +716,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -758,9 +758,9 @@
           "422": {
             "description": "Validation Error",
             "content": {
-              "application/json": {
+              "application/json; charset=utf-8": {
                 "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }

@@ -28,6 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.deps import Principal, get_session, require_admin, require_authenticated
 from core.errors import ApiError
 from core.response import Envelope, PagePayload, page_result, success
+from core.serialization import ApiDateTime
 from repositories.trace import TraceRepository
 from skills.manifest import SKILL_MANIFESTS
 from skills.trace import RouteDecision, SkippedSkill, Span, TraceQuery, TraceSummary
@@ -43,7 +44,7 @@ class SpanView(BaseModel):
     input_digest: str
     output_digest: str
     detail: dict[str, Any] | None = None
-    started_at: datetime
+    started_at: ApiDateTime
 
     @classmethod
     def of(cls, span: Span) -> "SpanView":
@@ -53,7 +54,7 @@ class SpanView(BaseModel):
 class RouteView(BaseModel):
     skills_run: list[str]
     skills_skipped: list[SkippedSkill]
-    decided_at: datetime
+    decided_at: ApiDateTime
 
     @classmethod
     def of(cls, decision: RouteDecision) -> "RouteView":
@@ -72,7 +73,7 @@ class TraceView(BaseModel):
 
 class TraceSummaryView(BaseModel):
     trace_id: str
-    started_at: datetime
+    started_at: ApiDateTime
     span_count: int
     skills_run: list[str]
     degraded: list[str]

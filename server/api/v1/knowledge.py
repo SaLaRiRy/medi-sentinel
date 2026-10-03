@@ -13,7 +13,6 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime
 from pathlib import Path
 
 import anyio
@@ -25,6 +24,7 @@ from core.config import Settings
 from core.deps import Principal, get_active_settings, get_session, require_admin
 from core.errors import ApiError
 from core.response import Envelope, PagePayload, page_result, success
+from core.serialization import ApiDateTime
 from models.knowledge import KnowledgeFileRow
 from rag.loader import SUPPORTED_SUFFIXES
 from repositories.knowledge import KnowledgeRepository
@@ -44,8 +44,8 @@ class KnowledgeFileView(BaseModel):
     vector_status: int
     upload_by: int | None = None
     upload_role: str | None = None
-    create_time: datetime | None = None
-    update_time: datetime | None = None
+    create_time: ApiDateTime | None = None
+    update_time: ApiDateTime | None = None
 
     @classmethod
     def of(cls, row: KnowledgeFileRow) -> "KnowledgeFileView":

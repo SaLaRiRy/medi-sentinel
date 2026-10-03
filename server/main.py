@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from adapters import build_graph_store, build_vector_store
 from api.v1 import api_router
 from core.config import Settings, get_settings
+from core.contract import install_envelope_error_responses
 from core.errors import register_error_handlers
 from core.response import EnvelopeJSONResponse
 from db.session import Database
@@ -64,6 +65,9 @@ def create_app(
     )
     register_error_handlers(app)
     app.include_router(api_router, prefix=active_settings.api_prefix)
+    # SPEC.md 5.1 / AC-B-41: the generated contract declares the same envelope
+    # the global handler actually returns for a validation failure.
+    install_envelope_error_responses(app)
     return app
 
 

@@ -7,7 +7,7 @@ reaches the database. The background job itself is a cold scheduler, so the
 test decides when it runs.
 """
 
-import asyncio
+import re
 from pathlib import Path
 
 import pytest
@@ -300,3 +300,15 @@ async def test_delete_removes_the_row_chunks_vectors_and_disk_file(knowledge):
     )
     assert missing.status_code == 404
     assert missing.json()["code"] == 404
+
+
+async def test_list_serializes_timestamps_in_the_spec_format(knowledge):
+    """SPEC.md 5.1: timestamps are `YYYY-MM-DD HH:mm:ss`, not ISO-8601."""
+    token = await _token(knowledge["http"], role="admin")
+    await _seed_file(knowledge, "时间.md", "md")
+
+    response = await _list(knowledge, token)
+
+    item = response.json()["data"]["items"][0]
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", item["create_time"])
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}", item["update_time"])

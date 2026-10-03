@@ -61,6 +61,33 @@ def test_pagination_payload_has_the_declared_shape():
     assert body["data"]["total"] == 2
 
 
+def _validation_error_schema_refs(contract: dict) -> list[str]:
+    refs: list[str] = []
+    for path in contract["paths"].values():
+        for operation in path.values():
+            response = operation.get("responses", {}).get("422")
+            if not response:
+                continue
+            for media in response["content"].values():
+                refs.append(media["schema"].get("$ref"))
+    return refs
+
+
+def test_the_declared_validation_error_branch_is_the_envelope():
+    """AC-B-41/AC-B-43: the declared 422 must be what the handler returns.
+
+    FastAPI auto-declares `HTTPValidationError`, but the global handler answers
+    every failure with the single envelope (SPEC.md 5.1). The contract has to
+    say so, or the declared error branch is one nobody ever emits.
+    """
+    contract = _contract("openapi.json")
+
+    refs = _validation_error_schema_refs(contract)
+
+    assert refs, "no endpoint declares a 422 branch to check"
+    assert all(ref and ref.endswith("Envelope_NoneType_") for ref in refs), refs
+
+
 @pytest.mark.parametrize("frame_type", ["session", "trace", "done"])
 async def test_orchestrator_frames_satisfy_the_sse_schema(frame_type):
     """The schema is not decoration: real frames are validated against it."""
