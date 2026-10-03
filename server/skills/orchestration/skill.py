@@ -7,6 +7,11 @@ deterministic context assembly → the single LLM call → the SSE frames. A red
 short-circuits the whole chain at the gate: no normalization, no branches, no
 model (SPEC.md 3.5 / TICKET-008). This Skill is the only one allowed to call the
 model (SPEC.md 3.4).
+
+Degradation and failure are different outcomes (SPEC.md 5.2): the enhancement
+branches may be unavailable without ending the consult — they degrade, the `done`
+frame names them, and no error code is produced. Generation cannot degrade, so it
+ends the stream with an `error` frame instead (TICKET-009).
 """
 
 import asyncio
@@ -41,6 +46,35 @@ GRAPH_SKIPPED_REASON = "安全门放行后未识别到任何标准症状（含�
 SAFETY_INTERCEPT_REASON = (
     "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
 )
+
+# Generation failure codes (SPEC.md 5.2). Degraded branches produce no code at all.
+LLM_UNAVAILABLE_CODE = 503
+LLM_TIMEOUT_CODE = 504
+INTERNAL_ERROR_CODE = 500
+
+
+class LlmUnavailableError(RuntimeError):
+    """Generation cannot degrade, so it ends the stream with an `error` frame.
+
+    `code` is 503 when the model is unavailable and 504 when it times out; the
+    message is always non-empty (SPEC.md 5.2 / 5.5).
+    """
+
+    def __init__(self, code: int, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+def _generation_failure(error: Exception) -> LlmUnavailableError:
+    """Classify a raised model call: timeout → 504, anything else → 503.
+
+    The deadline itself belongs to the adapter (SPEC.md 4.1 B-3); the `LlmPort`
+    surfaces it as `TimeoutError`, which is also what `asyncio.timeout` raises.
+    """
+    if isinstance(error, TimeoutError):
+        return LlmUnavailableError(LLM_TIMEOUT_CODE, f"生成超时：{type(error).__name__}")
+    return LlmUnavailableError(LLM_UNAVAILABLE_CODE, f"生成失败：{type(error).__name__}")
 
 
 class ChatRequest(BaseModel):
@@ -95,14 +129,27 @@ class Orchestrator:
                 summary=summary,
             ):
                 yield frame
-        except Exception as error:
+        except LlmUnavailableError as error:
             await self._record_orchestration_span(
                 trace_id, started, started_at, "error", request, session_id, summary
             )
             yield {
                 "type": "error",
-                "code": 503,
-                "message": f"生成失败：{type(error).__name__}",
+                "code": error.code,
+                "message": error.message,
+                "trace_id": trace_id,
+            }
+            return
+        except Exception as error:
+            # Anything that is not the model failing is an unexpected internal
+            # failure, not an upstream outage (SPEC.md 5.2: 500 服务内部错误).
+            await self._record_orchestration_span(
+                trace_id, started, started_at, "error", request, session_id, summary
+            )
+            yield {
+                "type": "error",
+                "code": INTERNAL_ERROR_CODE,
+                "message": f"内部错误：{type(error).__name__}",
                 "trace_id": trace_id,
             }
             return
@@ -205,7 +252,9 @@ class Orchestrator:
         degraded: list[str] = []
         if retrieval is None or retrieval.degraded:
             degraded.append("retrieval")
-        if graph_result is not None and graph_result.degraded:
+        # A branch whose Skill could not return a usable output counts as
+        # degraded too; both branches are symmetric here (TICKET-009).
+        if graph_symptoms and (graph_result is None or graph_result.degraded):
             degraded.append("graph")
         summary["references"] = len(references)
         summary["graph_candidates"] = len(candidates)
@@ -228,12 +277,12 @@ class Orchestrator:
                     continue
                 answer.append(chunk)
                 yield {"type": "content", "content": chunk}
-        except Exception:
+        except Exception as error:
             await self._record_span(
                 trace_id, LLM_SPAN, "error", llm_started, llm_started_at,
                 digest(prompt), "",
             )
-            raise
+            raise _generation_failure(error) from error
         await self._record_span(
             trace_id, LLM_SPAN, "ok", llm_started, llm_started_at,
             digest(prompt), digest("".join(answer)),

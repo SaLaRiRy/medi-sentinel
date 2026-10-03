@@ -62,7 +62,7 @@ session → trace → route → safety → done
 | `safety` | **正常路径 0 次**；拦截路径恰好 1 次 | 仅安全门拦截时出现，`decision` 恒为 `intercept`（TICKET-008） |
 | `content` | 0..N 次 | 逐段增量；空字符串片段不发出 |
 | `done` | 末尾，恰好 1 次 | 与 `error` 互斥 |
-| `error` | 0 或 1 次 | 仅大模型生成失败时发出（`code == 503`），流以它结束 |
+| `error` | 0 或 1 次 | 仅大模型生成失败时发出：上游不可用 `code == 503`、上游超时 `code == 504`；流以它结束（TICKET-009） |
 
 `route.skills_run` 顺序固定，与 `SPEC.md` 6.1 AC-B-22 一致：
 
@@ -99,7 +99,7 @@ session → trace → route → safety → done
 | `references[]` | `VectorRetrievalOutput.references` | 只保留 `index` / `file_name` / `snippet`；`distance` 与 `context` 都不进入 `done`，但仍留在 Skill 输出与 trace 摘要（TICKET-005 挂账第 1 条） |
 | `graph[]` | `GraphInferenceOutput.candidates` | 原样输出全部最多 10 条 `DiseaseCandidate` |
 | `coverage_note` | 编排生成 | 图谱被跳过、或候选数超过提示词上限时给出确定性说明，否则 `null` |
-| `degraded` | 两条支路的 `degraded` 标记 | 取值 `retrieval` / `graph`，正常路径为空数组 |
+| `degraded` | 两条支路的 `degraded` 标记 | 取值 `retrieval` / `graph`，顺序固定（检索在前）；支路 Skill 返回 `degraded == true`、或未能产出可用输出时记入；正常路径为空数组（TICKET-009） |
 | `cost_time` | 编排计时 | 从进入 `run` 到发出 `done` 的整毫秒数 |
 | `trace_id` | 本轮 trace | 与 `trace` 帧一致 |
 
@@ -156,6 +156,12 @@ def done_payload(*, references, candidates, coverage_note, degraded, cost_time, 
 HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 `data: <JSON>\n\n` 写出，返回 `text/event-stream; charset=utf-8`。
 
+`type == "error"` 帧的 `code` 取 `SPEC.md` 5.2 的取值：生成上游不可用 `503`、
+生成上游超时 `504`、其他未预期内部失败 `500`（常量 `LLM_UNAVAILABLE_CODE` /
+`LLM_TIMEOUT_CODE` / `INTERNAL_ERROR_CODE`）。`LlmPort` 以抛异常表示上游不可用，
+以 `TimeoutError` 表示上游超时；超时的实现属基础设施，B-3 不测（`SPEC.md` 4.1）。
+降级支路**不产生任何** `code`。
+
 ---
 
 ## 2. 触发条件
@@ -176,8 +182,8 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 |---|---|---|
 | `safety-gate` | B-2 调用安全门 | `ok` |
 | `symptom-normalization` | B-2 调用归一化 | `ok` |
-| `vector-retrieval` | B-2 调用检索 | `ok`（含无命中与降级） |
-| `graph-inference` | B-2 调用图谱（未跳过时才有） | `ok`（含降级） |
+| `vector-retrieval` | B-2 调用检索 | `ok` / `error`（降级与无命中都是 `ok`） |
+| `graph-inference` | B-2 调用图谱（未跳过时才有） | `ok` / `error`（降级是 `ok`） |
 | `orchestration` | B-1 本体 | `ok` / `error` |
 | `llm` | 大模型调用 | `ok` / `error` |
 
@@ -200,9 +206,13 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | `explicit_symptoms` 非空而原文无标准症状 | 图谱支路按并集执行；`explicit_symptoms` 经同一份词表归一（别名同样生效） |
 | `explicit_symptoms` 含红旗表述 | **不影响安全门**：安全门只读 `message`，结构化字段无法解除流程规则（见第 5 节 a） |
 | `session_id` 指向不存在的会话或他人会话 | 新建会话，不报错（FUNCTIONAL_SPEC 5.7）；归属由 TICKET-012 的身份接入后再收紧 |
-| 向量索引不可用 / 返回结构非法 | 检索 Skill 返回 `degraded == true`、`references == []`；`done.degraded` 含 `retrieval`；问答继续 |
-| 图谱不可用 / 返回结构非法 | 同上，`done.degraded` 含 `graph`；问答继续（TICKET-009 的完整验收） |
+| 向量索引不可用 / 返回结构非法 | 检索 Skill 返回 `degraded == true`、`references == []`；`done.degraded` 含 `retrieval`；`status == "ok"`，问答继续，**不产生错误码**（TICKET-005/009） |
+| 图谱不可用 / 返回结构非法 | 同上，`done.degraded` 含 `graph`；问答继续（TICKET-006/009） |
+| 某条支路的 Skill 未能产出可用输出 | 与「不可用」同一条降级路径：`done.degraded` 记入该支路，`content` 与 `done` 照常（TICKET-009） |
 | 大模型不可用或流中抛错 | 不产生 `done`；发出 `error` 帧（`code == 503`），`llm` span 记 `error`；助手消息不落库（TICKET-009） |
+| 大模型生成超时 | 不产生 `done`；发出 `error` 帧（`code == 504`），`llm` span 记 `error`；助手消息不落库（TICKET-009） |
+| 生成中途超时或断流 | 已发出的 `content` 帧保留，流仍以 `error` 帧结束、无 `done`（`SPEC.md` 5.5 不变量 4）；`llm` span 记 `error` |
+| 非大模型的未预期内部异常 | 不产生 `done`；发出 `error` 帧（`code == 500`），`orchestration` span 记 `error`（`SPEC.md` 5.2「服务内部错误」） |
 | 大模型返回空串片段 | 不发出内容帧；`content` 帧数可为 0，`done` 仍然发出 |
 | 图谱候选超过 5 条 | 提示词只取前 5 条，`done.graph` 返回全部最多 10 条，`coverage_note` 说明该截断 |
 | 两条支路均无结果 | 上下文取固定兜底文本，模型仍被调用 |
@@ -241,6 +251,17 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | 边界：上下文兜底 | 两端口返回空 | 提示词含「暂无相关知识库内容。」 | `test_context_falls_back_when_both_branches_are_empty` |
 | 正例：知识片段用整块正文 | 命中正文长度 > 200 | 提示词含 `[文档1] <整块正文>`；`done.references[0].snippet` 仍只有 200 字符且无 `context`/`distance` | `test_prompt_context_uses_the_whole_chunk_not_just_the_snippet` |
 | 边界：大模型失败 | 大模型端口抛异常 | 流以 `error` 帧结束、无 `done`；`llm` span 为 `error` | `test_llm_failure_ends_the_stream_with_error_not_done` |
+| 边界：检索降级不阻断 | 检索端口抛异常 | `done.degraded == ["retrieval"]`；`references == []`；无 `error` 帧；模型仍被调用一次 | `test_unavailable_retrieval_degrades_and_the_consult_still_completes` |
+| 边界：图谱降级不阻断 | 图谱端口抛异常 | `done.degraded == ["graph"]`；`graph == []`；无 `error` 帧；模型仍被调用一次 | `test_unavailable_graph_degrades_and_the_consult_still_completes` |
+| 边界：双支路同时降级 | 两端口均抛异常 | `done.degraded == ["retrieval", "graph"]`；`done` 恰好 1 次；无 `error` 帧 | `test_both_branches_can_degrade_in_one_consult` |
+| 契约：降级 `done` 帧 | 图谱不可用 | 帧满足 `contracts/sse-events.json` | `test_a_degraded_done_frame_still_satisfies_the_sse_contract` |
+| 审计：降级的非空理由 | 图谱不可用 | `graph-inference` span `status == "ok"`，输出摘要含 `degraded=True` 与原因 | `test_degradation_keeps_a_non_empty_reason_in_the_trace` |
+| 边界：降级不是错误 | 双支路均降级 | 六条 span 全为 `ok`，无 `error` span | `test_a_degraded_branch_leaves_no_skill_span_in_error` |
+| 边界：生成不可用 → 503 | 大模型端口抛 `RuntimeError` | 流以 `error` 帧结束（`code == 503`）、无 `done`；`llm` span 为 `error` | `test_unavailable_generation_ends_the_stream_with_a_503_error_frame` |
+| 边界：生成超时 → 504 | 大模型端口抛 `TimeoutError` | 流以 `error` 帧结束（`code == 504`）、无 `done`；`llm` span 为 `error` | `test_timed_out_generation_ends_the_stream_with_a_504_error_frame` |
+| 边界：生成中途超时 | 大模型先吐一段再抛 `TimeoutError` | 已发出的 `content` 帧保留；流以 `error` 帧（`code == 504`）结束、无 `done` | `test_a_mid_stream_timeout_keeps_the_content_and_ends_with_error` |
+| 端到端：图谱不可用 + 头疼发烧（AC-E-04） | `POST /chat/send`，图谱端口抛异常 | HTTP 200；帧序正常；`done.degraded == ["graph"]`；`content` 非空 | `test_graph_unavailable_still_answers_with_a_degraded_done` |
+| 端到端：生成失败不落库 | `POST /chat/send`，大模型抛异常 / 超时 | HTTP 200 + `error` 帧（503 / 504）；不写助手消息、消息计数不增加 | `test_unavailable_generation_streams_a_503_error_frame`、`test_timed_out_generation_streams_a_504_error_frame` |
 | 端到端：HTTP + 会话规则 | `POST /chat/send` | 200 + `text/event-stream`；帧序正确；`references`/`graph` 非空 | `test_chat_send_streams_the_documented_frames_as_sse` |
 | 会话：标题生成 | 25 字 / 8 字消息 | 标题 = 前 20 字 + `...` / 原样 | `test_new_session_gets_its_title_from_the_first_20_characters`、`test_short_message_is_used_as_the_title_without_an_ellipsis` |
 | 会话：消息计数 +2 | 一轮问答 | 会话含 user + assistant 两条；`message_count == 2`；助手消息带 `references_json`/`graph_json`/`cost_time` | `test_a_completed_turn_stores_both_messages_and_adds_two_to_the_count` |
@@ -253,8 +274,9 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 
 ## 5. 跨票挂账结算
 
-以下五条是 TICKET-003/004/005/006/007 悬置、必须拍板的事项。结论同时写入
-`.scratch/medisentinel/issues/07-orchestration-normal-path.md` 与 TICKET-008 的票面。
+以下各条是 TICKET-003/004/005/006/007 悬置、必须拍板的事项，以及 TICKET-009 对该节
+503/504 挂账的结算。前者的结论同时写入 `.scratch/medisentinel/issues/07-orchestration-normal-path.md`
+与 TICKET-008 的票面；TICKET-009 的结论以本节 f) 为准（该票票面不随实现改动）。
 
 ### a) `ChatRequest.explicit_symptoms` 是否被消费；安全门只看 `message` 如何定
 
@@ -325,6 +347,29 @@ TICKET-005 的 `RetrievalReference` 当时只带 `snippet`，编排无从取得�
 `context` 字段（整块正文，只用于提示词），并像 `distance` 一样在 `done` 投影时裁掉。
 `server/skills/vector_retrieval/SKILL.md` 已同步该字段与用例，wire 契约不变。
 
+### f) 降级与失败的区分：支路降级 vs 生成失败（TICKET-007 挂账第 2 条的降级部分，TICKET-009 结算）
+
+**结算：两条通道互不混用 —— 增强支路降级不产生错误码，大模型生成失败无法降级。**
+`SPEC.md` 5.2 已经把这条约定写死，本票只把它落到编排并补齐此前缺失的 `504`。
+
+- **降级（`retrieval` / `graph`）**：分支 Skill 捕获端口异常或非法结构，返回
+  `status == "ok"` + `degraded == true` + 非空 `degraded_reason`；编排把该支路记进
+  `done.degraded`，照常发 `content` 与 `done`，**不产生任何错误码**，HTTP 保持 200
+  （`SPEC.md` 3.6 / 6.1 AC-B-27）。降级理由只落在 Skill 输出与 trace 摘要里：
+  `done` 契约（`additionalProperties: false`）没有理由字段，wire 形状不变。
+  两条支路对称：Skill 返回 `degraded == true` 或没能产出可用输出，都按降级记录。
+- **失败（`llm`）**：生成是唯一不可降级的环节。`LlmPort.stream` 抛异常时编排不发
+  `done`，改发 `error` 帧并以它结束；`llm` span 记 `error`，助手消息不落库。
+- **503 / 504 的边界**：适配器用 `TimeoutError` 表示「上游超时」，映射为 `504`
+  （`SPEC.md` 5.2「上游超时：大模型生成超时」）；其余异常映射为 `503`
+  （「上游不可用」）。连接/读超时的实现属基础设施，B-3 不测（`SPEC.md` 4.1）。
+- **为什么 `code` 在帧里而不在 HTTP 状态上**：`session` / `trace` / `route` 帧在模型调用
+  之前就已写出，响应头早已是 200，SSE 无法再改状态码；`SPEC.md` 5.5 因此把状态码放在
+  `error` 帧的 `code` 字段，本票沿用。非大模型的未预期内部异常按 `SPEC.md` 5.2 记为
+  `500 服务内部错误`，不再误报为「上游不可用」。
+- **覆盖**：`tests/test_degraded_branches.py`（B-1 + B-3 + B-4）与
+  `tests/test_chat_send_degraded_api.py`（路由 + B-5，含 AC-E-04）。
+
 ### 仍在本票之外、留给后续票的接口
 
 | 项 | 归属 |
@@ -332,4 +377,4 @@ TICKET-005 的 `RetrievalReference` 当时只带 `snippet`，编排无从取得�
 | `GET /api/v1/chat/sessions`、`GET /api/v1/chat/sessions/{id}/messages`（会话列表与历史，`SPEC.md` 5.4） | TICKET-014 的前端需要它们；读取端点不在本票清单内 |
 | `/chat/send` 的 401 / 403 | TICKET-012（令牌身份接入，同时收紧 `t_consult_session.user_id`） |
 | `/chat/send` 的 409 并发生成控制 | TICKET-010 |
-| `/chat/send` 的 503 / 504 生成不可用 | TICKET-009 |
+| `/chat/send` 的 503 / 504 生成不可用 | TICKET-009 已结算（见 f） |

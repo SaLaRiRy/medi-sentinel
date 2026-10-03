@@ -79,6 +79,43 @@ class ThrowingLlmPort:
         yield ""  # pragma: no cover - unreachable, keeps this an async generator
 
 
+class FailingLlmPort:
+    """The upstream model is down: every call fails (SPEC.md 5.2 `503 上游不可用`)."""
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        raise RuntimeError("model unavailable")
+        yield ""  # pragma: no cover - unreachable, keeps this an async generator
+
+
+class TimedOutLlmPort:
+    """The upstream model misses its deadline (SPEC.md 5.2 `504 上游超时`).
+
+    The timeout itself belongs to the adapter (SPEC.md 4.1 B-3 "不测超时实现");
+    the port surfaces it as `TimeoutError`, which is what `asyncio.timeout` and
+    `asyncio.wait_for` raise on Python 3.11+.
+    """
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        raise TimeoutError("model deadline exceeded")
+        yield ""  # pragma: no cover - unreachable, keeps this an async generator
+
+
+class InterruptedLlmPort:
+    """Streams a first chunk, then the upstream dies mid-answer: partial content
+    stays on the wire and the stream still ends with `error` (SPEC.md 5.5 不变量 4)."""
+
+    def __init__(
+        self, chunks: Sequence[str] = ("您好，",), error: Exception | None = None
+    ) -> None:
+        self._chunks = list(chunks)
+        self._error = error or TimeoutError("model deadline exceeded")
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        for chunk in self._chunks:
+            yield chunk
+        raise self._error
+
+
 class StubLlmPort:
     async def stream(self, prompt: str) -> AsyncIterator[str]:
         yield ""

@@ -19,6 +19,14 @@ class RetrievalPort(Protocol):
 
 @runtime_checkable
 class LlmPort(Protocol):
+    """The one port generation cannot degrade on (SPEC.md 5.2).
+
+    An adapter that cannot reach the model raises: `TimeoutError` when the
+    deadline passes (→ `error` code 504, the timeout itself is infrastructure,
+    SPEC.md 4.1 B-3), any other exception when the model is unavailable
+    (→ `error` code 503).
+    """
+
     def stream(self, prompt: str) -> AsyncIterator[str]: ...
 
 
