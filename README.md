@@ -110,16 +110,18 @@ npm run dev                     # http://localhost:5173
 需先启动 MySQL 与 Neo4j：
 
 ```bash
-python scripts/import_sql.py      # 建表
+alembic upgrade head              # 建表：应用 Schema 迁移（见 docs/adr/0001-*.md）
 python scripts/init_graph.py      # 知识图谱灌数（幂等）
 python scripts/init_knowledge.py  # 知识库种子文档灌入并向量化（幂等）
 ```
+
+种子文档位于 `server/docs_seed/`，由 `init_knowledge.py` 读取；该目录缺失时脚本提示并退出。
 
 ## 工程约定
 
 - **仓库结构**：Monorepo，`client/` 与 `server/` 两个顶层目录。
 - **业务规则**：全部校验、状态语义、权限判定、级联规则都在后端；前端不得复制业务规则作为唯一依据。
-- **领域文档**：`GLOSSARY.md` 与 `docs/adr/`，按需惰性创建，见 [`docs/agents/domain.md`](./docs/agents/domain.md)。
+- **领域文档**：`GLOSSARY.md` 与 `docs/adr/`；ADR 的人类可读索引入口是根目录 `DECISIONS.md`，见 [`docs/agents/domain.md`](./docs/agents/domain.md)。
 - **Issue tracker**：本地 markdown，`.scratch/<feature-slug>/`，见 [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md)。
 - **回归基线**：基线用例集与录制结果纳入版本控制，不忽略。
 
