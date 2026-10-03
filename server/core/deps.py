@@ -29,11 +29,12 @@ __all__ = [
     "Principal",
     "get_active_settings",
     "get_current_user",
-    "get_current_user_id",
     "get_principal",
     "get_session",
     "require_admin",
     "require_authenticated",
+    "require_patient",
+    "resolve_optional_principal",
 ]
 
 AUTHORIZATION_HEADER = "Authorization"
@@ -81,15 +82,6 @@ async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
             raise
         else:
             await session.commit()
-
-
-def get_current_user_id(request: Request) -> int | None:
-    """The owner id for endpoints that predate token auth (007-011).
-
-    Kept as-is so this ticket does not change the already-shipped chat
-    behaviour; token-backed ownership is a later concern.
-    """
-    return getattr(request.state, "user_id", None)
 
 
 async def get_current_user(
@@ -147,3 +139,28 @@ def require_admin(principal: Principal = Depends(require_authenticated)) -> Prin
     if principal.role != ROLE_ADMIN:
         raise ApiError(403, "需要管理员权限")
     return principal
+
+
+def require_patient(principal: Principal = Depends(require_authenticated)) -> Principal:
+    """403 when the caller is authenticated but not a patient (SPEC.md 5.4)."""
+    if principal.role != ROLE_USER:
+        raise ApiError(403, "需要患者权限")
+    return principal
+
+
+async def resolve_optional_principal(request: Request) -> Principal | None:
+    """Resolve the caller for a streaming handler, using a short-lived session.
+
+    A `Depends(get_principal)` teardown runs only after a `StreamingResponse`
+    finishes, which would pin a pooled connection for the whole generation —
+    exactly what TICKET-010's single-session design avoids (SPEC.md 3.1 / 3.3).
+    Resolving here, before the stream opens, releases the connection immediately.
+    No `Authorization` header stays anonymous; a bad token keeps its documented
+    status (401/403) so the front-end guard can clear and return to login.
+    """
+    if _bearer_token(request) is None:
+        return None
+    database: Database = request.app.state.database
+    async with database.session_factory() as session:
+        user = await get_current_user(request, session)
+    return Principal(user_id=user.user_id, role=user.role)

@@ -42,6 +42,44 @@ class ConsultRepository(Repository):
         await self._session.flush()
         return row
 
+    async def list_sessions(self, *, user_id: int) -> list[ConsultSessionRow]:
+        """本人会话列表，按更新时间倒序（FUNCTIONAL_SPEC 2.3）。`id` 作为
+        稳定次级键，保证同一时间戳下顺序可复现。"""
+        rows = (
+            (
+                await self._session.execute(
+                    select(ConsultSessionRow)
+                    .where(ConsultSessionRow.user_id == user_id)
+                    .order_by(
+                        ConsultSessionRow.update_time.desc(),
+                        ConsultSessionRow.id.desc(),
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return list(rows)
+
+    async def find_session_by_id(self, session_id: int) -> ConsultSessionRow | None:
+        """按会话号取会话，**不校验归属**（FUNCTIONAL_SPEC 5.7「消息查询过滤」）。"""
+        return await self._session.get(ConsultSessionRow, session_id)
+
+    async def messages(self, session_id: int) -> list[ConsultMessageRow]:
+        """会话全部消息，按写入顺序（`id` 升序）。"""
+        rows = (
+            (
+                await self._session.execute(
+                    select(ConsultMessageRow)
+                    .where(ConsultMessageRow.session_id == session_id)
+                    .order_by(ConsultMessageRow.id.asc())
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return list(rows)
+
     async def add_message(
         self,
         session_id: int,

@@ -88,12 +88,18 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ method: 'POST', path: '/profile/avatar', body: form, authed: true })
     },
 
+    async chatSessions() {
+      return call({ path: '/chat/sessions', authed: true })
+    },
+
+    async chatMessages(sessionId) {
+      return call({ path: `/chat/sessions/${sessionId}/messages`, authed: true })
+    },
+
     async *sendChat(request) {
-      const frames = transport.stream({
-        method: 'POST',
-        path: '/chat/send',
-        body: request,
-      })
+      const frames = transport.stream(
+        shape({ method: 'POST', path: '/chat/send', body: request, authed: true })
+      )
       for await (const frame of frames) {
         // Unknown frame types are ignored so the client survives a newer server (SPEC.md 5.5).
         if (KNOWN_FRAME_TYPES.has(frame.type)) yield frame

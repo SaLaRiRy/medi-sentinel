@@ -1,4 +1,8 @@
-"""`POST /api/v1/chat/send`: one consult, streamed as SSE (SPEC.md 5.5).
+"""患者侧 AI 问诊 HTTP 接口（`SPEC.md` 5.4「AI 问诊与知识库」）。
+
+- `POST /chat/send`：一次问诊，以 SSE 流式返回（SPEC.md 5.5）
+- `GET /chat/sessions`：本人会话列表，按更新时间倒序
+- `GET /chat/sessions/{id}/messages`：指定会话的历史消息（仅按会话号过滤）
 
 The route is thin on purpose: session/message rules live in `services.chat`, the
 whole AI chain lives behind the B-1 entry point, and the request's single
@@ -13,14 +17,24 @@ settled instead of leaking (TICKET-010).
 import json
 import logging
 from collections.abc import AsyncIterator
+from datetime import datetime
 
 import anyio
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.deps import get_current_user_id
+from core.deps import (
+    Principal,
+    get_session,
+    require_patient,
+    resolve_optional_principal,
+)
 from core.errors import ApiError
+from core.response import Envelope, success
+from models.consult import ConsultMessageRow, ConsultSessionRow
+from repositories.consult import ConsultRepository
 from repositories.trace import TraceRepository
 from services.chat import OpenedTurn, close_turn, open_turn
 from services.generation import GenerationKey, SessionGenerationGuard
@@ -45,6 +59,59 @@ class EventStreamResponse(StreamingResponse):
     media_type = SSE_MEDIA_TYPE
 
 
+class SessionView(BaseModel):
+    id: int
+    title: str
+    message_count: int
+    create_time: datetime | None = None
+    update_time: datetime | None = None
+
+    @classmethod
+    def of(cls, row: ConsultSessionRow) -> "SessionView":
+        return cls(
+            id=row.id,
+            title=row.title,
+            message_count=row.message_count or 0,
+            create_time=row.create_time,
+            update_time=row.update_time,
+        )
+
+
+class MessageView(BaseModel):
+    id: int
+    session_id: int
+    role: str
+    content: str
+    references: list[dict] = []
+    graph: list[dict] = []
+    cost_time: int | None = None
+    create_time: datetime | None = None
+
+    @classmethod
+    def of(cls, row: ConsultMessageRow) -> "MessageView":
+        return cls(
+            id=row.id,
+            session_id=row.session_id,
+            role=row.role,
+            content=row.content,
+            references=_parse_json_list(row.references_json),
+            graph=_parse_json_list(row.graph_json),
+            cost_time=row.cost_time,
+            create_time=row.create_time,
+        )
+
+
+def _parse_json_list(raw: str | None) -> list[dict]:
+    """A stored JSON column, or `[]` when the message carries none."""
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
 def sse_frame(frame: dict) -> str:
     """One frame is `data: <JSON>\\n\\n`; the type is the JSON field, not `event:`."""
     return f"data: {json.dumps(frame, ensure_ascii=False)}\n\n"
@@ -55,7 +122,10 @@ async def send_chat(request: Request, payload: ChatRequest) -> EventStreamRespon
     database = request.app.state.database
     ports: OrchestrationPorts = request.app.state.orchestration_ports
     guard: SessionGenerationGuard = request.app.state.generation_guard
-    user_id = get_current_user_id(request)
+    # A token attributes the session to its holder; no token stays anonymous so
+    # the pre-auth callers (007-011) keep their behaviour (TICKET-014).
+    principal = await resolve_optional_principal(request)
+    user_id = principal.user_id if principal is not None else None
 
     # One generation per session (SPEC.md 5.4 409). A brand-new session has no id
     # yet, so it cannot collide with an in-flight one.
@@ -96,6 +166,31 @@ async def send_chat(request: Request, payload: ChatRequest) -> EventStreamRespon
     )
 
 
+@router.get("/chat/sessions", response_model=Envelope[list[SessionView]])
+async def list_sessions(
+    principal: Principal = Depends(require_patient),
+    session: AsyncSession = Depends(get_session),
+) -> Envelope[list[SessionView]]:
+    rows = await ConsultRepository(session).list_sessions(user_id=principal.user_id)
+    return success([SessionView.of(row) for row in rows])
+
+
+@router.get(
+    "/chat/sessions/{session_id}/messages",
+    response_model=Envelope[list[MessageView]],
+)
+async def list_messages(
+    session_id: int,
+    principal: Principal = Depends(require_patient),
+    session: AsyncSession = Depends(get_session),
+) -> Envelope[list[MessageView]]:
+    repository = ConsultRepository(session)
+    if await repository.find_session_by_id(session_id) is None:
+        raise ApiError(404, "会话不存在")
+    rows = await repository.messages(session_id)
+    return success([MessageView.of(row) for row in rows])
+
+
 async def _stream(
     orchestrator: Orchestrator,
     payload: ChatRequest,
@@ -107,6 +202,7 @@ async def _stream(
     key: GenerationKey | None,
 ) -> AsyncIterator[str]:
     answer: list[str] = []
+    safety: dict | None = None
     done: dict | None = None
     try:
         async for frame in orchestrator.run(
@@ -114,6 +210,8 @@ async def _stream(
         ):
             if frame["type"] == "content":
                 answer.append(frame["content"])
+            elif frame["type"] == "safety":
+                safety = frame
             elif frame["type"] == "done":
                 done = frame
             yield sse_frame(frame)
@@ -123,7 +221,12 @@ async def _stream(
             # the settle must still run to completion (TICKET-010).
             with anyio.CancelScope(shield=True):
                 await _commit_turn(
-                    session, sink=sink, opened=opened, answer=answer, done=done
+                    session,
+                    sink=sink,
+                    opened=opened,
+                    answer=answer,
+                    safety=safety,
+                    done=done,
                 )
         finally:
             guard.release(key)
@@ -135,6 +238,7 @@ async def _commit_turn(
     sink: InMemoryTraceSink,
     opened: OpenedTurn,
     answer: list[str],
+    safety: dict | None,
     done: dict | None,
 ) -> None:
     """Commit the assistant turn (when the stream reached `done`) and the trace,
@@ -145,7 +249,7 @@ async def _commit_turn(
             await close_turn(
                 session,
                 session_id=opened.session_id,
-                answer="".join(answer),
+                answer=_assistant_content(answer=answer, safety=safety),
                 references=done["references"],
                 candidates=done["graph"],
                 cost_time=done["cost_time"],
@@ -161,6 +265,18 @@ async def _commit_turn(
         await _settle_session(session)
     else:
         await session.close()
+
+
+def _assistant_content(*, answer: list[str], safety: dict | None) -> str:
+    """What the assistant message keeps for a finished turn.
+
+    拦截路径没有 `content` 帧，若原样持久化就是空消息；TICKET-008 挂账第 1 条在
+    本票拍板为「存安全提示」：把安全门的 `message` 与 `suggested_action` 写进历史，
+    否则重新加载对话只剩一个空气泡，安全提示随流消失。放行路径仍是累计的生成全文。
+    """
+    if safety is not None:
+        return f"{safety['message']}\n{safety['suggested_action']}"
+    return "".join(answer)
 
 
 async def _settle_session(session: AsyncSession) -> None:

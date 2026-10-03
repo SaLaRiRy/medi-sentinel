@@ -46,6 +46,19 @@ function transportStreaming(frames) {
   }
 }
 
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** A declared path template (`/api/v1/foo/{id}`) matches a concrete request path. */
+function matchesDeclaredPath(method, path) {
+  const requested = `/api/v1${path}`
+  return Object.entries(restContract.paths).some(([candidate, operations]) => {
+    const pattern = new RegExp(
+      `^${candidate.split(/\{[^}]+\}/).map(escapeRegExp).join('[^/]+')}$`
+    )
+    return pattern.test(requested) && Object.keys(operations).includes(method.toLowerCase())
+  })
+}
+
 describe('C-1 from the consuming side', () => {
   it('understands every frame type the contract declares', async () => {
     const types = frameTypes()
@@ -79,16 +92,25 @@ describe('C-1 from the consuming side', () => {
           requested.push({ method, path })
           return { status: 200, payload: { code: 200, message: 'ok', data: {} } }
         },
+        stream: async function* stream({ method, path }) {
+          requested.push({ method, path })
+          yield { type: 'done', ...sampleFor({ $ref: '#/$defs/done' }) }
+        },
       },
     })
 
     await client.health()
-
-    for (const { method, path } of requested) {
-      expect(Object.keys(restContract.paths)).toContain(`/api/v1${path}`)
-      expect(Object.keys(restContract.paths[`/api/v1${path}`])).toContain(
-        method.toLowerCase()
-      )
+    await client.chatSessions()
+    await client.chatMessages(1)
+    for await (const _frame of client.sendChat({ message: '你好' })) {
+      // consume the stream so the path is recorded
     }
+
+    expect(requested).toHaveLength(4)
+    for (const { method, path } of requested) {
+      expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
+    }
+    expect(matchesDeclaredPath('GET', '/chat/sessions')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/chat/sessions/1/messages')).toBe(true)
   })
 })

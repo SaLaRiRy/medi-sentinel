@@ -8,6 +8,8 @@ import PortalShell from './layouts/PortalShell.vue'
 import { createSessionStore } from './session/store.js'
 import { applyApiError } from './session/guard.js'
 import { layoutFor } from './session/navigation.js'
+import { resolveNavigation } from './session/routes.js'
+import ChatView from './views/ChatView.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
 import HealthView from './views/HealthView.vue'
@@ -33,9 +35,20 @@ function logout() {
   screen.value = 'login'
 }
 
+// Navigation is decided in one place: the route table says which screen a path
+// maps to, and the F-3 guard is the only auth pivot that reads it (AC-F-09).
 function onNavigate(to) {
   notice.value = null
-  screen.value = String(to).endsWith('/profile') ? 'profile' : 'home'
+  const outcome = resolveNavigation({ role: auth.value.role, path: String(to) })
+  if (outcome.action === 'login') {
+    if (outcome.clearSession) {
+      client.logout()
+      auth.value = session.get()
+    }
+    screen.value = 'login'
+    return
+  }
+  screen.value = outcome.screen
 }
 
 // The guard is the single auth pivot: 401 clears and returns to login, 403 only
@@ -86,7 +99,8 @@ function handleError(error) {
         @logout="logout"
         @navigate="onNavigate"
       >
-        <p>患者门户已就位</p>
+        <ChatView v-if="screen === 'chat'" :client="client" @error="handleError" />
+        <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
         <p>管理台已就位</p>
