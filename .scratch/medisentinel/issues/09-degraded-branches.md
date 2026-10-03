@@ -4,10 +4,11 @@
 
 **Blocked by:** 07（orchestration 正常路径）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: 0bb0b7c
 
-- [ ] 向量检索或图谱不可用时问答仍完成，HTTP 状态仍为 200
-- [ ] `done.degraded` 列出不可用支路（`retrieval` / `graph`）
-- [ ] 降级不产生错误码，符合「降级与失败区分」的约定
-- [ ] 大模型生成不可用无法降级，返回 503 / 504
-- [ ] 端到端场景「图谱不可用 + 头疼发烧」：HTTP 200，`done.degraded` 含 `graph`，回答仍生成
+- [x] 向量检索或图谱不可用时问答仍完成，HTTP 状态仍为 200
+- [x] `done.degraded` 列出不可用支路（`retrieval` / `graph`）
+- [x] 降级不产生错误码，符合「降级与失败区分」的约定
+- [x] 大模型生成不可用无法降级，返回 503 / 504
+- [x] 端到端场景「图谱不可用 + 头疼发烧」：HTTP 200，`done.degraded` 含 `graph`，回答仍生成

@@ -5,6 +5,7 @@
 **Blocked by:** 07（orchestration 正常路径）
 
 **Status:** done
+Completed: 0e33191
 
 - [x] 红旗输入的 SSE 流出现 `safety` 帧且 `decision == intercept`
 - [x] 同一输入大模型端口调用次数为 0

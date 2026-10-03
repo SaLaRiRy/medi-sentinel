@@ -5,6 +5,7 @@
 **Blocked by:** 03（safety-gate）、04（symptom-normalization）、05（vector-retrieval）、06（graph-inference）
 
 **Status:** done
+Completed: bde8768
 
 - [x] `POST /api/v1/chat/send` 端到端流式问答可用；会话标题按前 20 字符 + 省略号生成，消息计数 +2，历史取最近 6 条
 - [x] `session` 与 `trace` 必为前两帧且顺序固定；正常路径不出现 `safety` 帧；`done` 恰好一次；`done` 与 `error` 互斥且流以二者之一结束
