@@ -21,6 +21,15 @@ describe('resolveRoute (TICKET-014)', () => {
     expect(resolveRoute('/admin/profile').screen).toBe('profile')
   })
 
+  it('maps the admin knowledge path to its own screen (TICKET-015)', () => {
+    expect(resolveRoute('/admin/knowledge')).toEqual({
+      path: '/admin/knowledge',
+      screen: 'knowledge',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+  })
+
   it('falls back to the shell home for routes not built yet', () => {
     expect(resolveRoute('/portal/appointment')).toMatchObject({
       screen: 'home',

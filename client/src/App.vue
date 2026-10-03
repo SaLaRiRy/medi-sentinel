@@ -13,6 +13,7 @@ import ChatView from './views/ChatView.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
 import HealthView from './views/HealthView.vue'
+import KnowledgeView from './views/KnowledgeView.vue'
 
 const session = createSessionStore()
 const client = createApiClient({ session })
@@ -103,7 +104,12 @@ function handleError(error) {
         <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
-        <p>管理台已就位</p>
+        <KnowledgeView
+          v-if="screen === 'knowledge'"
+          :client="client"
+          @error="handleError"
+        />
+        <p v-else>管理台已就位</p>
       </ConsoleShell>
     </template>
   </div>

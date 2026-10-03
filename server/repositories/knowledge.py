@@ -8,7 +8,7 @@ an upload request) controls where a document's state changes become visible.
 
 from collections.abc import Sequence
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 
 from models.knowledge import (
     VECTOR_INDEXED,
@@ -30,6 +30,56 @@ class KnowledgeRepository(Repository):
 
     async def find_file(self, file_id: int) -> KnowledgeFileRow | None:
         return await self._session.get(KnowledgeFileRow, file_id)
+
+    def _search_criteria(
+        self, keyword: str | None, file_type: str | None
+    ) -> list:
+        criteria = []
+        if keyword:
+            pattern = f"%{keyword}%"
+            criteria.append(
+                or_(
+                    KnowledgeFileRow.file_name.like(pattern),
+                    KnowledgeFileRow.file_type.like(pattern),
+                )
+            )
+        if file_type:
+            criteria.append(KnowledgeFileRow.file_type == file_type)
+        return criteria
+
+    async def list_files(
+        self,
+        *,
+        offset: int,
+        limit: int,
+        keyword: str | None = None,
+        file_type: str | None = None,
+    ) -> tuple[list[KnowledgeFileRow], int]:
+        """分页列表；`keyword` 同时模糊匹配文件名与类型（FUNCTIONAL_SPEC 2.3）。"""
+        criteria = self._search_criteria(keyword, file_type)
+        total = int(
+            (
+                await self._session.execute(
+                    select(func.count())
+                    .select_from(KnowledgeFileRow)
+                    .where(*criteria)
+                )
+            ).scalar_one()
+        )
+        rows = (
+            (
+                await self._session.execute(
+                    select(KnowledgeFileRow)
+                    .where(*criteria)
+                    .order_by(KnowledgeFileRow.id.desc())
+                    .offset(offset)
+                    .limit(limit)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return list(rows), total
 
     async def create_file(
         self,
@@ -98,3 +148,15 @@ class KnowledgeRepository(Repository):
                 )
             ).scalar_one()
         )
+
+    async def delete_chunks(self, file_id: int) -> None:
+        """删除该文件的全部旧分块（FUNCTIONAL_SPEC.md 5.6 级联删除第 2 步）。"""
+        await self._session.execute(
+            delete(KnowledgeChunkRow).where(KnowledgeChunkRow.file_id == file_id)
+        )
+
+    async def delete_file(self, file_id: int) -> None:
+        """删除文件记录；记录不存在时同样返回成功（FUNCTIONAL_SPEC.md 5.6）。"""
+        row = await self._session.get(KnowledgeFileRow, file_id)
+        if row is not None:
+            await self._session.delete(row)

@@ -105,12 +105,20 @@ describe('C-1 from the consuming side', () => {
     for await (const _frame of client.sendChat({ message: '你好' })) {
       // consume the stream so the path is recorded
     }
+    await client.knowledgeFiles({ page: 1, page_size: 10 })
+    await client.uploadKnowledge({ name: '指南.md' })
+    await client.revectorizeKnowledge(1)
+    await client.deleteKnowledge(1)
 
-    expect(requested).toHaveLength(4)
+    expect(requested).toHaveLength(8)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
     expect(matchesDeclaredPath('GET', '/chat/sessions')).toBe(true)
     expect(matchesDeclaredPath('GET', '/chat/sessions/1/messages')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/knowledge')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/knowledge')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/knowledge/1/revectorize')).toBe(true)
+    expect(matchesDeclaredPath('DELETE', '/knowledge/1')).toBe(true)
   })
 })

@@ -53,6 +53,11 @@ class Settings(BaseSettings):
     avatar_subdir: str = "avatar"
     avatar_max_bytes: int = 2 * 1024 * 1024
 
+    # Knowledge uploads live under `<upload_dir>/knowledge` and carry their own
+    # cap: an oversized document is 413 (SPEC.md 5.4「AI 问诊与知识库」).
+    knowledge_subdir: str = "knowledge"
+    knowledge_max_bytes: int = 10 * 1024 * 1024
+
     # AC-B-24: during a 20-consult burst no single synchronous stall on the
     # event loop may exceed this. The blocking-call detection test reads it.
     event_loop_block_threshold_ms: int = 250

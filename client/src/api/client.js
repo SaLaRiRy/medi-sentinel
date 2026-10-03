@@ -88,6 +88,32 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ method: 'POST', path: '/profile/avatar', body: form, authed: true })
     },
 
+    async knowledgeFiles({ page = 1, page_size = 10, keyword, file_type } = {}) {
+      return call({
+        path: '/knowledge',
+        query: { page, page_size, keyword, file_type },
+        authed: true,
+      })
+    },
+
+    async uploadKnowledge(file) {
+      const form = new FormData()
+      form.append('file', file)
+      return call({ method: 'POST', path: '/knowledge', body: form, authed: true })
+    },
+
+    async revectorizeKnowledge(fileId) {
+      return call({
+        method: 'POST',
+        path: `/knowledge/${fileId}/revectorize`,
+        authed: true,
+      })
+    },
+
+    async deleteKnowledge(fileId) {
+      return call({ method: 'DELETE', path: `/knowledge/${fileId}`, authed: true })
+    },
+
     async chatSessions() {
       return call({ path: '/chat/sessions', authed: true })
     },

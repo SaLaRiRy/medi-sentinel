@@ -236,3 +236,46 @@ class BarrierRetrievalPort:
         self.calls.append((query, top_k))
         await self._barrier.wait()
         return []
+
+
+class InMemoryVectorStore:
+    """The `VectorStore` port held in memory (TICKET-015)."""
+
+    def __init__(self, *, fail_on_add: bool = False) -> None:
+        self.by_file: dict[int, list[str]] = {}
+        self.deleted: list[int] = []
+        self.fail_on_add = fail_on_add
+        self.on_add = None
+
+    async def add_chunks(self, *, file_id: int, file_name: str, chunks) -> int:
+        if self.on_add is not None:
+            await self.on_add()
+        if self.fail_on_add:
+            raise RuntimeError("embedding service unavailable")
+        self.by_file[file_id] = list(chunks)
+        return len(self.by_file[file_id])
+
+    async def delete_by_file_id(self, file_id: int) -> None:
+        self.deleted.append(file_id)
+        self.by_file.pop(file_id, None)
+
+    async def count_by_file_id(self, file_id: int) -> int:
+        return len(self.by_file.get(file_id, []))
+
+    async def search(self, query: str, top_k: int = 5) -> Sequence[Mapping[str, Any]]:
+        return []
+
+
+class ColdScheduler:
+    """Records the coroutine instead of running it.
+
+    The test decides when the background vectorization happens, so "the upload
+    returned before the file was vectorized" is observable (TICKET-015).
+    """
+
+    def __init__(self) -> None:
+        self.coroutines: list[Any] = []
+
+    def __call__(self, coroutine: Any) -> Any:
+        self.coroutines.append(coroutine)
+        return coroutine

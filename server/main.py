@@ -12,6 +12,7 @@ from core.errors import register_error_handlers
 from core.response import EnvelopeJSONResponse
 from db.session import Database
 from services.generation import SessionGenerationGuard
+from services.knowledge import KnowledgeJobs
 from skills.orchestration import OrchestrationPorts
 from skills.ports import UnavailableLlmPort
 
@@ -36,6 +37,10 @@ def create_app(
         app.state.database = Database(active_settings.database_url)
         app.state.orchestration_ports = active_ports
         app.state.generation_guard = SessionGenerationGuard()
+        app.state.knowledge_jobs = KnowledgeJobs(
+            session_factory=app.state.database.session_factory,
+            store=active_ports.retrieval,
+        )
         _prepare_uploads(app, active_settings)
         yield
         for port in (active_ports.graph, active_ports.retrieval):
@@ -71,7 +76,7 @@ def _prepare_uploads(app: FastAPI, settings: Settings) -> None:
     root = Path(settings.upload_dir)
     try:
         (root / settings.avatar_subdir).mkdir(parents=True, exist_ok=True)
-        (root / "knowledge").mkdir(parents=True, exist_ok=True)
+        (root / settings.knowledge_subdir).mkdir(parents=True, exist_ok=True)
     except OSError:
         pass
     if root.is_dir():

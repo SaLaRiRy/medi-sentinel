@@ -10,3 +10,5 @@ pydantic-settings>=2.6
 python-multipart>=0.0.12
 neo4j>=5.20
 chromadb>=0.5
+pypdf>=5.0
+python-docx>=1.1

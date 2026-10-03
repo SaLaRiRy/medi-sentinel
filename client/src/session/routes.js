@@ -17,6 +17,7 @@ export const ROUTE_TABLE = [
   { path: '/doctor/dashboard', screen: 'home', requiresAuth: true, roles: ['doctor'] },
   { path: '/doctor/profile', screen: 'profile', requiresAuth: true, roles: ['doctor'] },
   { path: '/admin/dashboard', screen: 'home', requiresAuth: true, roles: ['admin'] },
+  { path: '/admin/knowledge', screen: 'knowledge', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/profile', screen: 'profile', requiresAuth: true, roles: ['admin'] },
 ]
 
