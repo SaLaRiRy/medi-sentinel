@@ -219,8 +219,10 @@ async def test_full_graph_projects_every_node_and_directed_edge():
 
 
 async def test_neighbours_bind_depth_into_the_query_and_return_the_subgraph():
-    root_rows = [{"name": "高血压", "labels": ["Disease"]}]
-    node_rows = [{"name": "头痛", "labels": ["Symptom"]}]
+    node_rows = [
+        {"name": "高血压", "labels": ["Disease"]},
+        {"name": "头痛", "labels": ["Symptom"]},
+    ]
     edge_rows = [
         {
             "source_name": "高血压",
@@ -230,7 +232,7 @@ async def test_neighbours_bind_depth_into_the_query_and_return_the_subgraph():
             "rel_type": "HAS_SYMPTOM",
         }
     ]
-    adapter, driver = adapter_with(root_rows, node_rows, edge_rows)
+    adapter, driver = adapter_with([{"node_rows": node_rows, "edge_rows": edge_rows}])
 
     payload = await adapter.neighbors("高血压", depth=2)
 
@@ -247,10 +249,50 @@ async def test_neighbours_bind_depth_into_the_query_and_return_the_subgraph():
             }
         ],
     }
-    neighbour_queries = [query for query, _ in driver.log[1:]]
-    assert len(neighbour_queries) == 2
-    assert all("[*1..2]" in query for query in neighbour_queries)
-    assert all(params == {"entity": "高血压"} for _, params in driver.log)
+    # One statement: the node set is chosen once, then the edges among it.
+    assert len(driver.log) == 1
+    query, params = driver.log[0]
+    assert "[*1..2]" in query
+    assert "WHERE b IN nodes" in query
+    assert params == {"entity": "高血压"}
+
+
+async def test_neighbours_cap_the_node_set_once_before_reading_edges():
+    """A >30-node neighbourhood must never ship an edge whose endpoint was cut.
+
+    The old two-statement version limited the node list and the edge list
+    independently, so the 31st node could vanish while an edge still referenced
+    it. The single statement caps the node set with one slice (`[0..30]`) and
+    then reads only the edges among that set.
+    """
+    node_rows = [{"name": "高血压", "labels": ["Disease"]}] + [
+        {"name": f"症状{i}", "labels": ["Symptom"]} for i in range(30)
+    ]
+    edge_rows = [
+        {
+            "source_name": "高血压",
+            "source_labels": ["Disease"],
+            "target_name": f"症状{i}",
+            "target_labels": ["Symptom"],
+            "rel_type": "HAS_SYMPTOM",
+        }
+        for i in range(30)
+    ]
+    adapter, driver = adapter_with([{"node_rows": node_rows, "edge_rows": edge_rows}])
+
+    payload = await adapter.neighbors("高血压", depth=3)
+
+    node_ids = {node["id"] for node in payload["nodes"]}
+    assert len(node_ids) == 31
+    assert payload["edges"]
+    assert all(
+        edge["source"] in node_ids and edge["target"] in node_ids
+        for edge in payload["edges"]
+    )
+    query = driver.log[0][0]
+    assert "[*1..3]" in query
+    assert "[0..30]" in query
+    assert "LIMIT 30" not in query
 
 
 async def test_neighbours_return_none_for_an_unknown_entity():

@@ -89,13 +89,16 @@ CANDIDATE_RECORDS = [
 class StubGraphPort:
     """Canned graph payloads that record every call (SPEC.md 4.1 B-3)."""
 
-    def __init__(self, *, fail: bool = False) -> None:
+    def __init__(self, *, fail: bool = False, error: Exception | None = None) -> None:
         self.fail = fail
+        self.error = error
         self.calls: list[tuple] = []
 
     def _check(self) -> None:
         if self.fail:
             raise RuntimeError("graph unavailable")
+        if self.error is not None:
+            raise self.error
 
     async def infer_diseases(self, symptoms):
         self.calls.append(("infer_diseases", tuple(symptoms)))
@@ -243,6 +246,27 @@ async def test_graph_unavailable_is_503_on_every_endpoint(database_url):
         assert response.json()["message"]
 
 
+async def test_a_projection_defect_is_500_not_an_upstream_outage(database_url):
+    """A malformed payload is our bug, not the store being down (SPEC.md 5.2)."""
+    from core.config import Settings
+    from main import create_app
+
+    app = create_app(
+        Settings(database_url=database_url),
+        ports=OrchestrationPorts(
+            graph=StubGraphPort(error=KeyError("labels")),
+            retrieval=HitsRetrievalPort(),
+            llm=StubLlmPort(),
+        ),
+    )
+    async with client_as(app, ADMIN) as client:
+        response = await client.get("/api/v1/graph")
+
+    assert response.status_code == 500
+    assert response.json()["code"] == 500
+    assert response.json()["message"]
+
+
 async def test_infer_ranks_by_coverage_and_never_exposes_probability(app):
     async with client_as(app, PATIENT) as client:
         response = await client.post(
@@ -275,6 +299,25 @@ async def test_infer_normalizes_colloquial_symptoms_before_querying(app, graph_p
         await client.post("/api/v1/graph/infer", json={"symptoms": ["头疼", "拉肚子"]})
 
     assert ("infer_diseases", ("头痛", "腹泻")) in graph_port.calls
+
+
+async def test_infer_persists_exactly_one_graph_inference_span(app):
+    """AC-B-28: the Skill call leaves exactly one span, and it is persisted."""
+    from sqlalchemy import select
+
+    from models.trace import TraceSpanRow
+
+    async with client_as(app, PATIENT) as client:
+        response = await client.post(
+            "/api/v1/graph/infer", json={"symptoms": ["头痛", "发热"]}
+        )
+        assert response.status_code == 200
+        async with app.state.database.session_factory() as session:
+            rows = list((await session.execute(select(TraceSpanRow))).scalars().all())
+
+    assert [row.name for row in rows] == ["graph-inference"]
+    assert rows[0].status == "ok"
+    assert rows[0].trace_id
 
 
 async def test_infer_rejects_an_empty_symptom_list(app):

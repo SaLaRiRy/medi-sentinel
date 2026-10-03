@@ -786,6 +786,16 @@
               }
             }
           },
+          "500": {
+            "description": "服务内部错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "503": {
             "description": "上游不可用",
             "content": {
@@ -860,6 +870,16 @@
               }
             }
           },
+          "500": {
+            "description": "服务内部错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "503": {
             "description": "上游不可用",
             "content": {
@@ -913,6 +933,16 @@
               }
             }
           },
+          "500": {
+            "description": "服务内部错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "503": {
             "description": "上游不可用",
             "content": {
@@ -957,6 +987,16 @@
           },
           "404": {
             "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务内部错误",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1089,6 +1129,16 @@
           },
           "403": {
             "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务内部错误",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1936,7 +1986,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
               },
               {
                 "type": "null"
@@ -1948,7 +1998,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
               },
               {
                 "type": "null"
@@ -2060,7 +2110,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
               },
               {
                 "type": "null"
@@ -2512,7 +2562,7 @@
           },
           "decided_at": {
             "type": "string",
-            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Decided At"
           }
         },
@@ -2542,7 +2592,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
               },
               {
                 "type": "null"
@@ -2554,7 +2604,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "format": "date-time"
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
               },
               {
                 "type": "null"
@@ -2664,7 +2714,7 @@
           },
           "started_at": {
             "type": "string",
-            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Started At"
           }
         },
@@ -2737,7 +2787,7 @@
           },
           "started_at": {
             "type": "string",
-            "format": "date-time",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
             "title": "Started At"
           },
           "span_count": {

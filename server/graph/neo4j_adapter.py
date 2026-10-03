@@ -43,23 +43,27 @@ _SEARCH = (
     "MATCH (n) WHERE n.name CONTAINS $keyword "
     f"RETURN n.name AS name, labels(n) AS labels ORDER BY n.name LIMIT {SEARCH_LIMIT}"
 )
-_ENTITY = "MATCH (root {name: $entity}) RETURN root.name AS name, labels(root) AS labels"
 # The Cypher contains literal `{name: $entity}` maps, so the validated depth is
 # substituted through a plain token instead of `str.format` (which would read
 # those braces as replacement fields).
 DEPTH_TOKEN = "__DEPTH__"
-_NEIGHBOUR_NODES = (
-    f"MATCH (root {{name: $entity}}) MATCH (root)-[*1..{DEPTH_TOKEN}]-(m) "
-    "RETURN DISTINCT m.name AS name, labels(m) AS labels "
-    f"ORDER BY name LIMIT {MAX_NEIGHBORS}"
-)
-_NEIGHBOUR_EDGES = (
-    f"MATCH (root {{name: $entity}}) MATCH (root)-[*1..{DEPTH_TOKEN}]-(m) "
-    "WITH collect(DISTINCT m) + root AS nodes UNWIND nodes AS a "
-    "MATCH (a)-[r]->(b) WHERE b IN nodes "
-    "RETURN DISTINCT a.name AS source_name, labels(a) AS source_labels, "
-    "b.name AS target_name, labels(b) AS target_labels, type(r) AS rel_type "
-    f"ORDER BY rel_type, source_name, target_name LIMIT {MAX_NEIGHBORS}"
+# One statement selects the node set **once**, caps it once, and only then reads
+# the edges *among that set*. Two statements with independent LIMITs could return
+# an edge whose endpoint was cut from the node list.
+_NEIGHBOURHOOD = (
+    f"MATCH (root {{name: $entity}}) "
+    f"OPTIONAL MATCH (root)-[*1..{DEPTH_TOKEN}]-(m) "
+    "WITH root, m ORDER BY m.name "
+    f"WITH root, collect(DISTINCT m)[0..{MAX_NEIGHBORS}] AS neighbours "
+    "WITH [root] + neighbours AS nodes "
+    "UNWIND nodes AS a "
+    "OPTIONAL MATCH (a)-[r]->(b) WHERE b IN nodes "
+    "WITH nodes, "
+    "collect(DISTINCT {name: a.name, labels: labels(a)}) AS node_rows, "
+    "collect(DISTINCT {source_name: a.name, source_labels: labels(a), "
+    "target_name: b.name, target_labels: labels(b), rel_type: type(r)}) AS raw_edges "
+    "RETURN node_rows, "
+    "[edge IN raw_edges WHERE edge.target_name IS NOT NULL] AS edge_rows"
 )
 _DISEASE_ROOT = "MATCH (d:Disease {name: $name}) RETURN d.name AS name"
 _DISEASE_DEPARTMENT = (
@@ -215,25 +219,19 @@ class Neo4jGraphAdapter:
 
         `depth` 是 1..5 的整数（`_require_depth` 校验后插入已限定的 Cypher），
         返回以该实体为中心、最多 `MAX_NEIGHBORS` 个相关节点的子图
-        （`SPEC.md` 3.6「无无效参数」）。
+        （`SPEC.md` 3.6「无无效参数」）。节点集合在**同一条语句**里先定下、
+        再据此取边，因此每条边的两端都一定出现在返回的节点中。
         """
         validated = _require_depth(depth)
-        root_rows = await self._run(_ENTITY, entity=entity)
-        if not root_rows:
+        rows = await self._run(
+            _NEIGHBOURHOOD.replace(DEPTH_TOKEN, str(validated)), entity=entity
+        )
+        if not rows:
             return None
-        node_rows = await self._run(
-            _NEIGHBOUR_NODES.replace(DEPTH_TOKEN, str(validated)), entity=entity
-        )
-        edge_rows = await self._run(
-            _NEIGHBOUR_EDGES.replace(DEPTH_TOKEN, str(validated)), entity=entity
-        )
-        nodes: dict[str, dict[str, str]] = {}
-        for row in [*root_rows, *node_rows]:
-            node = node_from_row(row)
-            nodes[node["id"]] = node
+        row = rows[0]
         return {
-            "nodes": list(nodes.values()),
-            "edges": [edge_from_row(row) for row in edge_rows],
+            "nodes": [node_from_row(item) for item in row["node_rows"]],
+            "edges": [edge_from_row(item) for item in row["edge_rows"]],
         }
 
     async def search_entities(

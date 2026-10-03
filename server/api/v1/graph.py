@@ -20,11 +20,19 @@ from typing import Any, TypeVar
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.deps import Principal, get_graph_port, require_admin, require_authenticated
+from core.deps import (
+    Principal,
+    get_graph_port,
+    get_session,
+    require_admin,
+    require_authenticated,
+)
 from core.errors import ApiError
 from core.response import Envelope, error_responses, success
 from graph.neo4j_adapter import MAX_DEPTH
+from repositories.trace import TraceRepository
 from skills.graph_inference import DiseaseCandidate, GraphInferenceSkill
 from skills.ports import GraphPort
 from skills.protocol import SkillContext
@@ -69,17 +77,27 @@ class DiseaseDetailView(BaseModel):
     edges: list[GraphEdge]
 
 
-async def _reach_graph(request: Awaitable[T]) -> T:
+#: Exceptions that mean *our projection* is wrong, not that the store is down.
+PROJECTION_DEFECTS = (KeyError, TypeError, IndexError, AttributeError)
+
+
+async def _reach_graph(awaitable: Awaitable[T]) -> T:
     """A graph read, with the unavailable store surfaced as 503 (SPEC.md 5.2).
 
     The graph is an enhancement branch for the consult chain, but these endpoints
     exist only to read it: there is nothing to degrade to, so an unreachable
     store is an upstream-unavailable failure, not a silent empty page.
+
+    A malformed payload, though, is a defect on our side — mapping it onto 503
+    would report an infrastructure outage for a projection bug, so those become
+    the documented 500 instead (SPEC.md 5.2「服务内部错误」).
     """
     try:
-        return await request
+        return await awaitable
     except ApiError:
         raise
+    except PROJECTION_DEFECTS as error:
+        raise ApiError(500, f"图谱载荷内部错误：{type(error).__name__}") from error
     except Exception as error:  # noqa: BLE001 - the store is the external edge
         raise ApiError(503, f"图谱服务不可用：{type(error).__name__}") from error
 
@@ -87,7 +105,7 @@ async def _reach_graph(request: Awaitable[T]) -> T:
 @router.get(
     "/graph",
     response_model=Envelope[GraphView],
-    responses=error_responses(503),
+    responses=error_responses(500, 503),
 )
 async def read_full_graph(
     graph: GraphPort = Depends(get_graph_port),
@@ -99,7 +117,7 @@ async def read_full_graph(
 @router.get(
     "/graph/entities/{name}/neighbors",
     response_model=Envelope[GraphView],
-    responses=error_responses(404, 422, 503),
+    responses=error_responses(404, 422, 500, 503),
 )
 async def read_entity_neighbors(
     name: str,
@@ -115,7 +133,7 @@ async def read_entity_neighbors(
 @router.get(
     "/graph/search",
     response_model=Envelope[list[GraphEntityView]],
-    responses=error_responses(422, 503),
+    responses=error_responses(422, 500, 503),
 )
 async def search_entities(
     keyword: str = Query(..., min_length=1),
@@ -128,7 +146,7 @@ async def search_entities(
 @router.get(
     "/graph/diseases/{name}",
     response_model=Envelope[DiseaseDetailView],
-    responses=error_responses(404, 503),
+    responses=error_responses(404, 500, 503),
 )
 async def read_disease_detail(
     name: str,
@@ -149,14 +167,22 @@ async def infer_diseases(
     payload: GraphQueryRequest,
     principal: Principal = Depends(require_authenticated),
     graph: GraphPort = Depends(get_graph_port),
+    session: AsyncSession = Depends(get_session),
 ) -> Envelope[list[DiseaseCandidate]]:
     # The Skill normalizes with the shared vocabulary and degrades on an
     # unreachable store; this endpoint has no answer to fall back to, so a
     # degraded result is an upstream failure here (SPEC.md 5.4「503」).
+    sink = InMemoryTraceSink()
     outcome = await GraphInferenceSkill(graph).invoke(
         {"symptoms": payload.symptoms},
-        SkillContext(trace_id=new_trace_id(), sink=InMemoryTraceSink()),
+        SkillContext(trace_id=new_trace_id(), sink=sink),
     )
+    # AC-B-28 / SPEC.md 3.7: every Skill call leaves exactly one span, persisted.
+    # Commit before any status is raised so a degraded/422 call is still audited.
+    repository = TraceRepository(session)
+    for span in sink.spans:
+        await repository.record_span(span)
+    await session.commit()
     if outcome.status == "invalid_input":
         raise ApiError(422, "参数校验失败：" + (outcome.error or "症状列表非法"))
     output = outcome.output
@@ -168,7 +194,7 @@ async def infer_diseases(
 @router.get(
     "/graph/stats",
     response_model=Envelope[dict[str, int]],
-    responses=error_responses(401, 403, 503),
+    responses=error_responses(401, 403, 500, 503),
 )
 async def graph_stats(
     principal: Principal = Depends(require_admin),
