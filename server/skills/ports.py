@@ -31,9 +31,10 @@ class LlmPort(Protocol):
 
 
 class UnavailableGraphPort:
-    """The default until a real adapter exists: the graph branch degrades instead
-    of the process crashing (SPEC.md 3.6). The Neo4j `AsyncGraphDatabase` adapter
-    lands with the store it talks to (TICKET-013)."""
+    """An explicitly unwired graph branch: it degrades instead of crashing
+    (SPEC.md 3.6). The running default is the real `AsyncGraphDatabase` adapter
+    (`adapters.build_graph_store`, TICKET-013); this stays for tests and for
+    callers that deliberately run without a graph store."""
 
     def __init__(self, reason: str = "graph adapter not wired yet") -> None:
         self._reason = reason
@@ -46,8 +47,9 @@ class UnavailableGraphPort:
 
 
 class UnavailableRetrievalPort:
-    """The default until a real adapter exists; the retrieval branch degrades
-    (SPEC.md 3.6)."""
+    """An explicitly unwired retrieval branch; it degrades (SPEC.md 3.6). The
+    running default is the Chroma adapter (`adapters.build_vector_store`,
+    TICKET-013)."""
 
     def __init__(self, reason: str = "retrieval adapter not wired yet") -> None:
         self._reason = reason

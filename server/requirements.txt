@@ -1,9 +1,12 @@
 fastapi>=0.115
 uvicorn[standard]>=0.32
 anyio>=4.4
+httpx>=0.27
 sqlalchemy[asyncio]>=2.0
 alembic>=1.14
 aiomysql>=0.2
 pydantic>=2.9
 pydantic-settings>=2.6
 python-multipart>=0.0.12
+neo4j>=5.20
+chromadb>=0.5

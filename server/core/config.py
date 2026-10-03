@@ -16,6 +16,28 @@ class Settings(BaseSettings):
     # hardcoded defaults, overridable by environment for tests only.
     database_url: str = "mysql+aiomysql://root:root@127.0.0.1:3306/medi_sentinel"
 
+    # Graph store (FUNCTIONAL_SPEC 6.2/6.6): Bolt, hardcoded credentials, like the
+    # reference implementation (SPEC.md 7.1). The async adapter is built from these.
+    neo4j_uri: str = "bolt://127.0.0.1:7687"
+    neo4j_user: str = "neo4j"
+    neo4j_password: str = "12345678"
+
+    # Vector index + embeddings (FUNCTIONAL_SPEC 6.2/6.6): local Chroma collection,
+    # OpenAI-compatible embedding service. Only the key comes from the environment.
+    chroma_persist_dir: str = "chroma_db"
+    chroma_collection: str = "medical_knowledge"
+    openai_api_key: str = ""
+    openai_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    llm_model: str = "qwen3.7-plus"
+    embedding_model: str = "text-embedding-v4"
+    embedding_dimensions: int = 2048
+    embedding_batch_size: int = 10
+
+    # Chunking and retrieval parameters (FUNCTIONAL_SPEC 5.5 / 6.6).
+    chunk_size: int = 500
+    chunk_overlap: int = 80
+    retrieval_top_k: int = 5
+
     # Token rules stay exactly as the reference implementation had them
     # (FUNCTIONAL_SPEC 5.8 / SPEC.md 7.1): HS256, a 24-hour lifetime and a
     # hardcoded signing key. Environment overrides exist for tests only.

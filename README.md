@@ -119,6 +119,9 @@ python scripts/init_knowledge.py  # 知识库种子文档灌入并向量化（�
 ```
 
 种子文档位于 `server/docs_seed/`，由 `init_knowledge.py` 读取；该目录缺失时脚本提示并退出。
+图谱查询走 Neo4j **异步驱动**（`AsyncGraphDatabase`，TICKET-013）；向量索引是本地持久化的
+Chroma（`server/chroma_db`），嵌入服务经 `OPENAI_API_KEY` 调用。外部服务不可用时脚本给出
+明确错误并以非零码退出，服务侧的图谱/检索支路则降级而不阻断问答。
 
 ## 测试
 

@@ -11,6 +11,7 @@ from core.config import get_settings
 from db.base import Base
 from models import accounts as _account_models  # noqa: F401  # registers the tables
 from models import consult as _consult_models  # noqa: F401  # registers the tables
+from models import knowledge as _knowledge_models  # noqa: F401  # registers the tables
 from models import trace as _trace_models  # noqa: F401  # registers the tables
 
 config = context.config

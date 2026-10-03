@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from adapters import build_graph_store, build_vector_store
 from api.v1 import api_router
 from core.config import Settings, get_settings
 from core.errors import register_error_handlers
@@ -12,23 +13,20 @@ from core.response import EnvelopeJSONResponse
 from db.session import Database
 from services.generation import SessionGenerationGuard
 from skills.orchestration import OrchestrationPorts
-from skills.ports import (
-    UnavailableGraphPort,
-    UnavailableLlmPort,
-    UnavailableRetrievalPort,
-)
+from skills.ports import UnavailableLlmPort
 
 
 def create_app(
     settings: Settings | None = None, ports: OrchestrationPorts | None = None
 ) -> FastAPI:
     active_settings = settings or get_settings()
-    # Real graph / retrieval / model adapters land with the stores they talk to
-    # (TICKET-013 / 015); until then the branches degrade and generation errors
-    # instead of the process crashing, and tests inject B-3 fakes.
+    # TICKET-013 wired the real async graph and vector stores (SPEC.md 3.1): they
+    # degrade the branch when unreachable rather than crashing. The model adapter
+    # is still pending, so generation ends in an `error` frame; tests inject B-3
+    # fakes instead.
     active_ports = ports or OrchestrationPorts(
-        graph=UnavailableGraphPort(),
-        retrieval=UnavailableRetrievalPort(),
+        graph=build_graph_store(active_settings),
+        retrieval=build_vector_store(active_settings),
         llm=UnavailableLlmPort(),
     )
 
@@ -40,6 +38,10 @@ def create_app(
         app.state.generation_guard = SessionGenerationGuard()
         _prepare_uploads(app, active_settings)
         yield
+        for port in (active_ports.graph, active_ports.retrieval):
+            close = getattr(port, "close", None)
+            if callable(close):
+                await close()
         await app.state.database.dispose()
 
     app = FastAPI(
