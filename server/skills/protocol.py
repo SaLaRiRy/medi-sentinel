@@ -45,22 +45,24 @@ class Skill:
         try:
             request = self.input_schema.model_validate(dict(payload))
         except ValidationError as error:
-            self._record(context, started, started_at, "error", payload_digest, "")
+            await self._record(context, started, started_at, "error", payload_digest, "")
             return SkillOutcome(status="invalid_input", error=str(error))
 
         try:
             result = await self.run(request)
             response = self.output_schema.model_validate(result)
         except Exception as error:
-            self._record(context, started, started_at, "error", payload_digest, "")
+            await self._record(context, started, started_at, "error", payload_digest, "")
             return SkillOutcome(
                 status="failed", error=f"{type(error).__name__}: {error}"
             )
 
-        self._record(context, started, started_at, "ok", payload_digest, digest(response))
+        await self._record(
+            context, started, started_at, "ok", payload_digest, digest(response)
+        )
         return SkillOutcome(status="ok", output=response)
 
-    def _record(
+    async def _record(
         self,
         context: SkillContext,
         started: float,
@@ -69,7 +71,7 @@ class Skill:
         input_digest: str,
         output_digest: str,
     ) -> None:
-        context.sink.record_span(
+        await context.sink.record_span(
             Span(
                 trace_id=context.trace_id,
                 name=self.name,

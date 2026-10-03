@@ -35,7 +35,7 @@ def test_upgrade_head_brings_an_empty_database_to_the_current_revision(tmp_path)
 
     command.upgrade(_config(db_path), "head")
 
-    assert _stamped_revisions(db_path) == ["0001"]
+    assert _stamped_revisions(db_path) == ["0002"]
 
 
 def test_upgrade_head_twice_is_a_no_op(tmp_path):
@@ -45,4 +45,25 @@ def test_upgrade_head_twice_is_a_no_op(tmp_path):
     command.upgrade(config, "head")
     command.upgrade(config, "head")
 
-    assert _stamped_revisions(db_path) == ["0001"]
+    assert _stamped_revisions(db_path) == ["0002"]
+
+
+def test_upgrade_head_creates_the_trace_store(tmp_path):
+    db_path = tmp_path / "empty.db"
+
+    command.upgrade(_config(db_path), "head")
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    try:
+        with engine.connect() as connection:
+            tables = set(
+                connection.execute(
+                    text("SELECT name FROM sqlite_master WHERE type = 'table'")
+                )
+                .scalars()
+                .all()
+            )
+    finally:
+        engine.dispose()
+
+    assert {"trace_span", "route_decision"} <= tables

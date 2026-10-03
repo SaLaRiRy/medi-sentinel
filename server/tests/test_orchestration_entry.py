@@ -51,3 +51,20 @@ async def test_frames_are_wire_ready_json(orchestrator):
     encoded = json.dumps(frames, ensure_ascii=False)
 
     assert json.loads(encoded) == frames
+
+
+async def test_every_run_records_exactly_one_route_decision_for_its_trace():
+    sink = InMemoryTraceSink()
+    ports = OrchestrationPorts(
+        graph=CountingGraphPort(), retrieval=CountingRetrievalPort(), llm=StubLlmPort()
+    )
+    orchestrator = Orchestrator(ports=ports, sink=sink)
+
+    frames = await _frames(orchestrator)
+    trace_id = next(frame["trace_id"] for frame in frames if frame["type"] == "trace")
+
+    assert len(sink.routes) == 1
+    decision = sink.routes[0]
+    assert decision.trace_id == trace_id
+    assert isinstance(decision.skills_run, list)
+    assert isinstance(decision.skills_skipped, list)
