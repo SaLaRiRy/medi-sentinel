@@ -5,8 +5,8 @@
 - `GET /skills`：五个 Skill 的名称、类别、Schema 版本与词表版本
 - 追踪检索类端点仅管理员可用（401 未认证 / 403 已认证但非管理员）
 
-这些端点不在冻结的 `contracts/openapi.json` 内（本票不改 `contracts/`），因此对
-OpenAPI 隐藏（`include_in_schema=False`），但仍在真实 HTTP 上服务。
+TICKET-014 解除了 `contracts/` 的冻结边界：这些端点现在随生成机制进入
+`contracts/openapi.json`，不再对 OpenAPI 隐藏。
 """
 
 import json
@@ -89,13 +89,14 @@ async def client_as(app, principal):
         app.dependency_overrides.pop(get_principal, None)
 
 
-async def test_traces_and_skills_are_not_in_the_frozen_openapi_contract(app):
-    """本票不改 `contracts/`：新端点对 OpenAPI 隐藏，但仍可服务。"""
+async def test_traces_and_skills_are_published_in_the_openapi_contract(app):
+    """TICKET-014：解冻后可观测性端点出现在契约里（生成 == 提交）。"""
     paths = app.openapi()["paths"]
 
     assert "/api/v1/chat/send" in paths
-    assert not any("traces" in path for path in paths)
-    assert not any(path.endswith("/skills") for path in paths)
+    assert "/api/v1/traces" in paths
+    assert "/api/v1/traces/{trace_id}" in paths
+    assert "/api/v1/skills" in paths
 
 
 async def test_skills_returns_the_five_manifests_to_any_authenticated_user(app):

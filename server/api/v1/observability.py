@@ -4,9 +4,8 @@
 - `GET /traces`：按 trace_id / Skill 名 / 时间范围 / 是否降级分页检索
 - `GET /skills`：五个 Skill 的名称、类别、Schema 版本与词表版本
 
-这些端点用 `include_in_schema=False` 对 OpenAPI 隐藏：本票的边界是 `contracts/`
-维持现状，因此不能改动冻结的接口契约，而 `test_contract_seam` 又要求「生成的
-OpenAPI == 提交的契约」。隐藏只是不写进描述文件，端点本身照常在真实 HTTP 上服务。
+TICKET-014 解除了 `contracts/` 的冻结边界，这三个端点不再对 OpenAPI 隐藏，而是
+随 `scripts/export_contract.py` 正常进入 `contracts/openapi.json`（C-1 seam）。
 
 权限（`SPEC.md` 5.4）：追踪检索类端点仅管理员（401 未认证 / 403 非管理员）；
 `/skills` 任意已认证用户可读。身份由 `core.deps.get_principal` 这个 B-4 从属 seam
@@ -93,7 +92,6 @@ class SkillManifestView(BaseModel):
 @router.get(
     "/traces",
     response_model=Envelope[PagePayload[TraceSummaryView]],
-    include_in_schema=False,
 )
 async def list_traces(
     principal: Principal = Depends(require_admin),
@@ -127,7 +125,6 @@ async def list_traces(
 @router.get(
     "/traces/{trace_id}",
     response_model=Envelope[TraceView],
-    include_in_schema=False,
 )
 async def read_trace(
     trace_id: str,
@@ -152,7 +149,6 @@ async def read_trace(
 @router.get(
     "/skills",
     response_model=Envelope[list[SkillManifestView]],
-    include_in_schema=False,
 )
 async def list_skills(
     principal: Principal = Depends(require_authenticated),

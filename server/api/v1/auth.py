@@ -3,9 +3,8 @@
 - `POST /auth/login`：三角色登录，角色决定查哪张账号表
 - `POST /auth/register`：患者自助注册，角色固定为 `user`
 
-这些端点对 OpenAPI 隐藏（`include_in_schema=False`）：本票的边界是 `contracts/`
-维持现状，而 `test_contract_seam` 要求「生成的 OpenAPI == 提交的契约」。隐藏只是
-不写进描述文件，端点本身照常在真实 HTTP 上服务（同 TICKET-011 的做法）。
+TICKET-014 解除了 `contracts/` 的冻结边界，这两个端点随生成机制正常进入
+`contracts/openapi.json`（C-1 seam）。
 """
 
 from dataclasses import asdict
@@ -52,7 +51,6 @@ def _token_response(result: AuthResult) -> TokenResponse:
 @router.post(
     "/auth/login",
     response_model=Envelope[TokenResponse],
-    include_in_schema=False,
 )
 async def login(
     payload: LoginRequest,
@@ -67,7 +65,6 @@ async def login(
 @router.post(
     "/auth/register",
     response_model=Envelope[TokenResponse],
-    include_in_schema=False,
 )
 async def register(
     payload: RegisterRequest,

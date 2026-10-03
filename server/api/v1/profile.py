@@ -6,7 +6,8 @@
 - `POST /profile/avatar`：头像上传，超过配置上限 → 413
 
 四个端点都没有 id 参数，操作对象恒为令牌对应的本人，因此不存在越权访问他人
-资料的路径（FUNCTIONAL_SPEC 2.2）。这些端点对 OpenAPI 隐藏，理由同 `auth.py`。
+资料的路径（FUNCTIONAL_SPEC 2.2）。TICKET-014 解除 `contracts/` 冻结后，这四个
+端点随生成机制正常进入 `contracts/openapi.json`（C-1 seam）。
 """
 
 import os
@@ -107,7 +108,6 @@ class AvatarView(BaseModel):
     "/profile/info",
     response_model=Envelope[ProfileView],
     response_model_exclude_unset=True,
-    include_in_schema=False,
 )
 async def read_profile(
     user: CurrentUser = Depends(get_current_user),
@@ -118,7 +118,6 @@ async def read_profile(
 @router.put(
     "/profile/update",
     response_model=Envelope[None],
-    include_in_schema=False,
 )
 async def update_profile(
     payload: ProfileUpdateRequest,
@@ -134,7 +133,6 @@ async def update_profile(
 @router.put(
     "/profile/password",
     response_model=Envelope[None],
-    include_in_schema=False,
 )
 async def change_password(
     payload: PasswordChangeRequest,
@@ -150,7 +148,6 @@ async def change_password(
 @router.post(
     "/profile/avatar",
     response_model=Envelope[AvatarView],
-    include_in_schema=False,
 )
 async def upload_avatar(
     file: UploadFile = File(...),
