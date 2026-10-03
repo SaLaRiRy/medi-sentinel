@@ -3,9 +3,10 @@ is computed on top of this entry point (SPEC.md 4.1).
 
 One consult, in the order SPEC.md 2.3 fixes: trace id → safety gate first →
 normalization → the two branches in parallel (they never filter each other) →
-deterministic context assembly → the single LLM call → the SSE frames. The
-safety short-circuit is TICKET-008; this Skill implements the normal path, and
-it is the only Skill allowed to call the model (SPEC.md 3.4).
+deterministic context assembly → the single LLM call → the SSE frames. A red flag
+short-circuits the whole chain at the gate: no normalization, no branches, no
+model (SPEC.md 3.5 / TICKET-008). This Skill is the only one allowed to call the
+model (SPEC.md 3.4).
 """
 
 import asyncio
@@ -17,11 +18,11 @@ from datetime import UTC, datetime
 from pydantic import BaseModel, Field
 
 from skills.graph_inference import GraphInferenceOutput, GraphInferenceSkill
-from skills.orchestration.frames import done_payload
+from skills.orchestration.frames import coverage_note, done_payload, safety_payload
 from skills.orchestration.prompt import ChatTurn, build_context, build_prompt
 from skills.ports import GraphPort, LlmPort, RetrievalPort
 from skills.protocol import SkillContext, SkillOutcome
-from skills.safety_gate import SafetyGateSkill
+from skills.safety_gate import SafetyGateOutput, SafetyGateSkill
 from skills.symptom_normalization import (
     SymptomNormalizationSkill,
     normalize_terms,
@@ -37,6 +38,9 @@ ORCHESTRATION = "orchestration"
 LLM_SPAN = "llm"
 
 GRAPH_SKIPPED_REASON = "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+SAFETY_INTERCEPT_REASON = (
+    "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+)
 
 
 class ChatRequest(BaseModel):
@@ -103,9 +107,12 @@ class Orchestrator:
             }
             return
 
-        await self._record_orchestration_span(
-            trace_id, started, started_at, "ok", request, session_id, summary
-        )
+        # The intercept path short-circuits before orchestration runs as a Skill,
+        # so it leaves no orchestration span — just the gate's (AC-E-02).
+        if not summary.get("intercepted"):
+            await self._record_orchestration_span(
+                trace_id, started, started_at, "ok", request, session_id, summary
+            )
 
     async def _run(
         self,
@@ -129,7 +136,11 @@ class Orchestrator:
         if safety.output is None:
             raise RuntimeError(f"safety-gate did not return a decision: {safety.error}")
         if safety.output.decision == "intercept":
-            raise NotImplementedError("safety short-circuit arrives with TICKET-008")
+            async for frame in self._short_circuit(
+                safety.output, trace_id=trace_id, started=started, summary=summary
+            ):
+                yield frame
+            return
 
         # ② normalization over the raw text; the structured hint is normalized
         # through the same single vocabulary, never extracted separately.
@@ -232,8 +243,61 @@ class Orchestrator:
         yield done_payload(
             references=references,
             candidates=candidates,
-            graph_skipped=not graph_symptoms,
+            coverage_note=coverage_note(
+                graph_skipped=not graph_symptoms, candidate_count=len(candidates)
+            ),
             degraded=degraded,
+            cost_time=int((time.perf_counter() - started) * 1000),
+            trace_id=trace_id,
+        )
+
+    async def _short_circuit(
+        self,
+        safety: SafetyGateOutput,
+        *,
+        trace_id: str,
+        started: float,
+        summary: dict,
+    ) -> AsyncIterator[dict]:
+        """A red flag ends the consult before anything downstream of the gate runs.
+
+        The route names only the gate, the trace keeps its single span, and the
+        stream closes with an empty `done` — no model, no branches, no content
+        (SPEC.md 3.5, 5.5 不变量 2, 6.3 AC-E-02).
+        """
+        skills_run = [SAFETY_GATE]
+        skills_skipped = [
+            SkippedSkill(skill=skill, reason=SAFETY_INTERCEPT_REASON)
+            for skill in (
+                SYMPTOM_NORMALIZATION,
+                VECTOR_RETRIEVAL,
+                GRAPH_INFERENCE,
+                ORCHESTRATION,
+            )
+        ]
+        await self._sink.record_route(
+            RouteDecision(
+                trace_id=trace_id,
+                skills_run=skills_run,
+                skills_skipped=skills_skipped,
+                decided_at=datetime.now(UTC),
+            )
+        )
+        # Signals `run` to skip the orchestration span: the gate's span is the only
+        # one this turn leaves (SPEC.md 6.3 AC-E-02).
+        summary["intercepted"] = True
+
+        yield {
+            "type": "route",
+            "skills_run": skills_run,
+            "skills_skipped": [skipped.model_dump() for skipped in skills_skipped],
+        }
+        yield safety_payload(safety)
+        yield done_payload(
+            references=[],
+            candidates=[],
+            coverage_note=None,
+            degraded=[],
             cost_time=int((time.perf_counter() - started) * 1000),
             trace_id=trace_id,
         )

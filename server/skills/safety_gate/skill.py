@@ -22,7 +22,7 @@ from skills.safety_gate.rules import (
 SCHEMA_VERSION = "safety-gate-schema-v1"
 
 _LEVEL_MESSAGE: dict[RedFlagLevel, str] = {
-    "critical": (
+    "emergency": (
         "检测到需要立即处理的急症信号：{labels}。"
         "请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。"
     ),
@@ -33,18 +33,20 @@ _LEVEL_MESSAGE: dict[RedFlagLevel, str] = {
 }
 
 _LEVEL_ACTION: dict[RedFlagLevel, str] = {
-    "critical": "立即拨打 120 或前往最近的急诊科就诊。",
+    "emergency": "立即拨打 120 或前往最近的急诊科就诊。",
     "urgent": "尽快到医院就诊，由医生当面评估；症状加重时立即拨打 120。",
 }
 
 
 class RedFlagMatch(BaseModel):
-    """一条命中的红旗。`id` 与 `matched_text` 排在最前，保证受限摘要在截断后
-    仍带着审计信息（SKILL.md 第 2 节「trace 与审计」）。"""
+    """一条命中的红旗。字段名与冻结的 `safety` 帧契约逐字一致（`id` / `label` /
+    `matched_surface` / `severity`），因此可原样投影成 wire 载荷。`id` 与
+    `matched_surface` 排在最前，保证受限摘要在截断后仍带着审计信息
+    （SKILL.md 第 2 节「trace 与审计」）。"""
 
     id: str
-    matched_text: str
-    level: RedFlagLevel
+    matched_surface: str
+    severity: RedFlagLevel
     label: str
 
 
@@ -65,13 +67,13 @@ def detect_red_flags(message: str) -> list[RedFlagMatch]:
     """按规则表顺序返回全部命中项；同一规则多处出现只记首次命中的片段。"""
     matches: list[RedFlagMatch] = []
     for rule in RULES:
-        matched_text = _first_match(message, rule)
-        if matched_text is not None:
+        matched_surface = _first_match(message, rule)
+        if matched_surface is not None:
             matches.append(
                 RedFlagMatch(
                     id=rule.id,
-                    matched_text=matched_text,
-                    level=rule.level,
+                    matched_surface=matched_surface,
+                    severity=rule.level,
                     label=rule.label,
                 )
             )
@@ -113,7 +115,7 @@ class SafetyGateSkill(Skill):
                 suggested_action="",
             )
 
-        level = max(matches, key=lambda match: LEVEL_ORDER[match.level]).level
+        level = max(matches, key=lambda match: LEVEL_ORDER[match.severity]).severity
         labels = "、".join(match.label for match in matches)
         return SafetyGateOutput(
             rule_version=RULES_VERSION,

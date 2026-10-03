@@ -4,12 +4,14 @@ The projection matters: the Skill outputs carry more than the wire contract
 allows. `RetrievalReference.distance` is recorded in the trace but must not
 appear in the `done` frame, whose `reference` schema is
 `additionalProperties: false` with `index` / `file_name` / `snippet` only
-(TICKET-005 挂账第 1 条).
+(TICKET-005 挂账第 1 条). The `safety` frame is the same story: the gate's
+`rule_version` and `decision` stay internal, and only the wire fields go out.
 """
 
 from collections.abc import Sequence
 
 from skills.graph_inference import DiseaseCandidate
+from skills.safety_gate import SafetyGateOutput
 from skills.vector_retrieval import RetrievalReference
 
 from skills.orchestration.prompt import PROMPT_GRAPH_LIMIT
@@ -40,11 +42,31 @@ def coverage_note(*, graph_skipped: bool, candidate_count: int) -> str | None:
     return None
 
 
+def safety_payload(output: SafetyGateOutput) -> dict:
+    """The contract `safety` frame: the gate's output minus its internal fields.
+
+    `SafetyGateOutput` carries `rule_version` and `decision` for the trace and the
+    router; the wire frame keeps neither and its `decision` is the constant
+    `"intercept"`. Each `red_flag` already uses the contract's own names
+    (`id` / `label` / `matched_surface` / `severity`), so it projects as-is.
+    """
+    if output.decision != "intercept":
+        raise ValueError("only an intercept decision has a `safety` frame")
+    return {
+        "type": "safety",
+        "decision": "intercept",
+        "level": output.level,
+        "red_flags": [flag.model_dump(mode="json") for flag in output.red_flags],
+        "message": output.message,
+        "suggested_action": output.suggested_action,
+    }
+
+
 def done_payload(
     *,
     references: Sequence[RetrievalReference],
     candidates: Sequence[DiseaseCandidate],
-    graph_skipped: bool,
+    coverage_note: str | None,
     degraded: Sequence[str],
     cost_time: int,
     trace_id: str,
@@ -53,9 +75,7 @@ def done_payload(
         "type": "done",
         "references": [reference_payload(reference) for reference in references],
         "graph": [candidate_payload(candidate) for candidate in candidates],
-        "coverage_note": coverage_note(
-            graph_skipped=graph_skipped, candidate_count=len(candidates)
-        ),
+        "coverage_note": coverage_note,
         "degraded": list(degraded),
         "cost_time": cost_time,
         "trace_id": trace_id,

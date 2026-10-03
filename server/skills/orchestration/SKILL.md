@@ -48,12 +48,18 @@
 session → trace → route → content × N → done
 ```
 
+拦截路径（安全门命中）的帧序固定为：
+
+```
+session → trace → route → safety → done
+```
+
 | 帧 | 出现次数 | 说明 |
 |---|---|---|
 | `session` | 第 1 帧，恰好 1 次 | `{type, session_id}` |
 | `trace` | 第 2 帧，恰好 1 次 | `{type, trace_id}`；之后所有带 `trace_id` 的帧一致 |
 | `route` | 恰好 1 次 | `{type, skills_run, skills_skipped}`，路由决策确定后立即发出 |
-| `safety` | **正常路径 0 次** | 仅拦截路径出现，由 TICKET-008 实现 |
+| `safety` | **正常路径 0 次**；拦截路径恰好 1 次 | 仅安全门拦截时出现，`decision` 恒为 `intercept`（TICKET-008） |
 | `content` | 0..N 次 | 逐段增量；空字符串片段不发出 |
 | `done` | 末尾，恰好 1 次 | 与 `error` 互斥 |
 | `error` | 0 或 1 次 | 仅大模型生成失败时发出（`code == 503`），流以它结束 |
@@ -67,7 +73,24 @@ session → trace → route → content × N → done
 当组装后的症状集合为空时，`graph-inference` 不进入 `skills_run`，改用
 `skills_skipped: [{skill: "graph-inference", reason: "..."}]` 记录理由。
 
-### 1.3 `done` 载荷的投影规则
+安全门命中时（拦截路径），`skills_run == ["safety-gate"]`，其余四个 Skill
+（含 `orchestration`）全部进入 `skills_skipped` 并给出短路理由；`skills_run` 与
+`skills_skipped` 的并集恒为五个 Skill，每个恰好出现一次。
+
+### 1.3 `safety` 载荷的投影规则
+
+`safety` 帧必须满足契约 `additionalProperties: false`，因此裁掉安全门输出里的内部字段：
+
+| 载荷 | 来源 | 投影 |
+|---|---|---|
+| `decision` | 常量 | 恒为 `"intercept"`；Skill 的 `decision` 字段不直接投影 |
+| `level` | `SafetyGateOutput.level` | `"emergency"` / `"urgent"`，与原字段同名同值 |
+| `red_flags[]` | `SafetyGateOutput.red_flags` | 原样输出全部命中项，字段名恰为 `id` / `label` / `matched_surface` / `severity` |
+| `message` | `SafetyGateOutput.message` | 面向患者的安全提示 |
+| `suggested_action` | `SafetyGateOutput.suggested_action` | 面向患者的建议动作 |
+| `rule_version` | `SafetyGateOutput.rule_version` | **不进** wire 帧，仅留在 Skill 输出与 trace 摘要（审计三元组） |
+
+### 1.4 `done` 载荷的投影规则
 
 `done` 必须满足契约 `additionalProperties: false`，因此 Skill 内部字段在投影时被裁掉：
 
@@ -80,7 +103,7 @@ session → trace → route → content × N → done
 | `cost_time` | 编排计时 | 从进入 `run` 到发出 `done` 的整毫秒数 |
 | `trace_id` | 本轮 trace | 与 `trace` 帧一致 |
 
-### 1.4 路由与提示词组装规则（显式化）
+### 1.5 路由与提示词组装规则（显式化）
 
 | 规则 | 值 | 常量/位置 |
 |---|---|---|
@@ -96,7 +119,7 @@ session → trace → route → content × N → done
 | 知识片段正文 | 命中分块的**整块正文** `RetrievalReference.context`（不是前 200 字符的引用项 `snippet`） | `knowledge_fragment` |
 | 上下文兜底 | 向量与图谱均无结果时取「暂无相关知识库内容。」，模型仍被调用 | `CONTEXT_FALLBACK` |
 
-### 1.5 seam 签名（对外复用）
+### 1.6 seam 签名（对外复用）
 
 ```python
 # server/skills/orchestration/skill.py
@@ -124,7 +147,10 @@ def build_prompt(*, history, message, context) -> str
 
 # server/skills/orchestration/frames.py
 def reference_payload(reference) -> dict       # 不含 distance
-def done_payload(...) -> dict
+def candidate_payload(candidate) -> dict
+def coverage_note(*, graph_skipped, candidate_count) -> str | None
+def safety_payload(output) -> dict            # 安全门输出 → safety 帧
+def done_payload(*, references, candidates, coverage_note, degraded, cost_time, trace_id) -> dict
 ```
 
 HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
@@ -155,6 +181,10 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | `orchestration` | B-1 本体 | `ok` / `error` |
 | `llm` | 大模型调用 | `ok` / `error` |
 
+安全门命中时（拦截路径）只产生 **1 条 span**：`safety-gate`。编排在跑成一个 Skill
+之前就短路返回，因此不写 `orchestration` span，也没有任何下游 span 与大模型 span
+（`SPEC.md` 6.3 AC-E-02）。
+
 另有 1 条路由记录（`RouteDecision`）：`skills_run`、`skills_skipped` 与跳过理由，
 与 `route` 帧一致。`orchestration` span 的输出摘要含本轮路由、引用数、候选数、降级支路
 与答案长度，足以回答「这一轮走了哪些 Skill、为什么」。
@@ -165,6 +195,7 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 
 | 情况 | 确定性处置 |
 |---|---|
+| 安全门命中（红旗） | **全链路短路**：不调用归一化、检索、图谱与大模型；发 `route`（`skills_run == ["safety-gate"]`）→ `safety` → 空 `done`；trace 只有 1 条 `safety-gate` span（`SPEC.md` 3.5 / AC-E-02） |
 | 归一化输出为空、且无 `explicit_symptoms` | 跳过 `graph-inference`，写入 `skills_skipped` 理由；检索与生成照常 |
 | `explicit_symptoms` 非空而原文无标准症状 | 图谱支路按并集执行；`explicit_symptoms` 经同一份词表归一（别名同样生效） |
 | `explicit_symptoms` 含红旗表述 | **不影响安全门**：安全门只读 `message`，结构化字段无法解除流程规则（见第 5 节 a） |
@@ -188,6 +219,12 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 | 用例 | 输入 | 期望输出 | 对应测试 |
 |---|---|---|---|
 | 正例：正常路径帧序 | 「我头疼发烧三天了」 + 命中端口 | 帧序 `session → trace → route → content×2 → done`；无 `safety` 帧 | `test_normal_path_emits_session_trace_route_content_then_done` |
+| 正例：红旗短路帧序 | 「胸口剧痛，出冷汗，喘不上气」 | 帧序 `session → trace → route → safety → done`；`content` 0 次；`done.references`/`done.graph` 为空 | `test_red_flag_input_short_circuits_the_whole_chain` |
+| 边界：红旗不触达端口 | 同上 + 计数假端口 | 大模型、检索、图谱端口调用次数均为 0 | `test_red_flag_input_never_calls_the_model_or_either_branch` |
+| 边界：红旗路由 | 同上 | `skills_run == ["safety-gate"]`；其余四个 Skill 在 `skills_skipped` 中带理由 | `test_red_flag_route_runs_only_the_safety_gate` |
+| 契约：`safety` 帧 | 同上 | 帧满足 `contracts/sse-events.json`；`red_flags[]` 字段恰为 `id`/`label`/`matched_surface`/`severity` | `test_safety_frame_matches_the_frozen_sse_contract` |
+| 审计：红旗 trace | 同上 | 只有 1 条 `safety-gate` span，无 `orchestration` 与大模型 span | `test_red_flag_trace_holds_only_the_safety_gate_span` |
+| 边界：非红旗仍有内容 | 「我头疼发烧三天了」 + 命中端口 | 不出现 `safety` 帧；`content` 帧非空 | `test_a_plain_input_still_takes_the_normal_path` |
 | 正例：五 Skill 路由 | 同上 | `skills_run` 恰含五个 Skill，顺序与 AC-B-22 一致；与路由记录一致 | `test_route_runs_all_five_skills_in_the_spec_order` |
 | 边界：路由确定性 | 同一输入 + 同一配置跑 3 次 | 三次 `route` 帧完全相同 | `test_same_input_and_configuration_route_identically` |
 | 正例：双支路独立输入 | 同上 | 检索询问原文；图谱收到标准化症状 `("头痛", "发热")` | `test_retrieval_and_graph_receive_independent_inputs` |
@@ -216,8 +253,8 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 
 ## 5. 跨票挂账结算
 
-以下四条是 TICKET-003/004/005/006 悬置、必须在本票拍板的事项。结论同时写入
-`.scratch/medisentinel/issues/07-orchestration-normal-path.md`。
+以下五条是 TICKET-003/004/005/006/007 悬置、必须拍板的事项。结论同时写入
+`.scratch/medisentinel/issues/07-orchestration-normal-path.md` 与 TICKET-008 的票面。
 
 ### a) `ChatRequest.explicit_symptoms` 是否被消费；安全门只看 `message` 如何定
 
@@ -243,7 +280,7 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
 
 **结算：本票不解决，明确由 TICKET-011 承接。**
 本票的审计能力仍走 TICKET-002 的既有形态：受限摘要 + 字段顺序（安全门把
-`rule_version`/`red_flags[].id`/`matched_text` 排在输出最前，归一化/检索/图谱把
+`rule_version`/`red_flags[].id`/`matched_surface` 排在输出最前，归一化/检索/图谱把
 截断参数排在前面）。要回答「为什么走了这条路由」已经足够（`orchestration` span 的
 输出摘要含 `skills_run`/`skills_skipped`/引用数/候选数/降级支路）。
 `Span` 增加结构化 `detail` 字段、由可观测性接口读回，是 TICKET-011 的范围。
@@ -259,6 +296,26 @@ HTTP 侧另有 `server/api/v1/chat.py`：`POST /api/v1/chat/send` 把帧按
   分别随 TICKET-015 的向量化链路与模型配置落地。
 - 因此 `create_app` 默认注入的是一组不可用端口（图/检索降级、生成返回 `error` 帧），
   测试与回放注入计数假实现，端到端断言在 B-1 上进行，不依赖任何外部进程。
+
+### e) 安全门输出的用语对齐（TICKET-007 挂账第 1 条，TICKET-008 结算）
+
+**结算：改实现侧，安全门输出改用冻结契约的用语；`contracts/` 不动。**
+
+安全门 Skill 原用 `critical | urgent` 与 `id/matched_text/level/label`，而冻结的
+`contracts/sse-events.json` 的 `safety` 帧要求 `level: emergency | urgent` 与
+`id/label/matched_surface/severity`（`SPEC.md` 5.5 同款措辞）。
+
+- **方向判定**：契约是 C-1 的唯一依据（`SPEC.md` 3.9 / 5.6），且 `SPEC.md` 5.5 早已按
+  `emergency` / `matched_surface` 冻结。两侧不可能同时为真，故优先改实现侧。
+- **落地**：`RedFlagLevel` 改为 `Literal["urgent", "emergency"]`，`RedFlagMatch` 字段名
+  改为 `id` / `matched_surface` / `severity` / `label`。于是 `SafetyGateOutput` 可直接
+  投影为 `safety` 帧，无需再立一份映射表；`safety_gate/SKILL.md` 同步改写。
+- **契约本身无误**：`emergency` 与 `critical` 同义（都是「立即急诊」），`matched_surface`
+  是「命中的表层字符串」的通行叫法；改动契约会波及已冻结的前端消费方，收益为零。
+  因此**不更新 `contracts/`**。
+- **覆盖**：契约测试
+  `tests/test_safety_gate_short_circuit.py::test_safety_frame_matches_the_frozen_sse_contract`
+  逐帧校验 `safety` 帧，并断言 `red_flags[]` 字段名与契约逐字一致。
 
 ### 复核中校正的一条既有语义
 
@@ -276,4 +333,3 @@ TICKET-005 的 `RetrievalReference` 当时只带 `snippet`，编排无从取得�
 | `/chat/send` 的 401 / 403 | TICKET-012（令牌身份接入，同时收紧 `t_consult_session.user_id`） |
 | `/chat/send` 的 409 并发生成控制 | TICKET-010 |
 | `/chat/send` 的 503 / 504 生成不可用 | TICKET-009 |
-| `safety` 帧的字段映射（`critical` → `emergency`、`matched_text` → `matched_surface` 等） | TICKET-008 |

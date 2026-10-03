@@ -61,6 +61,11 @@
 正常路径不发 `safety` 帧，故本票不涉及；TICKET-008 需要在编排层做这一步确定性映射，
 并同步核对 `SPEC.md` 5.5 与 `safety_gate/SKILL.md` 的措辞。
 
+> **TICKET-008 已结算（2026-10）：改实现侧，不映射。** 契约是 C-1 的唯一依据，故把
+> 安全门 Skill 输出直接改用契约用语（`emergency` / `matched_surface` / `severity`），
+> `SafetyGateOutput` 无需中转即可投影为 `safety` 帧；`contracts/` 与 `SPEC.md` 5.5 未改动。
+> 详见 TICKET-008 票面「跨票挂账结算」。
+
 ## 复核中校正的一条既有语义
 
 `FUNCTIONAL_SPEC.md` 5.3 规定：引用项截到前 200 字符，但拼进提示词的上下文片段是

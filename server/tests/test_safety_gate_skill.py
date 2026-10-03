@@ -12,12 +12,12 @@ import pytest
 
 from skills.ports import LlmPort
 from skills.protocol import SkillContext
-from skills.safety_gate import RULES, RULES_VERSION, SafetyGateSkill
+from skills.safety_gate import RULES, RULES_VERSION, RedFlagMatch, SafetyGateSkill
 from skills.trace import InMemoryTraceSink, new_trace_id
 from tests.doubles import ThrowingLlmPort
 
 SKILL_MD = Path(__file__).resolve().parents[1] / "skills" / "safety_gate" / "SKILL.md"
-RULE_ROW = re.compile(r"\|\s*\d+\s*\|\s*`([a-z0-9-]+)`\s*\|\s*`(urgent|critical)`\s*\|")
+RULE_ROW = re.compile(r"\|\s*\d+\s*\|\s*`([a-z0-9-]+)`\s*\|\s*`(urgent|emergency)`\s*\|")
 
 
 @pytest.fixture
@@ -47,10 +47,28 @@ async def test_emergency_description_is_intercepted(context):
     assert outcome.status == "ok"
     output = outcome.output
     assert output.decision == "intercept"
-    assert output.level == "critical"
+    assert output.level == "emergency"
     assert {flag.id for flag in output.red_flags} == {"chest-pain", "dyspnea"}
     assert output.message
     assert output.suggested_action
+
+
+async def test_output_speaks_the_frozen_sse_contract_vocabulary(context):
+    """The Skill output is projected straight onto the `safety` frame, so its
+    names must be the ones the frozen contract fixes: `emergency` / `urgent`,
+    and per-flag `matched_surface` / `severity` (SPEC.md 3.9 / 5.5)."""
+    outcome = await SafetyGateSkill().invoke({"message": "胸口剧痛，喘不上气"}, context)
+
+    assert outcome.output.level == "emergency"
+    assert set(RedFlagMatch.model_fields) == {
+        "id",
+        "label",
+        "matched_surface",
+        "severity",
+    }
+    for flag in outcome.output.red_flags:
+        assert flag.severity in {"emergency", "urgent"}
+        assert flag.matched_surface
 
 
 async def test_negated_red_flags_do_not_intercept(context):
@@ -83,8 +101,8 @@ async def test_multiple_hits_return_all_and_take_the_highest_level(context):
         "severe-headache",
         "severe-bleeding",
     ]
-    assert [flag.level for flag in output.red_flags] == ["urgent", "critical"]
-    assert output.level == "critical"
+    assert [flag.severity for flag in output.red_flags] == ["urgent", "emergency"]
+    assert output.level == "emergency"
     assert output.suggested_action == "立即拨打 120 或前往最近的急诊科就诊。"
 
 
@@ -114,7 +132,7 @@ async def test_trace_digest_carries_the_red_flag_audit_trail(context):
     assert RULES_VERSION in span.output_digest
     for flag in outcome.output.red_flags:
         assert flag.id in span.output_digest
-        assert flag.matched_text in span.output_digest
+        assert flag.matched_surface in span.output_digest
 
 
 async def test_empty_input_is_rejected_not_silently_continued(context):

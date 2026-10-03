@@ -7,10 +7,12 @@
 
 from typing import Literal, NamedTuple
 
-RedFlagLevel = Literal["urgent", "critical"]
+# 严重级用语与冻结的 SSE 契约（contracts/sse-events.json）一致：emergency > urgent。
+# 契约是 C-1 seam 的唯一依据，Skill 输出直接投影为 `safety` 帧，故不另立词表。
+RedFlagLevel = Literal["urgent", "emergency"]
 
-# 严重级高低：critical > urgent。
-LEVEL_ORDER: dict[RedFlagLevel, int] = {"urgent": 1, "critical": 2}
+# 严重级高低：emergency > urgent。
+LEVEL_ORDER: dict[RedFlagLevel, int] = {"urgent": 1, "emergency": 2}
 
 RULES_VERSION = "safety-gate-rules-v1"
 
@@ -48,7 +50,7 @@ class RedFlagRule(NamedTuple):
 RULES: tuple[RedFlagRule, ...] = (
     RedFlagRule(
         id="chest-pain",
-        level="critical",
+        level="emergency",
         label="急性胸痛",
         patterns=(
             "胸痛",
@@ -63,7 +65,7 @@ RULES: tuple[RedFlagRule, ...] = (
     ),
     RedFlagRule(
         id="dyspnea",
-        level="critical",
+        level="emergency",
         label="呼吸困难",
         patterns=(
             "喘不上气",
@@ -84,7 +86,7 @@ RULES: tuple[RedFlagRule, ...] = (
     ),
     RedFlagRule(
         id="stroke",
-        level="critical",
+        level="emergency",
         label="卒中征象",
         patterns=(
             "口角歪斜",
@@ -100,7 +102,7 @@ RULES: tuple[RedFlagRule, ...] = (
     ),
     RedFlagRule(
         id="altered-consciousness",
-        level="critical",
+        level="emergency",
         label="意识障碍",
         patterns=(
             "昏迷",
@@ -118,7 +120,7 @@ RULES: tuple[RedFlagRule, ...] = (
     ),
     RedFlagRule(
         id="severe-bleeding",
-        level="critical",
+        level="emergency",
         label="大出血",
         patterns=(
             "呕血",
@@ -135,13 +137,13 @@ RULES: tuple[RedFlagRule, ...] = (
     ),
     RedFlagRule(
         id="anaphylaxis",
-        level="critical",
+        level="emergency",
         label="严重过敏",
         patterns=("喉头水肿", "喉咙肿胀", "过敏性休克"),
     ),
     RedFlagRule(
         id="poisoning-overdose",
-        level="critical",
+        level="emergency",
         label="中毒/过量/自伤",
         patterns=("中毒", "服毒", "药物过量", "吃药自杀", "割腕", "自杀", "喝了农药"),
     ),
