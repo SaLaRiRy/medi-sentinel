@@ -92,7 +92,7 @@ onMounted(load)
     <el-card class="admin-consults__card" shadow="never">
       <template #header>
         <div class="card-head">
-          <span class="card-title">人工问诊工单</span>
+          <span class="card-title">工单列表</span>
           <el-tag size="small" type="info" effect="plain">{{ total }} 条</el-tag>
         </div>
       </template>

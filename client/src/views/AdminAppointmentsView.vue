@@ -104,7 +104,7 @@ onMounted(load)
     <el-card class="admin-appointments__card" shadow="never">
       <template #header>
         <div class="card-head">
-          <span class="card-title">预约管理</span>
+          <span class="card-title">预约记录</span>
           <el-tag size="small" type="info" effect="plain">{{ total }} 条</el-tag>
         </div>
       </template>
