@@ -216,6 +216,8 @@ onMounted(load)
 .admin-dashboard__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* 两行等高：图表卡片不论内容多少都撑满各自的网格行。 */
+  grid-auto-rows: 1fr;
   gap: var(--ms-space-5);
 }
 
