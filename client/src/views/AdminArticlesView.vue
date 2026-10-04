@@ -133,6 +133,10 @@ onMounted(load)
 
 <template>
   <section class="admin-articles">
+    <header class="page-head">
+      <h1 class="page-head__title">文章管理</h1>
+    </header>
+
     <el-card class="admin-articles__card admin-articles__card--form" shadow="never">
       <template #header>
         <span class="card-title">{{ editingId === null ? '新建文章' : '编辑文章' }}</span>
