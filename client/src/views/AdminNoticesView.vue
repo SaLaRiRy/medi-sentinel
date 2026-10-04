@@ -119,6 +119,10 @@ onMounted(load)
 
 <template>
   <section class="admin-notices">
+    <header class="page-head">
+      <h1 class="page-head__title">公告管理</h1>
+    </header>
+
     <el-card class="admin-notices__card admin-notices__card--form" shadow="never">
       <template #header>
         <span class="card-title">{{ editingId === null ? '新建公告' : '编辑公告' }}</span>
