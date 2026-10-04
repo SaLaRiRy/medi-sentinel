@@ -126,6 +126,20 @@ onUnmounted(stopPolling)
 
 <template>
   <section class="knowledge">
+    <header class="page-head">
+      <h1 class="page-head__title">知识库管理</h1>
+      <el-upload
+        data-upload
+        class="knowledge__upload"
+        :auto-upload="false"
+        :show-file-list="false"
+        :accept="ACCEPTED_TYPES"
+        :on-change="upload"
+      >
+        <el-button type="primary">上传文件</el-button>
+      </el-upload>
+    </header>
+
     <el-card class="knowledge__card" shadow="never">
       <template #header>
         <div class="card-head">
@@ -153,17 +167,6 @@ onUnmounted(stopPolling)
           </el-select>
           <el-button native-type="submit">搜索</el-button>
         </el-form>
-
-        <el-upload
-          data-upload
-          class="knowledge__upload"
-          :auto-upload="false"
-          :show-file-list="false"
-          :accept="ACCEPTED_TYPES"
-          :on-change="upload"
-        >
-          <el-button type="primary" plain>上传文档</el-button>
-        </el-upload>
       </header>
 
       <p v-if="loadError" data-error class="knowledge__message knowledge__message--error">
