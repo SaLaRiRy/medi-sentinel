@@ -166,6 +166,48 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       })
     },
 
+    // TICKET-018 health-record surface (SPEC.md 5.4「预约与健康档案」). The
+    // patient reads only their own; the doctor lists, creates, updates and
+    // deletes the records under their name, and picks patients from the union
+    // option list.
+    async myRecords() {
+      return call({ path: '/records/my', authed: true })
+    },
+
+    async doctorRecords() {
+      return call({ path: '/records/doctor', authed: true })
+    },
+
+    async recordPatientOptions() {
+      return call({ path: '/records/doctor/patient-options', authed: true })
+    },
+
+    async createRecord(payload) {
+      return call({
+        method: 'POST',
+        path: '/records/doctor',
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async updateRecord(recordId, payload) {
+      return call({
+        method: 'PUT',
+        path: `/records/doctor/${recordId}`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async deleteRecord(recordId) {
+      return call({
+        method: 'DELETE',
+        path: `/records/doctor/${recordId}`,
+        authed: true,
+      })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {

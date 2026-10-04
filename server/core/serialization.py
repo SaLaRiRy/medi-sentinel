@@ -41,3 +41,12 @@ ApiDate = Annotated[
     PlainSerializer(format_date, return_type=str, when_used="json"),
     WithJsonSchema({"type": "string", "pattern": DATE_PATTERN}),
 ]
+
+#: 请求侧（查询参数）的时间边界。FastAPI 会把裸 `datetime` 声明成 `format:
+#: date-time`（RFC3339），与 SPEC.md 5.1 固定的线上格式不符（TICKET-016 挂账 b）。
+#: 这里只覆盖 Schema 声明，不改解析 —— Pydantic 仍按 `datetime` 宽松解析，客户端
+#: 按契约声明的 `YYYY-MM-DD HH:mm:ss` 发送即可。
+DateTimeQuery = Annotated[
+    datetime,
+    WithJsonSchema({"type": "string", "pattern": DATETIME_PATTERN}),
+]

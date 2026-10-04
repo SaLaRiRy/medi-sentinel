@@ -18,7 +18,6 @@ TICKET-014 解除了 `contracts/` 的冻结边界，这三个端点不再对 Ope
 或「有 trace 却无助手消息」的偏斜记录。
 """
 
-from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
@@ -28,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.deps import Principal, get_session, require_admin, require_authenticated
 from core.errors import ApiError
 from core.response import Envelope, PagePayload, page_result, success
-from core.serialization import ApiDateTime
+from core.serialization import ApiDateTime, DateTimeQuery
 from repositories.trace import TraceRepository
 from skills.manifest import SKILL_MANIFESTS
 from skills.trace import RouteDecision, SkippedSkill, Span, TraceQuery, TraceSummary
@@ -99,8 +98,8 @@ async def list_traces(
     session: AsyncSession = Depends(get_session),
     trace_id: str | None = None,
     skill: str | None = None,
-    start: datetime | None = None,
-    end: datetime | None = None,
+    start: DateTimeQuery | None = None,
+    end: DateTimeQuery | None = None,
     degraded: bool | None = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),

@@ -306,6 +306,7 @@ async def test_infer_persists_exactly_one_graph_inference_span(app):
     from sqlalchemy import select
 
     from models.trace import TraceSpanRow
+    from repositories.trace import TraceRepository
 
     async with client_as(app, PATIENT) as client:
         response = await client.post(
@@ -314,10 +315,45 @@ async def test_infer_persists_exactly_one_graph_inference_span(app):
         assert response.status_code == 200
         async with app.state.database.session_factory() as session:
             rows = list((await session.execute(select(TraceSpanRow))).scalars().all())
+            # TICKET-016 挂账（a）：span 走与 /chat 相同的 TraceRepository 路径，
+            # 读回得出来，而不是写进一次性 InMemoryTraceSink 后丢弃。
+            spans = await TraceRepository(session).spans_for(rows[0].trace_id)
 
     assert [row.name for row in rows] == ["graph-inference"]
     assert rows[0].status == "ok"
     assert rows[0].trace_id
+    assert [span.name for span in spans] == ["graph-inference"]
+    assert spans[0].trace_id == rows[0].trace_id
+
+
+async def test_infer_still_persists_its_span_when_the_graph_is_unavailable(
+    database_url,
+):
+    """降级调用也要恰好留下一条 span：503 之前先提交（TICKET-016 挂账 a）。"""
+    from sqlalchemy import select
+
+    from core.config import Settings
+    from main import create_app
+    from models.trace import TraceSpanRow
+
+    app = create_app(
+        Settings(database_url=database_url),
+        ports=OrchestrationPorts(
+            graph=StubGraphPort(fail=True),
+            retrieval=HitsRetrievalPort(),
+            llm=StubLlmPort(),
+        ),
+    )
+    async with client_as(app, PATIENT) as client:
+        response = await client.post(
+            "/api/v1/graph/infer", json={"symptoms": ["头痛"]}
+        )
+    assert response.status_code == 503
+
+    async with app.state.database.session_factory() as session:
+        rows = list((await session.execute(select(TraceSpanRow))).scalars().all())
+
+    assert [row.name for row in rows] == ["graph-inference"]
 
 
 async def test_infer_rejects_an_empty_symptom_list(app):

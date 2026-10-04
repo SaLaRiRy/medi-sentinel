@@ -13,11 +13,13 @@ import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
 import AppointmentView from './views/AppointmentView.vue'
 import ChatView from './views/ChatView.vue'
 import DoctorAppointmentsView from './views/DoctorAppointmentsView.vue'
+import DoctorPatientsView from './views/DoctorPatientsView.vue'
 import GraphView from './views/GraphView.vue'
 import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
 import HealthView from './views/HealthView.vue'
 import KnowledgeView from './views/KnowledgeView.vue'
+import RecordsView from './views/RecordsView.vue'
 import SymptomView from './views/SymptomView.vue'
 
 const session = createSessionStore()
@@ -116,6 +118,11 @@ function handleError(error) {
           :client="client"
           @error="handleError"
         />
+        <RecordsView
+          v-else-if="screen === 'records'"
+          :client="client"
+          @error="handleError"
+        />
         <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
@@ -136,6 +143,11 @@ function handleError(error) {
         />
         <AdminAppointmentsView
           v-else-if="screen === 'admin-appointments'"
+          :client="client"
+          @error="handleError"
+        />
+        <DoctorPatientsView
+          v-else-if="screen === 'doctor-patients'"
           :client="client"
           @error="handleError"
         />

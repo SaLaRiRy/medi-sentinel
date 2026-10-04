@@ -126,8 +126,14 @@ describe('C-1 from the consuming side', () => {
     await client.adminAppointments({ page: 1, page_size: 10 })
     await client.updateAppointmentStatus(1, 0)
     await client.deleteAppointment(1)
+    await client.myRecords()
+    await client.doctorRecords()
+    await client.recordPatientOptions()
+    await client.createRecord({ user_id: 1, record_type: '门诊记录' })
+    await client.updateRecord(1, { record_type: '复诊记录' })
+    await client.deleteRecord(1)
 
-    expect(requested).toHaveLength(20)
+    expect(requested).toHaveLength(26)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
@@ -149,5 +155,11 @@ describe('C-1 from the consuming side', () => {
     expect(matchesDeclaredPath('GET', '/appointments/admin')).toBe(true)
     expect(matchesDeclaredPath('PUT', '/appointments/1/status')).toBe(true)
     expect(matchesDeclaredPath('DELETE', '/appointments/admin/1')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/records/my')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/records/doctor')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/records/doctor/patient-options')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/records/doctor')).toBe(true)
+    expect(matchesDeclaredPath('PUT', '/records/doctor/1')).toBe(true)
+    expect(matchesDeclaredPath('DELETE', '/records/doctor/1')).toBe(true)
   })
 })

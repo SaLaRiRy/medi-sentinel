@@ -20,11 +20,18 @@ export const ROUTE_TABLE = [
     requiresAuth: true,
     roles: ['user'],
   },
+  { path: '/portal/records', screen: 'records', requiresAuth: true, roles: ['user'] },
   { path: '/portal/profile', screen: 'profile', requiresAuth: true, roles: ['user'] },
   { path: '/doctor/dashboard', screen: 'home', requiresAuth: true, roles: ['doctor'] },
   {
     path: '/doctor/appointments',
     screen: 'doctor-appointments',
+    requiresAuth: true,
+    roles: ['doctor'],
+  },
+  {
+    path: '/doctor/patients',
+    screen: 'doctor-patients',
     requiresAuth: true,
     roles: ['doctor'],
   },

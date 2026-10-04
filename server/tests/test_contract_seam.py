@@ -88,6 +88,44 @@ def test_the_declared_validation_error_branch_is_the_envelope():
     assert all(ref and ref.endswith("Envelope_NoneType_") for ref in refs), refs
 
 
+def _format_occurrences(node, fmt: str, trail: str = "") -> list[str]:
+    found: list[str] = []
+    if isinstance(node, dict):
+        if node.get("format") == fmt:
+            found.append(trail or "/")
+        for key, value in node.items():
+            found += _format_occurrences(value, fmt, f"{trail}/{key}")
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            found += _format_occurrences(value, fmt, f"{trail}/{index}")
+    return found
+
+
+def test_the_contract_never_declares_rfc3339_date_time():
+    """TICKET-016 挂账（b）：线上时间格式是 `YYYY-MM-DD HH:mm:ss`（SPEC.md 5.1）。
+
+    声明 `format: date-time` 等于承认 RFC3339（带 `T` 与偏移），与实际发出的形状
+    不符。改法与响应侧一致：去掉 `format`，用 `pattern` 声明真实形状。
+    """
+    contract = _contract("openapi.json")
+
+    assert _format_occurrences(contract, "date-time") == []
+
+
+def test_trace_time_bounds_declare_the_documented_format():
+    contract = _contract("openapi.json")
+    parameters = {
+        parameter["name"]: parameter
+        for parameter in contract["paths"]["/api/v1/traces"]["get"]["parameters"]
+    }
+
+    for name in ("start", "end"):
+        branches = parameters[name]["schema"]["anyOf"]
+        non_null = next(branch for branch in branches if branch.get("type") == "string")
+        assert non_null["pattern"] == r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$"
+        assert "format" not in non_null
+
+
 @pytest.mark.parametrize("frame_type", ["session", "trace", "done"])
 async def test_orchestrator_frames_satisfy_the_sse_schema(frame_type):
     """The schema is not decoration: real frames are validated against it."""

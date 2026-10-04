@@ -1,4 +1,4 @@
-"""TICKET-017: the appointment migration bumps the head revision (ADR-0001)."""
+"""TICKET-018: the health-record migration bumps the head revision (ADR-0001)."""
 
 from pathlib import Path
 
@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 SERVER_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_upgrade_head_creates_the_appointment_table(tmp_path):
+def test_upgrade_head_creates_the_health_record_table(tmp_path):
     db_path = tmp_path / "empty.db"
     config = Config(str(SERVER_ROOT / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_path}")
@@ -24,7 +24,9 @@ def test_upgrade_head_creates_the_appointment_table(tmp_path):
             ).scalar_one()
             columns = {
                 row[1]
-                for row in connection.execute(text("PRAGMA table_info(t_appointment)"))
+                for row in connection.execute(
+                    text("PRAGMA table_info(t_health_record)")
+                )
             }
     finally:
         engine.dispose()
@@ -34,11 +36,11 @@ def test_upgrade_head_creates_the_appointment_table(tmp_path):
         "id",
         "user_id",
         "doctor_id",
-        "department_id",
+        "record_type",
+        "diagnosis",
+        "treatment",
+        "prescription",
         "visit_date",
-        "time_slot",
-        "status",
-        "remark",
         "create_time",
         "update_time",
     } <= columns
