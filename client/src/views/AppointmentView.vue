@@ -6,7 +6,8 @@
   `appointmentStatusLabel`，未知值回退「待确认」（AC-F-11）。所有后端调用都经
   F-1 的 `client`，本组件不认识传输层。
 
-  科室主数据（下拉选项）由 TICKET-020 提供，本票先以编号录入。
+  医生与科室下拉来自公开主数据列表（GET /doctors、GET /departments），
+  TICKET-020 落地（承接 TICKET-017 挂账 b）。提交体仍是编号，行为与先前一致。
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
@@ -21,6 +22,8 @@ const emit = defineEmits(['error'])
 const TIME_SLOTS = ['上午', '下午', '晚上']
 
 const items = ref([])
+const doctors = ref([])
+const departments = ref([])
 const loadError = ref(null)
 const formError = ref(null)
 const submitting = ref(false)
@@ -32,6 +35,18 @@ const emptyForm = () => ({
   remark: '',
 })
 const form = ref(emptyForm())
+
+async function loadOptions() {
+  try {
+    const page = await props.client.doctors({ page: 1, page_size: 100 })
+    doctors.value = page.items ?? []
+    departments.value = await props.client.departments()
+  } catch (failure) {
+    doctors.value = []
+    departments.value = []
+    emit('error', failure)
+  }
+}
 
 async function load() {
   try {
@@ -74,14 +89,37 @@ async function submit() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  loadOptions()
+  load()
+})
 </script>
 
 <template>
   <section class="appointment">
     <form data-appointment-form class="appointment__form" @submit.prevent="submit">
-      <input v-model="form.doctor_id" data-doctor-id placeholder="医生编号" />
-      <input v-model="form.department_id" data-department-id placeholder="科室编号" />
+      <select v-model="form.doctor_id" data-doctor-id>
+        <option value="">请选择医生</option>
+        <option
+          v-for="doctor in doctors"
+          :key="doctor.id"
+          data-doctor-option
+          :value="doctor.id"
+        >
+          {{ doctor.real_name }}{{ doctor.department_name ? `（${doctor.department_name}）` : '' }}
+        </option>
+      </select>
+      <select v-model="form.department_id" data-department-id>
+        <option value="">请选择科室</option>
+        <option
+          v-for="department in departments"
+          :key="department.id"
+          data-department-option
+          :value="department.id"
+        >
+          {{ department.name }}
+        </option>
+      </select>
       <input v-model="form.visit_date" data-visit-date type="date" />
       <select v-model="form.time_slot" data-time-slot>
         <option v-for="slot in TIME_SLOTS" :key="slot" :value="slot">{{ slot }}</option>
@@ -100,7 +138,7 @@ onMounted(load)
       <thead>
         <tr>
           <th>医生</th>
-          <th>科室编号</th>
+          <th>科室</th>
           <th>就诊日期</th>
           <th>时段</th>
           <th>状态</th>

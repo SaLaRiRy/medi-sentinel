@@ -117,6 +117,27 @@ describe('resolveRoute (TICKET-014)', () => {
     expect(resolveRoute('/login').requiresAuth).toBe(false)
     expect(resolveRoute('/register').requiresAuth).toBe(false)
   })
+
+  it('maps the master-data paths to their own screens (TICKET-020)', () => {
+    expect(resolveRoute('/admin/users')).toEqual({
+      path: '/admin/users',
+      screen: 'admin-users',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+    expect(resolveRoute('/admin/doctors')).toEqual({
+      path: '/admin/doctors',
+      screen: 'admin-doctors',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+    expect(resolveRoute('/admin/departments')).toEqual({
+      path: '/admin/departments',
+      screen: 'admin-departments',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+  })
 })
 
 describe('route table + guard (AC-F-09)', () => {

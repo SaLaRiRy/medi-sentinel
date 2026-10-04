@@ -2797,6 +2797,1278 @@
           }
         }
       }
+    },
+    "/api/v1/departments": {
+      "get": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "List Departments",
+        "operationId": "list_departments_api_v1_departments_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_DepartmentView__"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "Create Department",
+        "operationId": "create_department_api_v1_departments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DepartmentCreatedView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/departments/admin": {
+      "get": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "Admin Departments",
+        "operationId": "admin_departments_api_v1_departments_admin_get",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_DepartmentView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/departments/{department_id}": {
+      "put": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "Update Department",
+        "operationId": "update_department_api_v1_departments__department_id__put",
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "departments"
+        ],
+        "summary": "Delete Department",
+        "operationId": "delete_department_api_v1_departments__department_id__delete",
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List Users",
+        "operationId": "list_users_api_v1_users_get",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_UserView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Create User",
+        "operationId": "create_user_api_v1_users_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UserView_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update User",
+        "operationId": "update_user_api_v1_users__user_id__put",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UserView_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete User",
+        "operationId": "delete_user_api_v1_users__user_id__delete",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{user_id}/status": {
+      "put": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update User Status",
+        "operationId": "update_user_status_api_v1_users__user_id__status_put",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/doctors": {
+      "get": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "List Doctors",
+        "operationId": "list_doctors_api_v1_doctors_get",
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_DoctorView__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Create Doctor",
+        "operationId": "create_doctor_api_v1_doctors_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DoctorView_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/doctors/admin": {
+      "get": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Admin Doctors",
+        "operationId": "admin_doctors_api_v1_doctors_admin_get",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_DoctorView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/doctors/{doctor_id}": {
+      "put": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Update Doctor",
+        "operationId": "update_doctor_api_v1_doctors__doctor_id__put",
+        "parameters": [
+          {
+            "name": "doctor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Doctor Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DoctorView_"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Delete Doctor",
+        "operationId": "delete_doctor_api_v1_doctors__doctor_id__delete",
+        "parameters": [
+          {
+            "name": "doctor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Doctor Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/doctors/{doctor_id}/status": {
+      "put": {
+        "tags": [
+          "doctors"
+        ],
+        "summary": "Update Doctor Status",
+        "operationId": "update_doctor_status_api_v1_doctors__doctor_id__status_put",
+        "parameters": [
+          {
+            "name": "doctor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Doctor Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoctorStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3252,6 +4524,120 @@
         ],
         "title": "ConsultView"
       },
+      "DepartmentCreatedView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "DepartmentCreatedView"
+      },
+      "DepartmentRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DepartmentRequest",
+        "description": "`SPEC.md` 5.3：`DepartmentRequest`。"
+      },
+      "DepartmentView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "sort_order": {
+            "type": "integer",
+            "title": "Sort Order",
+            "default": 0
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status",
+            "default": 1
+          },
+          "doctor_count": {
+            "type": "integer",
+            "title": "Doctor Count",
+            "default": 0
+          },
+          "create_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Time"
+          },
+          "update_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Update Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DepartmentView"
+      },
       "DiseaseCandidate": {
         "properties": {
           "disease": {
@@ -3337,6 +4723,359 @@
         ],
         "title": "DiseaseDetailView"
       },
+      "DoctorCreateRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Confirm Password"
+          },
+          "real_name": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Real Name"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "introduction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Introduction"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password",
+          "confirm_password",
+          "real_name"
+        ],
+        "title": "DoctorCreateRequest",
+        "description": "`SPEC.md` 5.3：`DoctorCreateRequest`。"
+      },
+      "DoctorStatusRequest": {
+        "properties": {
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "DoctorStatusRequest"
+      },
+      "DoctorUpdateRequest": {
+        "properties": {
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "confirm_password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirm Password"
+          },
+          "real_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Real Name"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "introduction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Introduction"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "title": "DoctorUpdateRequest",
+        "description": "`SPEC.md` 5.3：`DoctorUpdateRequest`（除 `username` 外可选，另含口令）。"
+      },
+      "DoctorView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "real_name": {
+            "type": "string",
+            "title": "Real Name"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "department_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Name"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          },
+          "introduction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Introduction"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "create_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Time"
+          },
+          "update_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Update Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "real_name"
+        ],
+        "title": "DoctorView"
+      },
       "Envelope_AppointmentCreatedView_": {
         "properties": {
           "code": {
@@ -3415,6 +5154,32 @@
         "type": "object",
         "title": "Envelope[ConsultCreatedView]"
       },
+      "Envelope_DepartmentCreatedView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DepartmentCreatedView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[DepartmentCreatedView]"
+      },
       "Envelope_DiseaseDetailView_": {
         "properties": {
           "code": {
@@ -3440,6 +5205,32 @@
         },
         "type": "object",
         "title": "Envelope[DiseaseDetailView]"
+      },
+      "Envelope_DoctorView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DoctorView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[DoctorView]"
       },
       "Envelope_GraphView_": {
         "properties": {
@@ -3617,6 +5408,58 @@
         "type": "object",
         "title": "Envelope[PagePayload[ConsultView]]"
       },
+      "Envelope_PagePayload_DepartmentView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PagePayload_DepartmentView_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[PagePayload[DepartmentView]]"
+      },
+      "Envelope_PagePayload_DoctorView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PagePayload_DoctorView_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[PagePayload[DoctorView]]"
+      },
       "Envelope_PagePayload_KnowledgeFileView__": {
         "properties": {
           "code": {
@@ -3695,6 +5538,32 @@
         "type": "object",
         "title": "Envelope[PagePayload[TraceSummaryView]]"
       },
+      "Envelope_PagePayload_UserView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PagePayload_UserView_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[PagePayload[UserView]]"
+      },
       "Envelope_ProfileView_": {
         "properties": {
           "code": {
@@ -3772,6 +5641,32 @@
         },
         "type": "object",
         "title": "Envelope[TraceView]"
+      },
+      "Envelope_UserView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[UserView]"
       },
       "Envelope_dict_str__int__": {
         "properties": {
@@ -3862,6 +5757,36 @@
         },
         "type": "object",
         "title": "Envelope[list[ConsultView]]"
+      },
+      "Envelope_list_DepartmentView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DepartmentView"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[list[DepartmentView]]"
       },
       "Envelope_list_DiseaseCandidate__": {
         "properties": {
@@ -4738,6 +6663,68 @@
         ],
         "title": "PagePayload[ConsultView]"
       },
+      "PagePayload_DepartmentView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PagePayload[DepartmentView]"
+      },
+      "PagePayload_DoctorView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PagePayload[DoctorView]"
+      },
       "PagePayload_KnowledgeFileView_": {
         "properties": {
           "items": {
@@ -4830,6 +6817,37 @@
           "page_size"
         ],
         "title": "PagePayload[TraceSummaryView]"
+      },
+      "PagePayload_UserView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/UserView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PagePayload[UserView]"
       },
       "PasswordChangeRequest": {
         "properties": {
@@ -5509,6 +7527,317 @@
           "route"
         ],
         "title": "TraceView"
+      },
+      "UserCreateRequest": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Password"
+          },
+          "confirm_password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Confirm Password"
+          },
+          "real_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Real Name"
+          },
+          "gender": {
+            "type": "integer",
+            "title": "Gender",
+            "default": 1
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "allergy_history": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allergy History"
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password",
+          "confirm_password"
+        ],
+        "title": "UserCreateRequest",
+        "description": "`SPEC.md` 5.3：`UserCreateRequest`。"
+      },
+      "UserStatusRequest": {
+        "properties": {
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "UserStatusRequest"
+      },
+      "UserUpdateRequest": {
+        "properties": {
+          "password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "confirm_password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirm Password"
+          },
+          "real_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Real Name"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "allergy_history": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allergy History"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "title": "UserUpdateRequest",
+        "description": "`SPEC.md` 5.3：`UserUpdateRequest`（除 `username` 外全部可选，另含口令）。"
+      },
+      "UserView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "real_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Real Name"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "age": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
+          },
+          "allergy_history": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allergy History"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "create_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Time"
+          },
+          "update_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Update Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username"
+        ],
+        "title": "UserView"
       },
       "ValidationError": {
         "properties": {

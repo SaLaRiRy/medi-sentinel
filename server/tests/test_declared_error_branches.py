@@ -1,9 +1,15 @@
-"""AC-B-41 挂账（TICKET-019 统一补）：旧端点必须声明 SPEC.md 5.4 的错误分支。
+"""AC-B-41 挂账（TICKET-019 统一补，TICKET-020 收口）：端点必须声明 SPEC.md 5.4
+的错误分支。
 
 007–015（以及同为「200/422 only」的 017 预约端点）此前只让 FastAPI 自动声明
 422，契约里看不到真实会发出的 401 / 403 / 404 / 409 / 413 / 503 / 504。这些
 端点运行时确实会发这些状态码（例如无令牌 401、非管理员 403），契约必须如实声明，
 否则「每个端点的实际响应均满足契约 Schema（含全部错误码分支）」无从谈起。
+
+TICKET-020 把当时未纳入的 016 图谱与 018 档案端点，以及本票新增的患者/医生/科室
+端点一并补齐，`SPEC_ERROR_BRANCHES` 覆盖 SPEC.md 5.4 的全部端点（`/health` 除外，
+5.4 未列）。路由只会多声明（例如 400 口令不一致、图谱 500），断言按「不得漏声明」
+进行。
 """
 
 from pathlib import Path
@@ -43,6 +49,37 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/consults/{consult_id}/replies", "post"): {401, 403, 404, 409, 422},
     ("/api/v1/consults/admin", "get"): {401, 403, 422},
     ("/api/v1/consults/admin/{consult_id}", "delete"): {401, 403, 404},
+    # TICKET-016 图谱端点（TICKET-019 遗漏，本票补齐）
+    ("/api/v1/graph", "get"): {503},
+    ("/api/v1/graph/entities/{name}/neighbors", "get"): {404, 422, 503},
+    ("/api/v1/graph/search", "get"): {422, 503},
+    ("/api/v1/graph/diseases/{name}", "get"): {404, 503},
+    ("/api/v1/graph/infer", "post"): {401, 403, 422, 503},
+    ("/api/v1/graph/stats", "get"): {401, 403, 503},
+    # TICKET-018 档案端点（TICKET-019 遗漏，本票补齐）
+    ("/api/v1/records/my", "get"): {401, 403},
+    ("/api/v1/records/doctor", "get"): {401, 403},
+    ("/api/v1/records/doctor/patient-options", "get"): {401, 403},
+    ("/api/v1/records/doctor", "post"): {401, 403, 404, 422},
+    ("/api/v1/records/doctor/{record_id}", "put"): {401, 403, 404, 422},
+    ("/api/v1/records/doctor/{record_id}", "delete"): {401, 403, 404},
+    # TICKET-020 患者与医生主数据
+    ("/api/v1/users", "get"): {401, 403, 422},
+    ("/api/v1/users", "post"): {401, 403, 409, 422},
+    ("/api/v1/users/{user_id}", "put"): {401, 403, 404, 422},
+    ("/api/v1/users/{user_id}", "delete"): {401, 403, 404},
+    ("/api/v1/users/{user_id}/status", "put"): {401, 403, 404, 422},
+    ("/api/v1/doctors", "get"): {422},
+    ("/api/v1/doctors/admin", "get"): {401, 403, 422},
+    ("/api/v1/doctors", "post"): {401, 403, 409, 422},
+    ("/api/v1/doctors/{doctor_id}", "put"): {401, 403, 404, 422},
+    ("/api/v1/doctors/{doctor_id}", "delete"): {401, 403, 404},
+    ("/api/v1/doctors/{doctor_id}/status", "put"): {401, 403, 404, 422},
+    ("/api/v1/departments", "get"): set(),
+    ("/api/v1/departments/admin", "get"): {401, 403, 422},
+    ("/api/v1/departments", "post"): {401, 403, 409, 422},
+    ("/api/v1/departments/{department_id}", "put"): {401, 403, 404, 409, 422},
+    ("/api/v1/departments/{department_id}", "delete"): {401, 403, 404, 409},
 }
 
 

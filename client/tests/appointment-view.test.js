@@ -19,7 +19,13 @@ function row(overrides = {}) {
   }
 }
 
-function fakeClient({ appointments = [], loadError, createError } = {}) {
+function fakeClient({
+  appointments = [],
+  doctors = [{ id: 1, real_name: '李医生', department_name: '内科' }],
+  departments = [{ id: 2, name: '内科' }],
+  loadError,
+  createError,
+} = {}) {
   return {
     myAppointments: vi.fn(async () => {
       if (loadError) throw loadError
@@ -29,6 +35,13 @@ function fakeClient({ appointments = [], loadError, createError } = {}) {
       if (createError) throw createError
       return { id: 99 }
     }),
+    doctors: vi.fn(async () => ({
+      items: doctors,
+      total: doctors.length,
+      page: 1,
+      page_size: 100,
+    })),
+    departments: vi.fn(async () => departments),
   }
 }
 
@@ -40,6 +53,18 @@ async function fill(wrapper, { doctor = '1', department = '2', date = '2026-10-2
 }
 
 describe('AppointmentView list (TICKET-017)', () => {
+  it('fills the doctor and department dropdowns from the public lists (TICKET-020)', async () => {
+    const wrapper = mount(AppointmentView, { props: { client: fakeClient() } })
+    await flushPromises()
+
+    const doctorOptions = wrapper.findAll('[data-doctor-option]')
+    expect(doctorOptions).toHaveLength(1)
+    expect(doctorOptions[0].text()).toContain('李医生')
+    const departmentOptions = wrapper.findAll('[data-department-option]')
+    expect(departmentOptions).toHaveLength(1)
+    expect(departmentOptions[0].text()).toContain('内科')
+  })
+
   it('renders my appointments with the mapped status label', async () => {
     const client = fakeClient({ appointments: [row({ status: 1 })] })
     const wrapper = mount(AppointmentView, { props: { client } })

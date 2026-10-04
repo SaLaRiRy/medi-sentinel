@@ -5,12 +5,15 @@ from api.v1 import (
     auth,
     chat,
     consults,
+    departments,
+    doctors,
     graph,
     health,
     knowledge,
     observability,
     profile,
     records,
+    users,
 )
 
 api_router = APIRouter()
@@ -24,3 +27,6 @@ api_router.include_router(graph.router)
 api_router.include_router(appointments.router)
 api_router.include_router(records.router)
 api_router.include_router(consults.router)
+api_router.include_router(departments.router)
+api_router.include_router(users.router)
+api_router.include_router(doctors.router)

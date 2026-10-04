@@ -11,6 +11,9 @@ import { layoutFor } from './session/navigation.js'
 import { resolveNavigation } from './session/routes.js'
 import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
 import AdminConsultsView from './views/AdminConsultsView.vue'
+import AdminDepartmentsView from './views/AdminDepartmentsView.vue'
+import AdminDoctorsView from './views/AdminDoctorsView.vue'
+import AdminUsersView from './views/AdminUsersView.vue'
 import AppointmentView from './views/AppointmentView.vue'
 import ChatView from './views/ChatView.vue'
 import ConsultView from './views/ConsultView.vue'
@@ -166,6 +169,21 @@ function handleError(error) {
         />
         <AdminConsultsView
           v-else-if="screen === 'admin-consults'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminUsersView
+          v-else-if="screen === 'admin-users'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminDoctorsView
+          v-else-if="screen === 'admin-doctors'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminDepartmentsView
+          v-else-if="screen === 'admin-departments'"
           :client="client"
           @error="handleError"
         />

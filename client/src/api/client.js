@@ -256,6 +256,104 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       })
     },
 
+    // TICKET-020 master-data surface (SPEC.md 5.4「患者与医生主数据」). The
+    // patient/doctor/department lists are public; every mutation is admin-only.
+    async adminUsers({ page = 1, page_size = 10, keyword } = {}) {
+      return call({ path: '/users', query: { page, page_size, keyword }, authed: true })
+    },
+
+    async createUser(payload) {
+      return call({ method: 'POST', path: '/users', body: payload, authed: true })
+    },
+
+    async updateUser(userId, payload) {
+      return call({ method: 'PUT', path: `/users/${userId}`, body: payload, authed: true })
+    },
+
+    async updateUserStatus(userId, status) {
+      return call({
+        method: 'PUT',
+        path: `/users/${userId}/status`,
+        body: { status },
+        authed: true,
+      })
+    },
+
+    async deleteUser(userId) {
+      return call({ method: 'DELETE', path: `/users/${userId}`, authed: true })
+    },
+
+    async doctors({ page = 1, page_size = 20, department_id } = {}) {
+      return call({ path: '/doctors', query: { page, page_size, department_id } })
+    },
+
+    async adminDoctors({ page = 1, page_size = 10, keyword } = {}) {
+      return call({
+        path: '/doctors/admin',
+        query: { page, page_size, keyword },
+        authed: true,
+      })
+    },
+
+    async createDoctor(payload) {
+      return call({ method: 'POST', path: '/doctors', body: payload, authed: true })
+    },
+
+    async updateDoctor(doctorId, payload) {
+      return call({
+        method: 'PUT',
+        path: `/doctors/${doctorId}`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async updateDoctorStatus(doctorId, status) {
+      return call({
+        method: 'PUT',
+        path: `/doctors/${doctorId}/status`,
+        body: { status },
+        authed: true,
+      })
+    },
+
+    async deleteDoctor(doctorId) {
+      return call({ method: 'DELETE', path: `/doctors/${doctorId}`, authed: true })
+    },
+
+    async departments() {
+      return call({ path: '/departments' })
+    },
+
+    async adminDepartments({ page = 1, page_size = 10, keyword } = {}) {
+      return call({
+        path: '/departments/admin',
+        query: { page, page_size, keyword },
+        authed: true,
+      })
+    },
+
+    async createDepartment(payload) {
+      return call({ method: 'POST', path: '/departments', body: payload, authed: true })
+    },
+
+    async updateDepartment(departmentId, payload) {
+      return call({
+        method: 'PUT',
+        path: `/departments/${departmentId}`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async deleteDepartment(departmentId) {
+      return call({
+        method: 'DELETE',
+        path: `/departments/${departmentId}`,
+        authed: true,
+      })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {

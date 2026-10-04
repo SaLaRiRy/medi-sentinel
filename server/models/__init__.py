@@ -4,6 +4,7 @@ so Alembic sees the same schema the application uses."""
 from models.accounts import AdminRow, DoctorRow, UserRow
 from models.appointment import AppointmentRow
 from models.consult import ConsultMessageRow, ConsultSessionRow
+from models.department import DepartmentRow
 from models.doctor_consult import DoctorConsultRow, DoctorReplyRow
 from models.health_record import HealthRecordRow
 from models.knowledge import KnowledgeChunkRow, KnowledgeFileRow
@@ -14,6 +15,7 @@ __all__ = [
     "AppointmentRow",
     "ConsultMessageRow",
     "ConsultSessionRow",
+    "DepartmentRow",
     "DoctorRow",
     "DoctorConsultRow",
     "DoctorReplyRow",
