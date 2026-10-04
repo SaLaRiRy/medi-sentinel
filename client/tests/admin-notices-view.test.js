@@ -31,6 +31,12 @@ function fakeClient({ items = [], total, pageItems, createError } = {}) {
   }
 }
 
+// Phase 2: the create form lives in a dialog opened from the page header.
+async function openCreate(wrapper) {
+  await wrapper.find('[data-create]').trigger('click')
+  await flushPromises()
+}
+
 describe('AdminNoticesView list (TICKET-021)', () => {
   it('renders the notice title and the published label', async () => {
     const client = fakeClient({ items: [row(), row({ id: 2, status: 0 })] })
@@ -65,6 +71,7 @@ describe('AdminNoticesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminNoticesView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-notice-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -77,6 +84,7 @@ describe('AdminNoticesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminNoticesView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-title]').setValue('新公告')
     await wrapper.find('[data-content]').setValue('正文')
     await wrapper.find('[data-notice-form]').trigger('submit.prevent')

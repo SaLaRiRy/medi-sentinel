@@ -12,6 +12,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 import { POLL_INTERVAL_MS, needsPolling } from '../knowledge/polling.js'
+import { formatFileSize } from '../knowledge/format.js'
 import { vectorStatusColor, vectorStatusLabel } from '../knowledge/status.js'
 
 const props = defineProps({
@@ -188,7 +189,7 @@ onUnmounted(stopPolling)
         </el-table-column>
         <el-table-column prop="file_size" label="大小" min-width="90">
           <template #default="{ row }">
-            <span data-file-size>{{ row.file_size }}</span>
+            <span data-file-size>{{ formatFileSize(row.file_size) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="chunk_count" label="分块数" min-width="90">

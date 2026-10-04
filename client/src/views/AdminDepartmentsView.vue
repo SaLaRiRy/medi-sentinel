@@ -24,6 +24,7 @@ const keyword = ref('')
 const loadError = ref(null)
 const formError = ref(null)
 const editingId = ref(null)
+const formVisible = ref(false)
 const loading = ref(false)
 
 const emptyForm = () => ({ name: '', description: '', sort_order: 0 })
@@ -66,6 +67,12 @@ function resetForm() {
   form.value = emptyForm()
   editingId.value = null
   formError.value = null
+  formVisible.value = false
+}
+
+function openCreate() {
+  resetForm()
+  formVisible.value = true
 }
 
 function startEdit(item) {
@@ -76,6 +83,7 @@ function startEdit(item) {
     description: item.description ?? '',
     sort_order: item.sort_order ?? 0,
   }
+  formVisible.value = true
 }
 
 function payload() {
@@ -118,13 +126,16 @@ onMounted(load)
   <section class="admin-departments">
     <header class="page-head">
       <h1 class="page-head__title">科室管理</h1>
+      <el-button type="primary" data-create @click="openCreate">新建科室</el-button>
     </header>
 
-    <el-card class="admin-departments__card" shadow="never">
-      <template #header>
-        <span class="card-title">{{ editingId === null ? '新建科室' : '编辑科室' }}</span>
-      </template>
-
+    <el-dialog
+      v-model="formVisible"
+      :title="editingId === null ? '新建科室' : '编辑科室'"
+      width="520px"
+      :teleported="false"
+      class="admin-departments__dialog"
+    >
       <el-form
         data-department-form
         :model="form"
@@ -143,7 +154,7 @@ onMounted(load)
         </el-form-item>
         <el-form-item>
           <el-button type="primary" data-submit native-type="submit">保存</el-button>
-          <el-button v-if="editingId !== null" data-cancel @click="resetForm">取消</el-button>
+          <el-button data-cancel @click="resetForm">取消</el-button>
         </el-form-item>
       </el-form>
 
@@ -154,7 +165,7 @@ onMounted(load)
       >
         {{ formError }}
       </p>
-    </el-card>
+    </el-dialog>
 
     <el-card class="admin-departments__card" shadow="never">
       <template #header>

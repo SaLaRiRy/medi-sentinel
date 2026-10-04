@@ -47,6 +47,12 @@ async function fillCreate(wrapper, { username = 'newuser', password = 'secret1' 
   await wrapper.find('[data-confirm-password]').setValue(password)
 }
 
+// Phase 2: the create form lives in a dialog opened from the page header.
+async function openCreate(wrapper) {
+  await wrapper.find('[data-create]').trigger('click')
+  await flushPromises()
+}
+
 describe('AdminUsersView list (TICKET-020)', () => {
   it('renders the patients with the account-status label', async () => {
     const client = fakeClient({ users: [row(), row({ id: 2, status: 0 })] })
@@ -82,6 +88,7 @@ describe('AdminUsersView create/edit/delete/status (TICKET-020)', () => {
     const wrapper = mount(AdminUsersView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-user-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -94,6 +101,7 @@ describe('AdminUsersView create/edit/delete/status (TICKET-020)', () => {
     const wrapper = mount(AdminUsersView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await fillCreate(wrapper)
     await wrapper.find('[data-real-name]').setValue('新患者')
     await wrapper.find('[data-user-form]').trigger('submit.prevent')
@@ -115,6 +123,7 @@ describe('AdminUsersView create/edit/delete/status (TICKET-020)', () => {
     const wrapper = mount(AdminUsersView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await fillCreate(wrapper)
     await wrapper.find('[data-user-form]').trigger('submit.prevent')
     await flushPromises()

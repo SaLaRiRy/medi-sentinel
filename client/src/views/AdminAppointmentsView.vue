@@ -30,6 +30,10 @@ const loading = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
+// 主操作显式展示，其余状态流转与删除收进「更多」下拉。
+const PRIMARY_ACTION = APPOINTMENT_STATUS_ACTIONS[0]
+const SECONDARY_ACTIONS = APPOINTMENT_STATUS_ACTIONS.slice(1)
+
 function optionalNumber(value) {
   return value === '' || value === null ? undefined : Number(value)
 }
@@ -104,7 +108,7 @@ onMounted(load)
     <el-card class="admin-appointments__card" shadow="never">
       <template #header>
         <div class="card-head">
-          <span class="card-title">预约记录</span>
+          <span class="card-title">预约列表</span>
           <el-tag size="small" type="info" effect="plain">{{ total }} 条</el-tag>
         </div>
       </template>
@@ -177,21 +181,40 @@ onMounted(load)
             <el-tag data-status effect="plain">{{ appointmentStatusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" min-width="240">
+        <el-table-column label="操作" min-width="170">
           <template #default="{ row }">
             <el-button
-              v-for="action in APPOINTMENT_STATUS_ACTIONS"
-              :key="action.value"
               size="small"
+              type="primary"
               plain
-              :data-set-status="action.value"
-              @click="update(row.id, action.value)"
+              :data-set-status="PRIMARY_ACTION.value"
+              @click="update(row.id, PRIMARY_ACTION.value)"
             >
-              {{ action.label }}
+              {{ PRIMARY_ACTION.label }}
             </el-button>
-            <el-button size="small" type="danger" plain data-delete @click="remove(row.id)">
-              删除
-            </el-button>
+            <el-dropdown
+              data-more-menu
+              trigger="click"
+              :teleported="false"
+              :persistent="false"
+            >
+              <el-button size="small" data-more>更多</el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="action in SECONDARY_ACTIONS"
+                    :key="action.value"
+                    :data-set-status="action.value"
+                    @click="update(row.id, action.value)"
+                  >
+                    {{ action.label }}
+                  </el-dropdown-item>
+                  <el-dropdown-item divided data-delete @click="remove(row.id)">
+                    删除
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </template>
         </el-table-column>
       </el-table>

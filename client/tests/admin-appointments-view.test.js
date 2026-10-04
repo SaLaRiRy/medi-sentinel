@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ElDatePicker } from 'element-plus'
 
 import AdminAppointmentsView from '../src/views/AdminAppointmentsView.vue'
+import { settle } from './helpers/mount.js'
 
 function pagePayload(items, { total = items.length, page = 1, page_size = 10 } = {}) {
   return { items, total, page, page_size }
@@ -39,6 +40,12 @@ function fakeClient({ pages = [], fail, updateError } = {}) {
     }),
     deleteAppointment: vi.fn(async () => null),
   }
+}
+
+// Phase 2: secondary status actions and delete now live in the row's 更多 dropdown.
+async function openMore(wrapper) {
+  await wrapper.find('.el-table__row').find('[data-more]').trigger('click')
+  await settle()
 }
 
 describe('AdminAppointmentsView list (TICKET-017)', () => {
@@ -100,7 +107,8 @@ describe('AdminAppointmentsView actions (TICKET-017)', () => {
 
     // TICKET-030: scope row actions to the stable `.el-table__row` — ElTable
     // renders a hidden measuring copy of every column's slot.
-    await wrapper.find('.el-table__row').find('[data-set-status="2"]').trigger('click')
+    await openMore(wrapper)
+    await wrapper.find('[data-set-status="2"]').trigger('click')
     await flushPromises()
 
     expect(client.updateAppointmentStatus).toHaveBeenCalledWith(8, 2)
@@ -123,7 +131,8 @@ describe('AdminAppointmentsView actions (TICKET-017)', () => {
       expect.objectContaining({ page: 2 })
     )
 
-    await wrapper.find('.el-table__row').find('[data-delete]').trigger('click')
+    await openMore(wrapper)
+    await wrapper.find('[data-delete]').trigger('click')
     await flushPromises()
 
     expect(client.deleteAppointment).toHaveBeenCalledWith(11)

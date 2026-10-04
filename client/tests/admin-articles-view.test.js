@@ -43,6 +43,12 @@ function fakeClient({
   }
 }
 
+// Phase 2: the create form lives in a dialog opened from the page header.
+async function openCreate(wrapper) {
+  await wrapper.find('[data-create]').trigger('click')
+  await flushPromises()
+}
+
 describe('AdminArticlesView list (TICKET-021)', () => {
   it('renders the article title and the published label', async () => {
     const client = fakeClient({ items: [row(), row({ id: 2, status: 0 })] })
@@ -77,6 +83,7 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminArticlesView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-article-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -89,6 +96,7 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminArticlesView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-title]').setValue('新文章')
     // TICKET-030: el-select is a component; drive its model.
     await wrapper.findComponent('[data-category]').setValue('用药指南')
@@ -109,6 +117,7 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminArticlesView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-title]').setValue('新文章')
     await wrapper.find('[data-article-form]').trigger('submit.prevent')
     await flushPromises()

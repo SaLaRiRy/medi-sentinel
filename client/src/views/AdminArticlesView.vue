@@ -29,6 +29,7 @@ const keyword = ref('')
 const loadError = ref(null)
 const formError = ref(null)
 const editingId = ref(null)
+const formVisible = ref(false)
 const loading = ref(false)
 
 const emptyForm = () => ({
@@ -77,6 +78,12 @@ function resetForm() {
   form.value = emptyForm()
   editingId.value = null
   formError.value = null
+  formVisible.value = false
+}
+
+function openCreate() {
+  resetForm()
+  formVisible.value = true
 }
 
 function startEdit(item) {
@@ -89,6 +96,7 @@ function startEdit(item) {
     content: item.content ?? '',
     status: item.status ?? 1,
   }
+  formVisible.value = true
 }
 
 function payload() {
@@ -135,13 +143,16 @@ onMounted(load)
   <section class="admin-articles">
     <header class="page-head">
       <h1 class="page-head__title">文章管理</h1>
+      <el-button type="primary" data-create @click="openCreate">新建文章</el-button>
     </header>
 
-    <el-card class="admin-articles__card admin-articles__card--form" shadow="never">
-      <template #header>
-        <span class="card-title">{{ editingId === null ? '新建文章' : '编辑文章' }}</span>
-      </template>
-
+    <el-dialog
+      v-model="formVisible"
+      :title="editingId === null ? '新建文章' : '编辑文章'"
+      width="600px"
+      :teleported="false"
+      class="admin-articles__dialog"
+    >
       <el-form
         data-article-form
         :model="form"
@@ -178,14 +189,14 @@ onMounted(load)
         </el-form-item>
         <el-form-item>
           <el-button type="primary" data-submit native-type="submit">保存</el-button>
-          <el-button v-if="editingId !== null" data-cancel @click="resetForm">取消</el-button>
+          <el-button data-cancel @click="resetForm">取消</el-button>
         </el-form-item>
       </el-form>
 
       <p v-if="formError" data-form-error class="admin-articles__message admin-articles__message--error">
         {{ formError }}
       </p>
-    </el-card>
+    </el-dialog>
 
     <el-card class="admin-articles__card" shadow="never">
       <template #header>

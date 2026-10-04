@@ -11,6 +11,7 @@ import {
   ElButton,
   ElCard,
   ElDatePicker,
+  ElDialog,
   ElForm,
   ElInput,
   ElPagination,
@@ -65,6 +66,12 @@ async function mountView(view, client = fakeClient()) {
   return wrapper
 }
 
+// Phase 2: create/edit forms live in an el-dialog opened from the page header.
+async function openCreate(wrapper) {
+  await wrapper.find('[data-create]').trigger('click')
+  await flushPromises()
+}
+
 function uses(wrapper, components) {
   for (const component of components) {
     expect(
@@ -75,12 +82,15 @@ function uses(wrapper, components) {
 }
 
 describe('TICKET-030 admin views use element-plus components', () => {
-  it('AdminUsersView: el-card + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
+  it('AdminUsersView: el-card/el-dialog + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
     const client = fakeClient({
       adminUsers: vi.fn(async () => page([{ id: 1, username: 'a', real_name: 'A', gender: 1, status: 1 }])),
     })
-    uses(await mountView(AdminUsersView, client), [
+    const wrapper = await mountView(AdminUsersView, client)
+    await openCreate(wrapper)
+    uses(wrapper, [
       ElCard,
+      ElDialog,
       ElForm,
       ElInput,
       ElSelect,
@@ -91,14 +101,17 @@ describe('TICKET-030 admin views use element-plus components', () => {
     ])
   })
 
-  it('AdminDoctorsView: el-card + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
+  it('AdminDoctorsView: el-card/el-dialog + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
     const client = fakeClient({
       adminDoctors: vi.fn(async () =>
         page([{ id: 1, username: 'd', real_name: 'D', department_name: '内科', status: 1 }])
       ),
     })
-    uses(await mountView(AdminDoctorsView, client), [
+    const wrapper = await mountView(AdminDoctorsView, client)
+    await openCreate(wrapper)
+    uses(wrapper, [
       ElCard,
+      ElDialog,
       ElForm,
       ElInput,
       ElSelect,
@@ -109,14 +122,17 @@ describe('TICKET-030 admin views use element-plus components', () => {
     ])
   })
 
-  it('AdminDepartmentsView: el-card + el-form/el-input + el-table/el-tag + el-pagination', async () => {
+  it('AdminDepartmentsView: el-card/el-dialog + el-form/el-input + el-table/el-tag + el-pagination', async () => {
     const client = fakeClient({
       adminDepartments: vi.fn(async () =>
         page([{ id: 1, name: '内科', description: '', sort_order: 1, doctor_count: 0 }])
       ),
     })
-    uses(await mountView(AdminDepartmentsView, client), [
+    const wrapper = await mountView(AdminDepartmentsView, client)
+    await openCreate(wrapper)
+    uses(wrapper, [
       ElCard,
+      ElDialog,
       ElForm,
       ElInput,
       ElButton,
@@ -126,14 +142,17 @@ describe('TICKET-030 admin views use element-plus components', () => {
     ])
   })
 
-  it('AdminArticlesView: el-card + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
+  it('AdminArticlesView: el-card/el-dialog + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
     const client = fakeClient({
       adminArticles: vi.fn(async () =>
         page([{ id: 1, title: 'T', category: '其他', status: 1, view_count: 0 }])
       ),
     })
-    uses(await mountView(AdminArticlesView, client), [
+    const wrapper = await mountView(AdminArticlesView, client)
+    await openCreate(wrapper)
+    uses(wrapper, [
       ElCard,
+      ElDialog,
       ElForm,
       ElInput,
       ElSelect,
@@ -144,12 +163,15 @@ describe('TICKET-030 admin views use element-plus components', () => {
     ])
   })
 
-  it('AdminNoticesView: el-card + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
+  it('AdminNoticesView: el-card/el-dialog + el-form/el-input/el-select + el-table/el-tag + el-pagination', async () => {
     const client = fakeClient({
       adminNotices: vi.fn(async () => page([{ id: 1, title: 'T', content: 'C', status: 1 }])),
     })
-    uses(await mountView(AdminNoticesView, client), [
+    const wrapper = await mountView(AdminNoticesView, client)
+    await openCreate(wrapper)
+    uses(wrapper, [
       ElCard,
+      ElDialog,
       ElForm,
       ElInput,
       ElSelect,

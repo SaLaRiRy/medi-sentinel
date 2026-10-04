@@ -35,6 +35,12 @@ function fakeClient({ departments = [], createError, deleteError } = {}) {
   }
 }
 
+// Phase 2: the create form lives in a dialog opened from the page header.
+async function openCreate(wrapper) {
+  await wrapper.find('[data-create]').trigger('click')
+  await flushPromises()
+}
+
 describe('AdminDepartmentsView list (TICKET-020)', () => {
   it('renders the departments with their doctor count', async () => {
     const client = fakeClient({ departments: [row(), row({ id: 2, doctor_count: 0 })] })
@@ -68,6 +74,7 @@ describe('AdminDepartmentsView create/edit/delete (TICKET-020)', () => {
     const wrapper = mount(AdminDepartmentsView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-department-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -80,6 +87,7 @@ describe('AdminDepartmentsView create/edit/delete (TICKET-020)', () => {
     const wrapper = mount(AdminDepartmentsView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-name]').setValue('心内科')
     await wrapper.find('[data-description]').setValue('心血管')
     await wrapper.find('[data-sort-order]').setValue('3')
@@ -100,6 +108,7 @@ describe('AdminDepartmentsView create/edit/delete (TICKET-020)', () => {
     const wrapper = mount(AdminDepartmentsView, { props: { client } })
     await flushPromises()
 
+    await openCreate(wrapper)
     await wrapper.find('[data-name]').setValue('内科')
     await wrapper.find('[data-department-form]').trigger('submit.prevent')
     await flushPromises()

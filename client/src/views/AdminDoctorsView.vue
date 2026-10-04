@@ -32,6 +32,7 @@ const departments = ref([])
 const loadError = ref(null)
 const formError = ref(null)
 const editingId = ref(null)
+const formVisible = ref(false)
 const loading = ref(false)
 
 const emptyForm = () => ({
@@ -94,6 +95,12 @@ function resetForm() {
   form.value = emptyForm()
   editingId.value = null
   formError.value = null
+  formVisible.value = false
+}
+
+function openCreate() {
+  resetForm()
+  formVisible.value = true
 }
 
 function startEdit(item) {
@@ -110,6 +117,7 @@ function startEdit(item) {
     introduction: item.introduction ?? '',
     phone: item.phone ?? '',
   }
+  formVisible.value = true
 }
 
 function validate() {
@@ -206,13 +214,16 @@ onMounted(() => {
   <section class="admin-doctors">
     <header class="page-head">
       <h1 class="page-head__title">医生管理</h1>
+      <el-button type="primary" data-create @click="openCreate">新建医生</el-button>
     </header>
 
-    <el-card class="admin-doctors__card admin-doctors__card--form" shadow="never">
-      <template #header>
-        <span class="card-title">{{ editingId === null ? '新建医生' : '编辑医生' }}</span>
-      </template>
-
+    <el-dialog
+      v-model="formVisible"
+      :title="editingId === null ? '新建医生' : '编辑医生'"
+      width="560px"
+      :teleported="false"
+      class="admin-doctors__dialog"
+    >
       <el-form
         data-doctor-form
         :model="form"
@@ -274,14 +285,14 @@ onMounted(() => {
         </el-form-item>
         <el-form-item>
           <el-button type="primary" data-submit native-type="submit">保存</el-button>
-          <el-button v-if="editingId !== null" data-cancel @click="resetForm">取消</el-button>
+          <el-button data-cancel @click="resetForm">取消</el-button>
         </el-form-item>
       </el-form>
 
       <p v-if="formError" data-form-error class="admin-doctors__message admin-doctors__message--error">
         {{ formError }}
       </p>
-    </el-card>
+    </el-dialog>
 
     <el-card class="admin-doctors__card" shadow="never">
       <template #header>
