@@ -19,10 +19,10 @@ const props = defineProps({
 const emit = defineEmits(['error', 'navigate'])
 
 const OVERVIEW_FIELDS = [
-  { key: 'consult_count', label: '人工问诊', accent: '#6366f1' },
-  { key: 'appointment_count', label: '预约挂号', accent: '#14b8a6' },
+  { key: 'consult_count', label: '我的咨询', accent: '#6366f1' },
+  { key: 'appointment_count', label: '我的预约', accent: '#14b8a6' },
   { key: 'record_count', label: '健康档案', accent: '#8b5cf6' },
-  { key: 'session_count', label: 'AI 会话', accent: '#e05a8a' },
+  { key: 'session_count', label: 'AI对话', accent: '#e05a8a' },
 ]
 
 const QUICK_SERVICES = [

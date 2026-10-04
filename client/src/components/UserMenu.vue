@@ -8,6 +8,7 @@ import { personalCenterFor } from '../session/navigation.js'
 
 const props = defineProps({
   role: { type: String, required: true },
+  name: { type: String, default: '用户' },
 })
 const emit = defineEmits(['navigate', 'logout'])
 
@@ -30,8 +31,8 @@ function logout() {
     :persistent="false"
   >
     <button type="button" data-user-menu class="user-menu__trigger">
-      <span class="user-menu__avatar">用</span>
-      <span class="user-menu__name">用户</span>
+      <span class="user-menu__avatar">{{ props.name.slice(0, 1) }}</span>
+      <span class="user-menu__name">{{ props.name }}</span>
     </button>
     <template #dropdown>
       <el-dropdown-menu>
@@ -56,10 +57,10 @@ function logout() {
   display: inline-flex;
   align-items: center;
   gap: var(--ms-space-2);
-  padding: 4px 12px 4px 4px;
-  border: 1px solid rgba(127, 127, 160, 0.22);
+  padding: 4px 8px 4px 4px;
+  border: 0;
   border-radius: var(--ms-radius-full);
-  background: rgba(127, 127, 160, 0.08);
+  background: transparent;
   color: inherit;
   font-size: var(--ms-font-sm);
   cursor: pointer;
@@ -67,7 +68,7 @@ function logout() {
 }
 
 .user-menu__trigger:hover {
-  background: rgba(127, 127, 160, 0.16);
+  background: rgba(127, 127, 160, 0.18);
 }
 
 .user-menu__avatar {

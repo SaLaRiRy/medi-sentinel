@@ -49,7 +49,8 @@ describe('PortalHomeView patient overview (TICKET-022)', () => {
     await flushPromises()
 
     const overview = wrapper.find('[data-user-overview]').text()
-    expect(overview).toContain('人工问诊')
+    expect(overview).toContain('我的咨询')
+    expect(overview).toContain('我的预约')
     expect(overview).toContain('健康档案')
     expect(wrapper.findAll('[data-overview-stat]')).toHaveLength(4)
   })

@@ -9,12 +9,23 @@ import { useRoute } from 'vue-router'
 
 import UserMenu from '../components/UserMenu.vue'
 import { portalNav } from '../session/navigation.js'
+import { useAuthStore } from '../stores/auth.js'
 import { navIcon } from './navIcons.js'
 
 const emit = defineEmits(['navigate', 'logout'])
 
 const route = useRoute()
+const auth = useAuthStore()
 const nav = computed(() => portalNav())
+
+const displayName = computed(
+  () =>
+    auth.user?.real_name ||
+    auth.user?.display_name ||
+    auth.user?.username ||
+    auth.user?.name ||
+    '用户'
+)
 </script>
 
 <template>
@@ -62,7 +73,12 @@ const nav = computed(() => portalNav())
       </nav>
 
       <div class="portal__user-area">
-        <UserMenu role="user" @navigate="emit('navigate', $event)" @logout="emit('logout')" />
+        <UserMenu
+          role="user"
+          :name="displayName"
+          @navigate="emit('navigate', $event)"
+          @logout="emit('logout')"
+        />
       </div>
     </header>
 

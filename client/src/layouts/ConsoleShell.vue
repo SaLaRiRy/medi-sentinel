@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router'
 
 import UserMenu from '../components/UserMenu.vue'
 import { menuFor } from '../session/navigation.js'
+import { useAuthStore } from '../stores/auth.js'
 import { navIcon } from './navIcons.js'
 
 const props = defineProps({
@@ -19,7 +20,17 @@ const props = defineProps({
 const emit = defineEmits(['navigate', 'logout'])
 
 const route = useRoute()
+const auth = useAuthStore()
 const menu = computed(() => menuFor(props.role))
+
+const displayName = computed(
+  () =>
+    auth.user?.real_name ||
+    auth.user?.display_name ||
+    auth.user?.username ||
+    auth.user?.name ||
+    '用户'
+)
 
 const ROLE_LABEL = { admin: '管理后台', doctor: '医生工作台' }
 const crumbs = computed(() => {
@@ -90,6 +101,7 @@ const crumbs = computed(() => {
         <div class="console__user-area">
           <UserMenu
             :role="role"
+            :name="displayName"
             @navigate="emit('navigate', $event)"
             @logout="emit('logout')"
           />
