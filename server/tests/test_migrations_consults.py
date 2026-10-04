@@ -1,4 +1,4 @@
-"""TICKET-017: the appointment migration bumps the head revision (ADR-0001)."""
+"""TICKET-019: the doctor-consult migration bumps the head revision (ADR-0001)."""
 
 from pathlib import Path
 
@@ -9,7 +9,13 @@ from sqlalchemy import create_engine, text
 SERVER_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_upgrade_head_creates_the_appointment_table(tmp_path):
+def _columns(connection, table: str) -> set[str]:
+    return {
+        row[1] for row in connection.execute(text(f"PRAGMA table_info({table})"))
+    }
+
+
+def test_upgrade_head_creates_the_doctor_consult_tables(tmp_path):
     db_path = tmp_path / "empty.db"
     config = Config(str(SERVER_ROOT / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_path}")
@@ -22,10 +28,8 @@ def test_upgrade_head_creates_the_appointment_table(tmp_path):
             revision = connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            columns = {
-                row[1]
-                for row in connection.execute(text("PRAGMA table_info(t_appointment)"))
-            }
+            consult_columns = _columns(connection, "t_doctor_consult")
+            reply_columns = _columns(connection, "t_doctor_reply")
     finally:
         engine.dispose()
 
@@ -34,11 +38,15 @@ def test_upgrade_head_creates_the_appointment_table(tmp_path):
         "id",
         "user_id",
         "doctor_id",
-        "department_id",
-        "visit_date",
-        "time_slot",
+        "chief_complaint",
         "status",
-        "remark",
         "create_time",
         "update_time",
-    } <= columns
+    } <= consult_columns
+    assert {
+        "id",
+        "consult_id",
+        "doctor_id",
+        "content",
+        "create_time",
+    } <= reply_columns

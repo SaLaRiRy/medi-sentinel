@@ -466,6 +466,40 @@ async def test_patient_options_is_empty_for_a_doctor_without_patients(
     assert response.json()["data"] == []
 
 
+async def _submit_consult(http, token: str, doctor_id: int | None) -> int:
+    response = await http.post(
+        "/api/v1/consults",
+        json={"doctor_id": doctor_id, "chief_complaint": "头痛：三天"},
+        headers=_bearer(token),
+    )
+    assert response.status_code == 200
+    return response.json()["data"]["id"]
+
+
+async def test_patient_options_also_covers_the_doctors_consults(client):
+    """TICKET-018 挂账第 1 条（本票承接）：问诊人并入可选患者。"""
+    patient = await _token(client, role="user")  # user_id 1 张三
+    other_id, other_token = await _register_patient(client, "other", "李四")
+    third_id, third_token = await _register_patient(client, "third", "王五")
+    doctor = await _token(client, role="doctor")
+
+    await _submit_consult(client, patient, doctor_id=1)
+    await _submit_consult(client, other_token, doctor_id=1)
+    await _submit_consult(client, third_token, doctor_id=None)  # 待分配，不算任何医生的问诊人
+
+    response = await client.get(
+        "/api/v1/records/doctor/patient-options", headers=_bearer(doctor)
+    )
+
+    assert response.status_code == 200
+    options = response.json()["data"]
+    assert options == [
+        {"id": 1, "name": "张三"},
+        {"id": other_id, "name": "李四"},
+    ]
+    assert third_id not in {option["id"] for option in options}
+
+
 def test_the_record_endpoints_are_published_in_the_contract(database_url):
     from core.config import Settings
     from main import create_app

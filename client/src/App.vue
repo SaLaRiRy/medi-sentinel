@@ -10,9 +10,12 @@ import { applyApiError } from './session/guard.js'
 import { layoutFor } from './session/navigation.js'
 import { resolveNavigation } from './session/routes.js'
 import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
+import AdminConsultsView from './views/AdminConsultsView.vue'
 import AppointmentView from './views/AppointmentView.vue'
 import ChatView from './views/ChatView.vue'
+import ConsultView from './views/ConsultView.vue'
 import DoctorAppointmentsView from './views/DoctorAppointmentsView.vue'
+import DoctorConsultsView from './views/DoctorConsultsView.vue'
 import DoctorPatientsView from './views/DoctorPatientsView.vue'
 import GraphView from './views/GraphView.vue'
 import LoginView from './views/LoginView.vue'
@@ -123,6 +126,11 @@ function handleError(error) {
           :client="client"
           @error="handleError"
         />
+        <ConsultView
+          v-else-if="screen === 'consult'"
+          :client="client"
+          @error="handleError"
+        />
         <p v-else>患者门户已就位</p>
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
@@ -148,6 +156,16 @@ function handleError(error) {
         />
         <DoctorPatientsView
           v-else-if="screen === 'doctor-patients'"
+          :client="client"
+          @error="handleError"
+        />
+        <DoctorConsultsView
+          v-else-if="screen === 'doctor-consults'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminConsultsView
+          v-else-if="screen === 'admin-consults'"
           :client="client"
           @error="handleError"
         />

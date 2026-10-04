@@ -23,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import Settings
 from core.deps import CurrentUser, get_active_settings, get_current_user, get_session
 from core.errors import ApiError
-from core.response import Envelope, success
+from core.response import Envelope, error_responses, success
 from core.security import verify_password
 from services.auth_service import display_name_for
 
@@ -108,6 +108,7 @@ class AvatarView(BaseModel):
     "/profile/info",
     response_model=Envelope[ProfileView],
     response_model_exclude_unset=True,
+    responses=error_responses(401),
 )
 async def read_profile(
     user: CurrentUser = Depends(get_current_user),
@@ -118,6 +119,7 @@ async def read_profile(
 @router.put(
     "/profile/update",
     response_model=Envelope[None],
+    responses=error_responses(401, 422),
 )
 async def update_profile(
     payload: ProfileUpdateRequest,
@@ -133,6 +135,7 @@ async def update_profile(
 @router.put(
     "/profile/password",
     response_model=Envelope[None],
+    responses=error_responses(400, 401, 422),
 )
 async def change_password(
     payload: PasswordChangeRequest,
@@ -148,6 +151,7 @@ async def change_password(
 @router.post(
     "/profile/avatar",
     response_model=Envelope[AvatarView],
+    responses=error_responses(401, 413, 422),
 )
 async def upload_avatar(
     file: UploadFile = File(...),

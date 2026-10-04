@@ -23,7 +23,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import Settings
 from core.deps import Principal, get_active_settings, get_session, require_admin
 from core.errors import ApiError
-from core.response import Envelope, PagePayload, page_result, success
+from core.response import (
+    Envelope,
+    PagePayload,
+    error_responses,
+    page_result,
+    success,
+)
 from core.serialization import ApiDateTime
 from models.knowledge import KnowledgeFileRow
 from rag.loader import SUPPORTED_SUFFIXES
@@ -71,6 +77,7 @@ class KnowledgeUploadView(BaseModel):
 @router.get(
     "/knowledge",
     response_model=Envelope[PagePayload[KnowledgeFileView]],
+    responses=error_responses(401, 403, 422),
 )
 async def list_knowledge(
     principal: Principal = Depends(require_admin),
@@ -94,7 +101,11 @@ async def list_knowledge(
     )
 
 
-@router.post("/knowledge", response_model=Envelope[KnowledgeUploadView])
+@router.post(
+    "/knowledge",
+    response_model=Envelope[KnowledgeUploadView],
+    responses=error_responses(401, 403, 413, 422),
+)
 async def upload_knowledge(
     request: Request,
     file: UploadFile = File(...),
@@ -132,6 +143,7 @@ async def upload_knowledge(
 @router.post(
     "/knowledge/{file_id}/revectorize",
     response_model=Envelope[None],
+    responses=error_responses(401, 403, 404),
 )
 async def revectorize_knowledge(
     request: Request,
@@ -147,7 +159,11 @@ async def revectorize_knowledge(
     return success(None)
 
 
-@router.delete("/knowledge/{file_id}", response_model=Envelope[None])
+@router.delete(
+    "/knowledge/{file_id}",
+    response_model=Envelope[None],
+    responses=error_responses(401, 403, 404),
+)
 async def delete_knowledge(
     request: Request,
     file_id: int,

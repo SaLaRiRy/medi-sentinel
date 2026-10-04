@@ -4,6 +4,7 @@ from api.v1 import (
     appointments,
     auth,
     chat,
+    consults,
     graph,
     health,
     knowledge,
@@ -22,3 +23,4 @@ api_router.include_router(knowledge.router)
 api_router.include_router(graph.router)
 api_router.include_router(appointments.router)
 api_router.include_router(records.router)
+api_router.include_router(consults.router)

@@ -233,3 +233,92 @@ async def test_a_red_flag_turn_keeps_the_safety_prompt_in_history(client):
 
     listing = await client.get("/api/v1/chat/sessions", headers=_bearer(token))
     assert listing.json()["data"][0]["message_count"] == 2
+
+
+async def _register(http, username: str, real_name: str) -> str:
+    response = await http.post(
+        "/api/v1/auth/register",
+        json={
+            "username": username,
+            "password": "patient-pass",
+            "confirm_password": "patient-pass",
+            "real_name": real_name,
+        },
+    )
+    assert response.status_code == 200
+    return response.json()["data"]["access_token"]
+
+
+async def _new_session(http, token: str, message: str) -> int:
+    frames = parse_sse(
+        (
+            await http.post(
+                "/api/v1/chat/send",
+                json={"message": message},
+                headers=_bearer(token),
+            )
+        ).text
+    )
+    return frames[0]["session_id"]
+
+
+async def test_admin_sessions_requires_authentication(client):
+    response = await client.get("/api/v1/chat/admin/sessions")
+
+    assert response.status_code == 401
+    assert response.json()["code"] == 401
+
+
+@pytest.mark.parametrize(
+    "role,password", [("user", "user-pass"), ("doctor", "doctor-pass")]
+)
+async def test_admin_sessions_is_403_for_non_admins(client, role, password):
+    token = await _token(client, password=password, role=role)
+
+    response = await client.get(
+        "/api/v1/chat/admin/sessions", headers=_bearer(token)
+    )
+
+    assert response.status_code == 403
+    assert response.json()["code"] == 403
+
+
+async def test_admin_sessions_paginates_every_patients_sessions(client):
+    patient = await _token(client)
+    first = await _new_session(client, patient, "第一段对话")
+    second = await _new_session(client, patient, "第二段对话")
+    other = await _register(client, "other", "李四")
+    third = await _new_session(client, other, "别的患者的对话")
+    admin = await _token(client, password="admin-pass", role="admin")
+
+    response = await client.get(
+        "/api/v1/chat/admin/sessions?page=1&page_size=2", headers=_bearer(admin)
+    )
+
+    assert response.status_code == 200
+    body = response.json()["data"]
+    assert body["total"] == 3
+    assert body["page"] == 1
+    assert body["page_size"] == 2
+    assert len(body["items"]) == 2
+    assert set(body["items"][0]) >= {"id", "title", "message_count"}
+
+    rest = await client.get(
+        "/api/v1/chat/admin/sessions?page=2&page_size=2", headers=_bearer(admin)
+    )
+    assert len(rest.json()["data"]["items"]) == 1
+    assert {first, second, third} == {
+        item["id"]
+        for item in body["items"] + rest.json()["data"]["items"]
+    }
+
+
+async def test_admin_sessions_rejects_out_of_range_query(client):
+    admin = await _token(client, password="admin-pass", role="admin")
+
+    response = await client.get(
+        "/api/v1/chat/admin/sessions?page=0", headers=_bearer(admin)
+    )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == 422

@@ -26,7 +26,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.deps import Principal, get_session, require_admin, require_authenticated
 from core.errors import ApiError
-from core.response import Envelope, PagePayload, page_result, success
+from core.response import (
+    Envelope,
+    PagePayload,
+    error_responses,
+    page_result,
+    success,
+)
 from core.serialization import ApiDateTime, DateTimeQuery
 from repositories.trace import TraceRepository
 from skills.manifest import SKILL_MANIFESTS
@@ -92,6 +98,7 @@ class SkillManifestView(BaseModel):
 @router.get(
     "/traces",
     response_model=Envelope[PagePayload[TraceSummaryView]],
+    responses=error_responses(401, 403, 422),
 )
 async def list_traces(
     principal: Principal = Depends(require_admin),
@@ -125,6 +132,7 @@ async def list_traces(
 @router.get(
     "/traces/{trace_id}",
     response_model=Envelope[TraceView],
+    responses=error_responses(401, 403, 404),
 )
 async def read_trace(
     trace_id: str,
@@ -149,6 +157,7 @@ async def read_trace(
 @router.get(
     "/skills",
     response_model=Envelope[list[SkillManifestView]],
+    responses=error_responses(401),
 )
 async def list_skills(
     principal: Principal = Depends(require_authenticated),

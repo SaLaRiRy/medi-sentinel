@@ -19,7 +19,7 @@ import logging
 from collections.abc import AsyncIterator
 
 import anyio
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,11 +27,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.deps import (
     Principal,
     get_session,
+    require_admin,
     require_patient,
     resolve_optional_principal,
 )
 from core.errors import ApiError
-from core.response import Envelope, success
+from core.response import (
+    JSON_MEDIA_TYPE,
+    Envelope,
+    PagePayload,
+    error_responses,
+    page_result,
+    success,
+)
 from core.serialization import ApiDateTime
 from models.consult import ConsultMessageRow, ConsultSessionRow
 from repositories.consult import ConsultRepository
@@ -117,7 +125,13 @@ def sse_frame(frame: dict) -> str:
     return f"data: {json.dumps(frame, ensure_ascii=False)}\n\n"
 
 
-@router.post("/chat/send", response_class=EventStreamResponse)
+@router.post(
+    "/chat/send",
+    response_class=EventStreamResponse,
+    responses=error_responses(
+        401, 403, 409, 422, 503, 504, media_type=JSON_MEDIA_TYPE
+    ),
+)
 async def send_chat(request: Request, payload: ChatRequest) -> EventStreamResponse:
     database = request.app.state.database
     ports: OrchestrationPorts = request.app.state.orchestration_ports
@@ -166,7 +180,11 @@ async def send_chat(request: Request, payload: ChatRequest) -> EventStreamRespon
     )
 
 
-@router.get("/chat/sessions", response_model=Envelope[list[SessionView]])
+@router.get(
+    "/chat/sessions",
+    response_model=Envelope[list[SessionView]],
+    responses=error_responses(401, 403),
+)
 async def list_sessions(
     principal: Principal = Depends(require_patient),
     session: AsyncSession = Depends(get_session),
@@ -176,8 +194,32 @@ async def list_sessions(
 
 
 @router.get(
+    "/chat/admin/sessions",
+    response_model=Envelope[PagePayload[SessionView]],
+    responses=error_responses(401, 403, 422),
+)
+async def admin_sessions(
+    principal: Principal = Depends(require_admin),
+    session: AsyncSession = Depends(get_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> Envelope[PagePayload[SessionView]]:
+    """管理员查看全部患者的会话（SPEC.md 5.4「AI 问诊与知识库」）。"""
+    rows, total = await ConsultRepository(session).list_sessions_page(
+        offset=(page - 1) * page_size, limit=page_size
+    )
+    return page_result(
+        [SessionView.of(row) for row in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
     "/chat/sessions/{session_id}/messages",
     response_model=Envelope[list[MessageView]],
+    responses=error_responses(401, 403, 404),
 )
 async def list_messages(
     session_id: int,

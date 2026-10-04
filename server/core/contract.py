@@ -15,11 +15,10 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from core.response import Envelope
+from core.response import ERROR_ENVELOPE_REF, Envelope
 
 #: FastAPI 为 `Envelope[None]` 生成的组件名，恰好是失败外壳的形状。
-ERROR_ENVELOPE_NAME = "Envelope_NoneType_"
-ERROR_ENVELOPE_REF = f"#/components/schemas/{ERROR_ENVELOPE_NAME}"
+ERROR_ENVELOPE_NAME = ERROR_ENVELOPE_REF.rsplit("/", 1)[-1]
 ENVELOPE_MEDIA_TYPE = "application/json; charset=utf-8"
 
 

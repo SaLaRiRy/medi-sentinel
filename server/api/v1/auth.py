@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.deps import get_session
-from core.response import Envelope, success
+from core.response import Envelope, error_responses, success
 from services.auth_service import AuthResult, AuthService
 
 router = APIRouter(tags=["auth"])
@@ -51,6 +51,7 @@ def _token_response(result: AuthResult) -> TokenResponse:
 @router.post(
     "/auth/login",
     response_model=Envelope[TokenResponse],
+    responses=error_responses(400, 401, 403, 422),
 )
 async def login(
     payload: LoginRequest,
@@ -65,6 +66,7 @@ async def login(
 @router.post(
     "/auth/register",
     response_model=Envelope[TokenResponse],
+    responses=error_responses(400, 409, 422),
 )
 async def register(
     payload: RegisterRequest,

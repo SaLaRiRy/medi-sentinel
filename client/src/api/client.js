@@ -208,6 +208,54 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       })
     },
 
+    // TICKET-019 doctor-consult surface (SPEC.md 5.4「人工问诊」). The patient
+    // submits and reads their own; the doctor reads the claimable tickets and
+    // replies (first to reply claims it); the admin pages/filters and deletes.
+    async createConsult(payload) {
+      return call({ method: 'POST', path: '/consults', body: payload, authed: true })
+    },
+
+    async myConsults() {
+      return call({ path: '/consults/my', authed: true })
+    },
+
+    async pendingConsults() {
+      return call({ path: '/consults/pending', authed: true })
+    },
+
+    async replyConsult(consultId, payload) {
+      return call({
+        method: 'POST',
+        path: `/consults/${consultId}/replies`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async adminConsults({ page = 1, page_size = 10, status } = {}) {
+      return call({
+        path: '/consults/admin',
+        query: { page, page_size, status },
+        authed: true,
+      })
+    },
+
+    async deleteConsult(consultId) {
+      return call({
+        method: 'DELETE',
+        path: `/consults/admin/${consultId}`,
+        authed: true,
+      })
+    },
+
+    async adminChatSessions({ page = 1, page_size = 10 } = {}) {
+      return call({
+        path: '/chat/admin/sessions',
+        query: { page, page_size },
+        authed: true,
+      })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {

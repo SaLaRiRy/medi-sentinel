@@ -7,6 +7,9 @@ from pydantic import BaseModel
 
 JSON_MEDIA_TYPE = "application/json; charset=utf-8"
 
+#: FastAPI names the `Envelope[None]` component; every failure branch is that shape.
+ERROR_ENVELOPE_REF = "#/components/schemas/Envelope_NoneType_"
+
 T = TypeVar("T")
 
 #: The `SPEC.md` 5.2 error table, used for the declared error branches.
@@ -59,17 +62,28 @@ def page_result(
     return Envelope(code=200, message=message, data=payload)
 
 
-def error_responses(*codes: int) -> dict[int, dict[str, object]]:
+def error_responses(
+    *codes: int, media_type: str | None = None
+) -> dict[int, dict[str, object]]:
     """Declared error branches that carry the same envelope as the handler.
 
     Every failure exits through `core.errors` as `Envelope[None]` (SPEC.md 5.1 /
     5.2), so a route that documents its error codes uses this helper instead of
     letting FastAPI's bare `HTTPValidationError` stand in for one of them.
+
+    `media_type` pins the branch to `application/json` for routes whose success
+    response is something else (the SSE endpoint, SPEC.md 5.5): a failure is
+    still JSON, never an event stream.
     """
-    return {
-        code: {
-            "model": Envelope[None],
-            "description": ERROR_DESCRIPTIONS.get(code, ""),
-        }
-        for code in codes
-    }
+    responses: dict[int, dict[str, object]] = {}
+    for code in codes:
+        entry: dict[str, object] = {"description": ERROR_DESCRIPTIONS.get(code, "")}
+        if media_type is None:
+            # The route's own media type is JSON, so the model fills it in.
+            entry["model"] = Envelope[None]
+        else:
+            # Pin the branch: no `model`, or FastAPI would also declare the
+            # route's success media type (the SSE stream) for the failure.
+            entry["content"] = {media_type: {"schema": {"$ref": ERROR_ENVELOPE_REF}}}
+        responses[code] = entry
+    return responses

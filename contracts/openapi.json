@@ -54,8 +54,58 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "上游不可用",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "上游超时",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -81,6 +131,103 @@
               "application/json; charset=utf-8": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_list_SessionView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chat/admin/sessions": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Admin Sessions",
+        "description": "管理员查看全部患者的会话（SPEC.md 5.4「AI 问诊与知识库」）。",
+        "operationId": "admin_sessions_api_v1_chat_admin_sessions_get",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_SessionView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -113,6 +260,36 @@
               "application/json; charset=utf-8": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_list_MessageView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -255,8 +432,28 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -297,6 +494,36 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -324,6 +551,16 @@
               "application/json; charset=utf-8": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_list_SkillManifestView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -359,8 +596,38 @@
               }
             }
           },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -400,8 +667,28 @@
               }
             }
           },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -427,6 +714,16 @@
               "application/json; charset=utf-8": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_ProfileView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -462,8 +759,18 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -503,8 +810,28 @@
               }
             }
           },
+          "400": {
+            "description": "请求语义错误",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -544,8 +871,28 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "载荷过大",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -632,8 +979,28 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -671,8 +1038,38 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "载荷过大",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -705,6 +1102,36 @@
         "responses": {
           "200": {
             "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -747,6 +1174,36 @@
         "responses": {
           "200": {
             "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1188,8 +1645,28 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1218,6 +1695,26 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
           }
         }
       }
@@ -1236,6 +1733,26 @@
               "application/json; charset=utf-8": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_list_AppointmentView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -1351,8 +1868,28 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1403,8 +1940,38 @@
               }
             }
           },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation Error",
+            "description": "参数校验失败",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1437,6 +2004,36 @@
         "responses": {
           "200": {
             "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -1801,6 +2398,405 @@
           }
         }
       }
+    },
+    "/api/v1/consults": {
+      "post": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Create Consult",
+        "operationId": "create_consult_api_v1_consults_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ConsultCreatedView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/my": {
+      "get": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "My Consults",
+        "operationId": "my_consults_api_v1_consults_my_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ConsultView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/pending": {
+      "get": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Pending Consults",
+        "operationId": "pending_consults_api_v1_consults_pending_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ConsultView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/{consult_id}/replies": {
+      "post": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Reply Consult",
+        "operationId": "reply_consult_api_v1_consults__consult_id__replies_post",
+        "parameters": [
+          {
+            "name": "consult_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Consult Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsultReplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态冲突",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/admin": {
+      "get": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Admin Consults",
+        "operationId": "admin_consults_api_v1_consults_admin_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PagePayload_ConsultView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/admin/{consult_id}": {
+      "delete": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Delete Consult",
+        "operationId": "delete_consult_api_v1_consults_admin__consult_id__delete",
+        "parameters": [
+          {
+            "name": "consult_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Consult Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2054,6 +3050,208 @@
         ],
         "title": "ChatRequest"
       },
+      "ConsultCreateRequest": {
+        "properties": {
+          "doctor_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Id"
+          },
+          "chief_complaint": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Chief Complaint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "chief_complaint"
+        ],
+        "title": "ConsultCreateRequest"
+      },
+      "ConsultCreatedView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ConsultCreatedView"
+      },
+      "ConsultReplyRequest": {
+        "properties": {
+          "consult_id": {
+            "type": "integer",
+            "title": "Consult Id"
+          },
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "consult_id",
+          "content"
+        ],
+        "title": "ConsultReplyRequest",
+        "description": "`SPEC.md` 5.3：回复体带 `consult_id` 与 `content`；路径号是操作对象。"
+      },
+      "ConsultReplyView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "consult_id": {
+            "type": "integer",
+            "title": "Consult Id"
+          },
+          "doctor_id": {
+            "type": "integer",
+            "title": "Doctor Id"
+          },
+          "doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Name"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "create_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "consult_id",
+          "doctor_id",
+          "content"
+        ],
+        "title": "ConsultReplyView"
+      },
+      "ConsultView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "integer",
+            "title": "User Id"
+          },
+          "user_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Name"
+          },
+          "doctor_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Id"
+          },
+          "doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Name"
+          },
+          "chief_complaint": {
+            "type": "string",
+            "title": "Chief Complaint"
+          },
+          "status": {
+            "type": "integer",
+            "title": "Status"
+          },
+          "create_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Create Time"
+          },
+          "update_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Update Time"
+          },
+          "replies": {
+            "items": {
+              "$ref": "#/components/schemas/ConsultReplyView"
+            },
+            "type": "array",
+            "title": "Replies",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "chief_complaint",
+          "status"
+        ],
+        "title": "ConsultView"
+      },
       "DiseaseCandidate": {
         "properties": {
           "disease": {
@@ -2190,6 +3388,32 @@
         },
         "type": "object",
         "title": "Envelope[AvatarView]"
+      },
+      "Envelope_ConsultCreatedView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsultCreatedView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[ConsultCreatedView]"
       },
       "Envelope_DiseaseDetailView_": {
         "properties": {
@@ -2367,6 +3591,32 @@
         "type": "object",
         "title": "Envelope[PagePayload[AppointmentView]]"
       },
+      "Envelope_PagePayload_ConsultView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PagePayload_ConsultView_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[PagePayload[ConsultView]]"
+      },
       "Envelope_PagePayload_KnowledgeFileView__": {
         "properties": {
           "code": {
@@ -2392,6 +3642,32 @@
         },
         "type": "object",
         "title": "Envelope[PagePayload[KnowledgeFileView]]"
+      },
+      "Envelope_PagePayload_SessionView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PagePayload_SessionView_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[PagePayload[SessionView]]"
       },
       "Envelope_PagePayload_TraceSummaryView__": {
         "properties": {
@@ -2556,6 +3832,36 @@
         },
         "type": "object",
         "title": "Envelope[list[AppointmentView]]"
+      },
+      "Envelope_list_ConsultView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ConsultView"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[list[ConsultView]]"
       },
       "Envelope_list_DiseaseCandidate__": {
         "properties": {
@@ -3401,6 +4707,37 @@
         ],
         "title": "PagePayload[AppointmentView]"
       },
+      "PagePayload_ConsultView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConsultView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PagePayload[ConsultView]"
+      },
       "PagePayload_KnowledgeFileView_": {
         "properties": {
           "items": {
@@ -3431,6 +4768,37 @@
           "page_size"
         ],
         "title": "PagePayload[KnowledgeFileView]"
+      },
+      "PagePayload_SessionView_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SessionView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "PagePayload[SessionView]"
       },
       "PagePayload_TraceSummaryView_": {
         "properties": {

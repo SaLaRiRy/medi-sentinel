@@ -26,7 +26,13 @@ from core.deps import (
     require_patient,
 )
 from core.errors import ApiError
-from core.response import Envelope, PagePayload, page_result, success
+from core.response import (
+    Envelope,
+    PagePayload,
+    error_responses,
+    page_result,
+    success,
+)
 from core.serialization import ApiDate, ApiDateTime
 from models.appointment import REMARK_MAX_LENGTH, TIME_SLOT_MAX_LENGTH
 from repositories.appointments import AppointmentRecord, AppointmentRepository
@@ -86,6 +92,7 @@ class AppointmentView(BaseModel):
 @router.post(
     "/appointments",
     response_model=Envelope[AppointmentCreatedView],
+    responses=error_responses(401, 403, 422),
 )
 async def create_appointment(
     payload: AppointmentCreateRequest,
@@ -106,6 +113,7 @@ async def create_appointment(
 @router.get(
     "/appointments/my",
     response_model=Envelope[list[AppointmentView]],
+    responses=error_responses(401, 403),
 )
 async def my_appointments(
     principal: Principal = Depends(require_patient),
@@ -118,6 +126,7 @@ async def my_appointments(
 @router.get(
     "/appointments/doctor",
     response_model=Envelope[list[AppointmentView]],
+    responses=error_responses(401, 403),
 )
 async def doctor_appointments(
     principal: Principal = Depends(require_doctor),
@@ -130,6 +139,7 @@ async def doctor_appointments(
 @router.get(
     "/appointments/admin",
     response_model=Envelope[PagePayload[AppointmentView]],
+    responses=error_responses(401, 403, 422),
 )
 async def admin_appointments(
     principal: Principal = Depends(require_admin),
@@ -160,6 +170,7 @@ async def admin_appointments(
 @router.put(
     "/appointments/{appointment_id}/status",
     response_model=Envelope[None],
+    responses=error_responses(401, 403, 404, 422),
 )
 async def update_appointment_status(
     appointment_id: int,
@@ -178,6 +189,7 @@ async def update_appointment_status(
 @router.delete(
     "/appointments/admin/{appointment_id}",
     response_model=Envelope[None],
+    responses=error_responses(401, 403, 404),
 )
 async def delete_appointment(
     appointment_id: int,

@@ -21,6 +21,7 @@ export const ROUTE_TABLE = [
     roles: ['user'],
   },
   { path: '/portal/records', screen: 'records', requiresAuth: true, roles: ['user'] },
+  { path: '/portal/consult', screen: 'consult', requiresAuth: true, roles: ['user'] },
   { path: '/portal/profile', screen: 'profile', requiresAuth: true, roles: ['user'] },
   { path: '/doctor/dashboard', screen: 'home', requiresAuth: true, roles: ['doctor'] },
   {
@@ -35,6 +36,12 @@ export const ROUTE_TABLE = [
     requiresAuth: true,
     roles: ['doctor'],
   },
+  {
+    path: '/doctor/consults',
+    screen: 'doctor-consults',
+    requiresAuth: true,
+    roles: ['doctor'],
+  },
   { path: '/doctor/profile', screen: 'profile', requiresAuth: true, roles: ['doctor'] },
   { path: '/admin/dashboard', screen: 'home', requiresAuth: true, roles: ['admin'] },
   { path: '/admin/knowledge', screen: 'knowledge', requiresAuth: true, roles: ['admin'] },
@@ -42,6 +49,12 @@ export const ROUTE_TABLE = [
   {
     path: '/admin/appointments',
     screen: 'admin-appointments',
+    requiresAuth: true,
+    roles: ['admin'],
+  },
+  {
+    path: '/admin/consults',
+    screen: 'admin-consults',
     requiresAuth: true,
     roles: ['admin'],
   },

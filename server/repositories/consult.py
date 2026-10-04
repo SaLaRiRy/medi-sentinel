@@ -4,7 +4,7 @@ The session owns the transaction: nothing here commits, so a turn's writes land
 or roll back with the session the caller opened.
 """
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from models.consult import DEFAULT_TITLE, ConsultMessageRow, ConsultSessionRow
 from repositories.base import Repository
@@ -60,6 +60,34 @@ class ConsultRepository(Repository):
             .all()
         )
         return list(rows)
+
+    async def list_sessions_page(
+        self, *, offset: int, limit: int
+    ) -> tuple[list[ConsultSessionRow], int]:
+        """全量会话分页（`GET /chat/admin/sessions`），更新时间倒序。"""
+        total = int(
+            (
+                await self._session.execute(
+                    select(func.count()).select_from(ConsultSessionRow)
+                )
+            ).scalar_one()
+        )
+        rows = (
+            (
+                await self._session.execute(
+                    select(ConsultSessionRow)
+                    .order_by(
+                        ConsultSessionRow.update_time.desc(),
+                        ConsultSessionRow.id.desc(),
+                    )
+                    .offset(offset)
+                    .limit(limit)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        return list(rows), total
 
     async def find_session_by_id(self, session_id: int) -> ConsultSessionRow | None:
         """按会话号取会话，**不校验归属**（FUNCTIONAL_SPEC 5.7「消息查询过滤」）。"""

@@ -8,10 +8,11 @@
 from dataclasses import dataclass
 from datetime import date
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, func, select, union
 
 from models.accounts import DoctorRow, UserRow
 from models.appointment import AppointmentRow
+from models.doctor_consult import DoctorConsultRow
 from models.health_record import HealthRecordRow
 from repositories.base import Repository
 
@@ -110,11 +111,10 @@ class HealthRecordRepository(Repository):
         return _records(result)
 
     async def patient_options(self, doctor_id: int) -> list[PatientOption]:
-        """可选患者 = 该医生的预约人 ∪ 已建档人，去重（FUNCTIONAL_SPEC.md 5.16）。
+        """可选患者 = 该医生的预约人 ∪ 问诊人 ∪ 已建档人，去重（FUNCTIONAL_SPEC 5.16）。
 
-        「问诊人」一支要等 TICKET-019 的人工问诊工单表落地后才能并入；本票先覆盖
-        预约与已建档两支，承接票见 TICKET-018 的挂账结论。
-        """
+        「问诊人」一支由 TICKET-019 承接（TICKET-018 挂账第 1 条）：工单的
+        `doctor_id` 为当前医生时，提交人计入；「待分配」工单不属于任何医生。"""
         appointment_ids = (
             select(AppointmentRow.user_id)
             .where(AppointmentRow.doctor_id == doctor_id)
@@ -125,12 +125,17 @@ class HealthRecordRepository(Repository):
             .where(HealthRecordRow.doctor_id == doctor_id)
             .distinct()
         )
+        consult_ids = (
+            select(DoctorConsultRow.user_id)
+            .where(DoctorConsultRow.doctor_id == doctor_id)
+            .distinct()
+        )
         statement = (
             select(
                 UserRow.id,
                 func.coalesce(UserRow.real_name, UserRow.username),
             )
-            .where(UserRow.id.in_(appointment_ids.union(record_ids)))
+            .where(UserRow.id.in_(union(appointment_ids, record_ids, consult_ids)))
             .order_by(UserRow.id)
         )
         rows = (await self._session.execute(statement)).all()
