@@ -31,10 +31,11 @@ const dispatchError = createErrorDispatcher({ session, router })
 
 const LAYOUTS = { portal: PortalShell, console: ConsoleShell, public: PublicShell }
 const layout = computed(() => LAYOUTS[route.meta.layout] ?? PublicShell)
+// `client` is unconditional: every layout must always receive the F-1 exit,
+// even before the router has resolved (see the TICKET-028 health-probe race).
 const layoutProps = computed(() => {
-  if (route.meta.layout === 'console') return { role: auth.role }
-  if (route.meta.layout === 'public') return { client }
-  return {}
+  const base = { client }
+  return route.meta.layout === 'console' ? { ...base, role: auth.role } : base
 })
 
 function onAuthenticated() {
