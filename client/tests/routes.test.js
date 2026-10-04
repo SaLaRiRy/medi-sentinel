@@ -138,6 +138,27 @@ describe('resolveRoute (TICKET-014)', () => {
       roles: ['admin'],
     })
   })
+
+  it('maps the content paths to their own screens (TICKET-021)', () => {
+    expect(resolveRoute('/portal/articles')).toEqual({
+      path: '/portal/articles',
+      screen: 'articles',
+      requiresAuth: true,
+      roles: ['user'],
+    })
+    expect(resolveRoute('/admin/articles')).toEqual({
+      path: '/admin/articles',
+      screen: 'admin-articles',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+    expect(resolveRoute('/admin/notices')).toEqual({
+      path: '/admin/notices',
+      screen: 'admin-notices',
+      requiresAuth: true,
+      roles: ['admin'],
+    })
+  })
 })
 
 describe('route table + guard (AC-F-09)', () => {

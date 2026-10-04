@@ -29,7 +29,7 @@ def test_upgrade_head_creates_the_appointment_table(tmp_path):
     finally:
         engine.dispose()
 
-    assert revision == "0010"
+    assert revision == "0011"
     assert {
         "id",
         "user_id",

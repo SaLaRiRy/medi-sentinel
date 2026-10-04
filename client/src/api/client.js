@@ -354,6 +354,78 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       })
     },
 
+    // TICKET-021 content surface (SPEC.md 5.4「内容与统计」). Articles and
+    // notices both read publicly; every mutation is admin-only. The article
+    // public list filters by category; the notice public list is unpaginated.
+    async articles({ page = 1, page_size = 10, keyword, category } = {}) {
+      return call({
+        path: '/articles',
+        query: { page, page_size, keyword, category },
+      })
+    },
+
+    async article(articleId) {
+      return call({ path: `/articles/${articleId}` })
+    },
+
+    async adminArticles({ page = 1, page_size = 10, keyword } = {}) {
+      return call({
+        path: '/articles/admin',
+        query: { page, page_size, keyword },
+        authed: true,
+      })
+    },
+
+    async createArticle(payload) {
+      return call({ method: 'POST', path: '/articles', body: payload, authed: true })
+    },
+
+    async updateArticle(articleId, payload) {
+      return call({
+        method: 'PUT',
+        path: `/articles/${articleId}`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async deleteArticle(articleId) {
+      return call({ method: 'DELETE', path: `/articles/${articleId}`, authed: true })
+    },
+
+    async notices() {
+      return call({ path: '/notices' })
+    },
+
+    async notice(noticeId) {
+      return call({ path: `/notices/${noticeId}` })
+    },
+
+    async adminNotices({ page = 1, page_size = 10, keyword } = {}) {
+      return call({
+        path: '/notices/admin',
+        query: { page, page_size, keyword },
+        authed: true,
+      })
+    },
+
+    async createNotice(payload) {
+      return call({ method: 'POST', path: '/notices', body: payload, authed: true })
+    },
+
+    async updateNotice(noticeId, payload) {
+      return call({
+        method: 'PUT',
+        path: `/notices/${noticeId}`,
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async deleteNotice(noticeId) {
+      return call({ method: 'DELETE', path: `/notices/${noticeId}`, authed: true })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {

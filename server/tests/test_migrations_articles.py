@@ -1,4 +1,4 @@
-"""TICKET-020: the department migration bumps the head revision (ADR-0001)."""
+"""TICKET-021: the article/notice migration bumps the head revision (ADR-0001)."""
 
 from pathlib import Path
 
@@ -15,7 +15,7 @@ def _columns(connection, table: str) -> set[str]:
     }
 
 
-def test_upgrade_head_creates_the_department_table(tmp_path):
+def test_upgrade_head_creates_the_article_and_notice_tables(tmp_path):
     db_path = tmp_path / "empty.db"
     config = Config(str(SERVER_ROOT / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{db_path}")
@@ -28,17 +28,29 @@ def test_upgrade_head_creates_the_department_table(tmp_path):
             revision = connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            department_columns = _columns(connection, "t_department")
+            article_columns = _columns(connection, "t_article")
+            notice_columns = _columns(connection, "t_notice")
     finally:
         engine.dispose()
 
     assert revision == "0011"
     assert {
         "id",
-        "name",
-        "description",
-        "sort_order",
+        "title",
+        "category",
+        "cover",
+        "summary",
+        "content",
+        "view_count",
         "status",
         "create_time",
         "update_time",
-    } <= department_columns
+    } <= article_columns
+    assert {
+        "id",
+        "title",
+        "content",
+        "status",
+        "create_time",
+        "update_time",
+    } <= notice_columns

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from api.v1 import (
     appointments,
+    articles,
     auth,
     chat,
     consults,
@@ -10,6 +11,7 @@ from api.v1 import (
     graph,
     health,
     knowledge,
+    notices,
     observability,
     profile,
     records,
@@ -30,3 +32,5 @@ api_router.include_router(consults.router)
 api_router.include_router(departments.router)
 api_router.include_router(users.router)
 api_router.include_router(doctors.router)
+api_router.include_router(articles.router)
+api_router.include_router(notices.router)

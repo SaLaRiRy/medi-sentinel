@@ -80,6 +80,19 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/departments", "post"): {401, 403, 409, 422},
     ("/api/v1/departments/{department_id}", "put"): {401, 403, 404, 409, 422},
     ("/api/v1/departments/{department_id}", "delete"): {401, 403, 404, 409},
+    # TICKET-021 健康科普与公告
+    ("/api/v1/articles", "get"): {422},
+    ("/api/v1/articles/admin", "get"): {401, 403, 422},
+    ("/api/v1/articles", "post"): {401, 403, 422},
+    ("/api/v1/articles/{article_id}", "put"): {401, 403, 404, 422},
+    ("/api/v1/articles/{article_id}", "delete"): {401, 403, 404},
+    ("/api/v1/articles/{article_id}", "get"): {404},
+    ("/api/v1/notices", "get"): set(),
+    ("/api/v1/notices/admin", "get"): {401, 403, 422},
+    ("/api/v1/notices", "post"): {401, 403, 422},
+    ("/api/v1/notices/{notice_id}", "put"): {401, 403, 404, 422},
+    ("/api/v1/notices/{notice_id}", "delete"): {401, 403, 404},
+    ("/api/v1/notices/{notice_id}", "get"): {404},
 }
 
 

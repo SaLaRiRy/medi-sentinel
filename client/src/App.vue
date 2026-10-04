@@ -10,11 +10,14 @@ import { applyApiError } from './session/guard.js'
 import { layoutFor } from './session/navigation.js'
 import { resolveNavigation } from './session/routes.js'
 import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
+import AdminArticlesView from './views/AdminArticlesView.vue'
 import AdminConsultsView from './views/AdminConsultsView.vue'
 import AdminDepartmentsView from './views/AdminDepartmentsView.vue'
 import AdminDoctorsView from './views/AdminDoctorsView.vue'
+import AdminNoticesView from './views/AdminNoticesView.vue'
 import AdminUsersView from './views/AdminUsersView.vue'
 import AppointmentView from './views/AppointmentView.vue'
+import ArticlesView from './views/ArticlesView.vue'
 import ChatView from './views/ChatView.vue'
 import ConsultView from './views/ConsultView.vue'
 import DoctorAppointmentsView from './views/DoctorAppointmentsView.vue'
@@ -25,6 +28,7 @@ import LoginView from './views/LoginView.vue'
 import RegisterView from './views/RegisterView.vue'
 import HealthView from './views/HealthView.vue'
 import KnowledgeView from './views/KnowledgeView.vue'
+import PortalHomeView from './views/PortalHomeView.vue'
 import RecordsView from './views/RecordsView.vue'
 import SymptomView from './views/SymptomView.vue'
 
@@ -113,7 +117,12 @@ function handleError(error) {
         @logout="logout"
         @navigate="onNavigate"
       >
-        <ChatView v-if="screen === 'chat'" :client="client" @error="handleError" />
+        <PortalHomeView
+          v-if="screen === 'home'"
+          :client="client"
+          @error="handleError"
+        />
+        <ChatView v-else-if="screen === 'chat'" :client="client" @error="handleError" />
         <SymptomView
           v-else-if="screen === 'symptom'"
           :client="client"
@@ -134,7 +143,11 @@ function handleError(error) {
           :client="client"
           @error="handleError"
         />
-        <p v-else>患者门户已就位</p>
+        <ArticlesView
+          v-else-if="screen === 'articles'"
+          :client="client"
+          @error="handleError"
+        />
       </PortalShell>
       <ConsoleShell v-else :role="auth.role" @logout="logout" @navigate="onNavigate">
         <KnowledgeView
@@ -184,6 +197,16 @@ function handleError(error) {
         />
         <AdminDepartmentsView
           v-else-if="screen === 'admin-departments'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminArticlesView
+          v-else-if="screen === 'admin-articles'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminNoticesView
+          v-else-if="screen === 'admin-notices'"
           :client="client"
           @error="handleError"
         />

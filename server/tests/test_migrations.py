@@ -35,7 +35,7 @@ def test_upgrade_head_brings_an_empty_database_to_the_current_revision(tmp_path)
 
     command.upgrade(_config(db_path), "head")
 
-    assert _stamped_revisions(db_path) == ["0010"]
+    assert _stamped_revisions(db_path) == ["0011"]
 
 
 def test_upgrade_head_twice_is_a_no_op(tmp_path):
@@ -45,7 +45,7 @@ def test_upgrade_head_twice_is_a_no_op(tmp_path):
     command.upgrade(config, "head")
     command.upgrade(config, "head")
 
-    assert _stamped_revisions(db_path) == ["0010"]
+    assert _stamped_revisions(db_path) == ["0011"]
 
 
 def test_upgrade_head_adds_the_trace_span_detail_column(tmp_path):

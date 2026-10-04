@@ -3,6 +3,7 @@ so Alembic sees the same schema the application uses."""
 
 from models.accounts import AdminRow, DoctorRow, UserRow
 from models.appointment import AppointmentRow
+from models.article import ArticleRow, NoticeRow
 from models.consult import ConsultMessageRow, ConsultSessionRow
 from models.department import DepartmentRow
 from models.doctor_consult import DoctorConsultRow, DoctorReplyRow
@@ -13,6 +14,7 @@ from models.trace import RouteDecisionRow, TraceSpanRow
 __all__ = [
     "AdminRow",
     "AppointmentRow",
+    "ArticleRow",
     "ConsultMessageRow",
     "ConsultSessionRow",
     "DepartmentRow",
@@ -22,6 +24,7 @@ __all__ = [
     "HealthRecordRow",
     "KnowledgeChunkRow",
     "KnowledgeFileRow",
+    "NoticeRow",
     "RouteDecisionRow",
     "TraceSpanRow",
     "UserRow",
