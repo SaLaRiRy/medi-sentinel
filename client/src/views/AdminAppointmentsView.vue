@@ -97,6 +97,10 @@ onMounted(load)
 
 <template>
   <section class="admin-appointments">
+    <header class="page-head">
+      <h1 class="page-head__title">预约管理</h1>
+    </header>
+
     <el-card class="admin-appointments__card" shadow="never">
       <template #header>
         <div class="card-head">
