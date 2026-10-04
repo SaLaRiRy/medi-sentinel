@@ -2,7 +2,7 @@
 
 AI 智能医疗问诊平台 —— 异步、Skill 化重建。
 
-> **当前状态：骨架阶段。** TICKET-001 已落地 monorepo 骨架、契约 seam（B-1…B-5、F-1…F-3、C-1）与 Alembic 迁移；目前只有 `/api/v1/health` 一个端点，五个 Skill 与各业务域尚未实现。下文「架构」描述的是 `SPEC.md` 规定的目标形态。
+> **当前状态：功能已完整落地。** TICKET-001…026 已实现五个 Skill 的编排链路、三角色认证与全部业务域（AI 问诊、知识库、图谱、预约与健康档案、人工问诊、文章公告、统计、可观测性与回归基线），并提供一份演示数据 `server/seeds/demo_v1.sql`。下文「架构」描述的是 `SPEC.md` 规定的目标形态，实现与其一致。
 
 ## 文档
 
@@ -63,7 +63,7 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 
 | 层 | 技术 |
 |---|---|
-| 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / LangChain 异步调用 |
+| 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / httpx 异步调用兼容 OpenAI 的 LLM 与嵌入服务 |
 | 数据 | MySQL（14 个实体）/ Neo4j 异步驱动（医学知识图谱）/ Chroma 本地持久化（向量索引） |
 | AI | 兼容 OpenAI 接口的大模型与嵌入服务 |
 | 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus + ECharts + axios，仅通过 RESTful API（含 SSE）通信 |
@@ -72,7 +72,7 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 
 ## 启动方式
 
-后端骨架与前端外壳已可启动；五个 Skill 与业务域尚未实现，界面目前展示后端健康状态。
+后端提供全部业务端点，前端按角色提供各自的视图。
 
 ### 前置依赖
 
@@ -114,9 +114,18 @@ npm run dev                     # http://localhost:5173
 
 ```bash
 alembic upgrade head              # 建表：应用 Schema 迁移（见 docs/adr/0001-*.md）
+
+# 演示数据：科室 / 三角色账号 / 预约 / 健康档案 / 人工问诊 / 文章公告 / 会话。
+# 只写关系库、不建表，固定编号 9001+ 且可重复执行；向量数据由下一行的脚本负责。
+mysql --default-character-set=utf8mb4 -uroot -p medi_sentinel < seeds/demo_v1.sql
+
 python scripts/init_graph.py      # 知识图谱灌数（幂等）
 python scripts/init_knowledge.py  # 知识库种子文档灌入并向量化（幂等）
 ```
+
+演示账号：`patient1` / `doctor1` / `admin1`（患者 / 医生 / 管理员），口令均为
+`123456`。Windows 上 `mysql` 客户端必须带 `--default-character-set=utf8mb4`，否则
+中文会按本地代码页发送并报 `Incorrect string value`。
 
 种子文档位于 `server/docs_seed/`，由 `init_knowledge.py` 读取；该目录缺失时脚本提示并退出。
 图谱查询走 Neo4j **异步驱动**（`AsyncGraphDatabase`，TICKET-013）；向量索引是本地持久化的
