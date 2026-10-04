@@ -204,6 +204,10 @@ onMounted(() => {
 
 <template>
   <section class="admin-doctors">
+    <header class="page-head">
+      <h1 class="page-head__title">医生管理</h1>
+    </header>
+
     <el-card class="admin-doctors__card admin-doctors__card--form" shadow="never">
       <template #header>
         <span class="card-title">{{ editingId === null ? '新建医生' : '编辑医生' }}</span>
