@@ -112,7 +112,7 @@ onMounted(load)
 
 <style scoped>
 .doctor-consults {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

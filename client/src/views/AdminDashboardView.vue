@@ -154,7 +154,7 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

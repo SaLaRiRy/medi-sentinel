@@ -147,7 +147,7 @@ async function infer() {
 
 <style scoped>
 .symptom {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

@@ -95,7 +95,7 @@ onMounted(load)
 
 <style scoped>
 .records {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

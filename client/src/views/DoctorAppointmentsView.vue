@@ -121,7 +121,7 @@ onMounted(load)
 
 <style scoped>
 .doctor-appointments {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

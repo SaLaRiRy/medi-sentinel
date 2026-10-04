@@ -229,7 +229,7 @@ onUnmounted(stopPolling)
 
 <style scoped>
 .knowledge {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

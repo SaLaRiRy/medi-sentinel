@@ -165,7 +165,7 @@ onMounted(loadOverview)
 
 <style scoped>
 .graph {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-title {

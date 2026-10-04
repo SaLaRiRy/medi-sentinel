@@ -212,7 +212,7 @@ onMounted(() => {
 
 <style scoped>
 .appointment {
-  padding: 16px;
+  padding: 0;
 }
 
 /*

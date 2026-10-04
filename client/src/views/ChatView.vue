@@ -270,7 +270,7 @@ onMounted(loadSessions)
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 16px;
-  padding: 16px;
+  padding: 0;
 }
 
 .card-title {

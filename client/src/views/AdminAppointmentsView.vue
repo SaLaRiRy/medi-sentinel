@@ -209,7 +209,7 @@ onMounted(load)
 
 <style scoped>
 .admin-appointments {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {

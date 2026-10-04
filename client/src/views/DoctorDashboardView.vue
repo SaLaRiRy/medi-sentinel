@@ -57,7 +57,7 @@ onMounted(load)
 
 <style scoped>
 .doctor-dashboard {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-title {

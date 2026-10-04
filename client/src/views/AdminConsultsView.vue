@@ -160,7 +160,7 @@ onMounted(load)
 
 <style scoped>
 .admin-consults {
-  padding: 16px;
+  padding: 0;
 }
 
 .card-head {
