@@ -331,3 +331,59 @@ class ColdScheduler:
     def __call__(self, coroutine: Any) -> Any:
         self.coroutines.append(coroutine)
         return coroutine
+
+
+class CountingGuard:
+    """A B-3 port that counts calls and (optionally) delegates (TICKET-023).
+
+    A test installs it in the running app's adapter slot and asserts the count
+    stays `0` across a regression replay (AC-B-35): the replay must be built from
+    the baseline, so if a change ever wired the live ports into it, the guard
+    would move and the assertion would fail. One class covers all three ports
+    because it only needs to expose every protocol method and count them.
+    """
+
+    def __init__(self, inner: Any = None) -> None:
+        self._inner = inner
+        self.calls = 0
+
+    def _count(self) -> None:
+        self.calls += 1
+
+    def _delegate(self) -> Any:
+        if self._inner is None:
+            raise RuntimeError("guard delegate not wired")
+        return self._inner
+
+    async def infer_diseases(self, symptoms: Sequence[str]) -> Sequence[Mapping[str, Any]]:
+        self._count()
+        return await self._delegate().infer_diseases(symptoms)
+
+    async def full_graph(self) -> Mapping[str, Any]:
+        self._count()
+        return await self._delegate().full_graph()
+
+    async def neighbors(self, entity: str, depth: int = 1) -> Mapping[str, Any] | None:
+        self._count()
+        return await self._delegate().neighbors(entity, depth)
+
+    async def search_entities(self, keyword: str) -> Sequence[Mapping[str, Any]]:
+        self._count()
+        return await self._delegate().search_entities(keyword)
+
+    async def disease_detail(self, name: str) -> Mapping[str, Any] | None:
+        self._count()
+        return await self._delegate().disease_detail(name)
+
+    async def node_counts(self) -> Mapping[str, int]:
+        self._count()
+        return await self._delegate().node_counts()
+
+    async def search(self, query: str, top_k: int = 5) -> Sequence[Mapping[str, Any]]:
+        self._count()
+        return await self._delegate().search(query, top_k)
+
+    async def stream(self, prompt: str) -> AsyncIterator[str]:
+        self._count()
+        async for chunk in self._delegate().stream(prompt):
+            yield chunk

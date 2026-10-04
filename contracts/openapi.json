@@ -568,6 +568,190 @@
         }
       }
     },
+    "/api/v1/regression/runs": {
+      "post": {
+        "tags": [
+          "regression"
+        ],
+        "summary": "Start Run",
+        "operationId": "start_run_api_v1_regression_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegressionRunRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RegressionRunStartView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/regression/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "regression"
+        ],
+        "summary": "Read Run",
+        "operationId": "read_run_api_v1_regression_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RegressionRunView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/regression/baselines": {
+      "get": {
+        "tags": [
+          "regression"
+        ],
+        "summary": "List Baselines",
+        "operationId": "list_baselines_api_v1_regression_baselines_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_BaselineView__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -5616,6 +5800,35 @@
         ],
         "title": "AvatarView"
       },
+      "BaselineView": {
+        "properties": {
+          "baseline_version": {
+            "type": "string",
+            "title": "Baseline Version"
+          },
+          "case_set_version": {
+            "type": "string",
+            "title": "Case Set Version"
+          },
+          "case_count": {
+            "type": "integer",
+            "title": "Case Count"
+          },
+          "created_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "baseline_version",
+          "case_set_version",
+          "case_count",
+          "created_at"
+        ],
+        "title": "BaselineView"
+      },
       "Body_upload_avatar_api_v1_profile_avatar_post": {
         "properties": {
           "file": {
@@ -7133,6 +7346,58 @@
         "type": "object",
         "title": "Envelope[ProfileView]"
       },
+      "Envelope_RegressionRunStartView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegressionRunStartView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[RegressionRunStartView]"
+      },
+      "Envelope_RegressionRunView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RegressionRunView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[RegressionRunView]"
+      },
       "Envelope_StatOverviewView_": {
         "properties": {
           "code": {
@@ -7322,6 +7587,36 @@
         },
         "type": "object",
         "title": "Envelope[list[AppointmentView]]"
+      },
+      "Envelope_list_BaselineView__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/BaselineView"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[list[BaselineView]]"
       },
       "Envelope_list_ConsultView__": {
         "properties": {
@@ -7806,6 +8101,34 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "HallucinationReport": {
+        "properties": {
+          "deterministic_ratio": {
+            "type": "number",
+            "title": "Deterministic Ratio"
+          },
+          "judged_ratio": {
+            "type": "number",
+            "title": "Judged Ratio"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "judge_available": {
+            "type": "boolean",
+            "title": "Judge Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "deterministic_ratio",
+          "judged_ratio",
+          "total",
+          "judge_available"
+        ],
+        "title": "HallucinationReport"
+      },
       "HealthData": {
         "properties": {
           "status": {
@@ -8194,6 +8517,45 @@
         ],
         "title": "KnowledgeUploadView"
       },
+      "LatencyBucket": {
+        "properties": {
+          "p50": {
+            "type": "integer",
+            "title": "P50"
+          },
+          "p95": {
+            "type": "integer",
+            "title": "P95"
+          }
+        },
+        "type": "object",
+        "required": [
+          "p50",
+          "p95"
+        ],
+        "title": "LatencyBucket"
+      },
+      "LatencyReport": {
+        "properties": {
+          "intercepted": {
+            "$ref": "#/components/schemas/LatencyBucket"
+          },
+          "llm": {
+            "$ref": "#/components/schemas/LatencyBucket"
+          },
+          "degraded": {
+            "$ref": "#/components/schemas/LatencyBucket"
+          }
+        },
+        "type": "object",
+        "required": [
+          "intercepted",
+          "llm",
+          "degraded"
+        ],
+        "title": "LatencyReport",
+        "description": "Three exclusive buckets; a case lands in exactly one (AC-B-38)."
+      },
       "LoginRequest": {
         "properties": {
           "username": {
@@ -8285,6 +8647,42 @@
           "content"
         ],
         "title": "MessageView"
+      },
+      "MetricsReport": {
+        "properties": {
+          "redflag_intercept_rate": {
+            "type": "number",
+            "title": "Redflag Intercept Rate"
+          },
+          "redflag_false_positive_rate": {
+            "type": "number",
+            "title": "Redflag False Positive Rate"
+          },
+          "diagnosis_drift_rate": {
+            "type": "number",
+            "title": "Diagnosis Drift Rate"
+          },
+          "hallucination": {
+            "$ref": "#/components/schemas/HallucinationReport"
+          },
+          "latency": {
+            "$ref": "#/components/schemas/LatencyReport"
+          },
+          "case_count": {
+            "type": "integer",
+            "title": "Case Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "redflag_intercept_rate",
+          "redflag_false_positive_rate",
+          "diagnosis_drift_rate",
+          "hallucination",
+          "latency",
+          "case_count"
+        ],
+        "title": "MetricsReport"
       },
       "NoticeCreatedView": {
         "properties": {
@@ -9096,6 +9494,71 @@
           "confirm_password"
         ],
         "title": "RegisterRequest"
+      },
+      "RegressionRunRequest": {
+        "properties": {
+          "case_set_version": {
+            "type": "string",
+            "title": "Case Set Version"
+          },
+          "baseline_version": {
+            "type": "string",
+            "title": "Baseline Version"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_set_version",
+          "baseline_version"
+        ],
+        "title": "RegressionRunRequest"
+      },
+      "RegressionRunStartView": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "RegressionRunStartView"
+      },
+      "RegressionRunView": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MetricsReport"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RegressionRunView"
       },
       "RouteView": {
         "properties": {

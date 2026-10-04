@@ -1,0 +1,236 @@
+{
+  "version": "v1",
+  "cases": [
+    {
+      "id": "rf-chest-pain",
+      "group": "red_flag",
+      "message": "胸口剧痛，出冷汗，喘不上气",
+      "session_id": 1001,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "rf-severe-bleeding",
+      "group": "red_flag",
+      "message": "突然大量出血，止都止不住",
+      "session_id": 1002,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "rf-altered-consciousness",
+      "group": "red_flag",
+      "message": "家人突然意识不清，怎么叫都叫不醒",
+      "session_id": 1003,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "rf-severe-headache",
+      "group": "red_flag",
+      "message": "剧烈头痛，还一直呕吐",
+      "session_id": 1004,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "rf-fever-rash",
+      "group": "red_flag",
+      "message": "高热3天，全身起皮疹，还喉头水肿喘不上气",
+      "session_id": 1005,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "rf-seizure",
+      "group": "red_flag",
+      "message": "突然四肢抽搐，口吐白沫",
+      "session_id": 1006,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": []
+    },
+    {
+      "id": "llm-headache-alias",
+      "group": "llm",
+      "message": "我头疼",
+      "session_id": 1007,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "反复头痛建议做血压测量，并注意休息、及时就医。"
+      ]
+    },
+    {
+      "id": "llm-bellyache-alias",
+      "group": "llm",
+      "message": "肚子痛",
+      "session_id": 1008,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "腹痛可先观察，注意清淡饮食，若持续加重请及时就医。"
+      ]
+    },
+    {
+      "id": "llm-diarrhea-alias",
+      "group": "llm",
+      "message": "拉肚子",
+      "session_id": 1009,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "腹泻期间注意补充水分，症状加重请及时就医。"
+      ]
+    },
+    {
+      "id": "llm-sore-throat-alias",
+      "group": "llm",
+      "message": "嗓子痛",
+      "session_id": 1010,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "嗓子痛多见于感冒，建议多饮水、注意休息。"
+      ]
+    },
+    {
+      "id": "llm-explicit-symptoms",
+      "group": "llm",
+      "message": "最近身体不太舒服",
+      "session_id": 1011,
+      "explicit_symptoms": [
+        "高血压",
+        "糖尿病"
+      ],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "如有高血压和糖尿病，应按医嘱规律服用氨氯地平或二甲双胍。"
+      ]
+    },
+    {
+      "id": "llm-multi-symptom",
+      "group": "llm",
+      "message": "我头疼发烧三天了",
+      "session_id": 1012,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "发热伴头痛常见于感冒，建议多饮水并及时就医。"
+      ]
+    },
+    {
+      "id": "llm-negation-chest",
+      "group": "llm",
+      "message": "我没有胸痛，只是有点咳嗽",
+      "session_id": 1013,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "咳嗽期间注意休息，若加重请及时就医。"
+      ]
+    },
+    {
+      "id": "llm-negation-fever",
+      "group": "llm",
+      "message": "不发烧也不咳嗽，就是有点乏力",
+      "session_id": 1014,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "乏力可能与多种原因有关，建议规律作息并监测空腹血糖。"
+      ]
+    },
+    {
+      "id": "deg-graph-ac-e-04",
+      "group": "degraded",
+      "message": "头疼发烧",
+      "session_id": 1015,
+      "explicit_symptoms": [],
+      "graph": "unavailable",
+      "retrieval": "hits",
+      "answer": [
+        "发热头痛建议多饮水休息，若持续不缓解请及时就医。"
+      ]
+    },
+    {
+      "id": "deg-graph-2",
+      "group": "degraded",
+      "message": "拉肚子两天了",
+      "session_id": 1016,
+      "explicit_symptoms": [],
+      "graph": "unavailable",
+      "retrieval": "hits",
+      "answer": [
+        "腹泻期间注意补充水分，症状加重请及时就医。"
+      ]
+    },
+    {
+      "id": "deg-retrieval-1",
+      "group": "degraded",
+      "message": "高血压怎么调理",
+      "session_id": 1017,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "unavailable",
+      "answer": [
+        "建议低盐饮食、规律运动，并按医嘱规律服药。"
+      ]
+    },
+    {
+      "id": "deg-retrieval-2",
+      "group": "degraded",
+      "message": "我嗓子痛咳嗽",
+      "session_id": 1018,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "unavailable",
+      "answer": [
+        "嗓子痛咳嗽建议多饮水休息，症状加重请就医。"
+      ]
+    },
+    {
+      "id": "edge-empty-normalization",
+      "group": "boundary",
+      "message": "你好",
+      "session_id": 1019,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "您好，请描述具体不适，我会尽力提供健康建议。"
+      ]
+    },
+    {
+      "id": "edge-pure-negation",
+      "group": "boundary",
+      "message": "我没有头痛",
+      "session_id": 1020,
+      "explicit_symptoms": [],
+      "graph": "hits",
+      "retrieval": "hits",
+      "answer": [
+        "如无明显不适，注意休息即可。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4999 @@
+{
+  "version": "v1",
+  "case_set_version": "v1",
+  "created_at": "2026-10-04T05:47:28.071691+00:00",
+  "cases": [
+    {
+      "id": "rf-chest-pain",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1001,
+        "message": "胸口剧痛，出冷汗，喘不上气",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1001
+        },
+        {
+          "type": "trace",
+          "trace_id": "7ee17d5d1a144bc989f6b636a59ccae8"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "chest-pain",
+              "matched_surface": "胸口剧痛",
+              "severity": "emergency",
+              "label": "急性胸痛"
+            },
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：急性胸痛、呼吸困难。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "7ee17d5d1a144bc989f6b636a59ccae8"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "chest-pain",
+              "matched_surface": "胸口剧痛",
+              "severity": "emergency",
+              "label": "急性胸痛"
+            },
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "7ee17d5d1a144bc989f6b636a59ccae8",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"胸口剧痛，出冷汗，喘不上气\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='chest-pain', matched_surface='胸口剧痛', severity='emergency', label='急性胸痛'), RedFlagMatch(id='dyspnea', matched_surface='喘不上气', severity=…",
+          "started_at": "2026-10-04T05:47:28.052552Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "chest-pain",
+                "matched_surface": "胸口剧痛",
+                "severity": "emergency",
+                "label": "急性胸痛"
+              },
+              {
+                "id": "dyspnea",
+                "matched_surface": "喘不上气",
+                "severity": "emergency",
+                "label": "呼吸困难"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-severe-bleeding",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1002,
+        "message": "突然大量出血，止都止不住",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1002
+        },
+        {
+          "type": "trace",
+          "trace_id": "6b61196eac084593b74573eb9829f742"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "severe-bleeding",
+              "matched_surface": "大量出血",
+              "severity": "emergency",
+              "label": "大出血"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：大出血。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "6b61196eac084593b74573eb9829f742"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "severe-bleeding",
+              "matched_surface": "大量出血",
+              "severity": "emergency",
+              "label": "大出血"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "6b61196eac084593b74573eb9829f742",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"突然大量出血，止都止不住\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='severe-bleeding', matched_surface='大量出血', severity='emergency', label='大出血')] level='emergency' decision='intercept' message='检测到需要立即处…",
+          "started_at": "2026-10-04T05:47:28.052893Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "severe-bleeding",
+                "matched_surface": "大量出血",
+                "severity": "emergency",
+                "label": "大出血"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-altered-consciousness",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1003,
+        "message": "家人突然意识不清，怎么叫都叫不醒",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1003
+        },
+        {
+          "type": "trace",
+          "trace_id": "0626d66f997f4f67988f507817af5961"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "意识不清",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：意识障碍。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "0626d66f997f4f67988f507817af5961"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "意识不清",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "0626d66f997f4f67988f507817af5961",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"家人突然意识不清，怎么叫都叫不醒\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='altered-consciousness', matched_surface='意识不清', severity='emergency', label='意识障碍')] level='emergency' decision='intercept' message='检…",
+          "started_at": "2026-10-04T05:47:28.053021Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "altered-consciousness",
+                "matched_surface": "意识不清",
+                "severity": "emergency",
+                "label": "意识障碍"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-severe-headache",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1004,
+        "message": "剧烈头痛，还一直呕吐",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1004
+        },
+        {
+          "type": "trace",
+          "trace_id": "9c8db4f50aca4796923ae3432f5dd71e"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "urgent",
+          "red_flags": [
+            {
+              "id": "severe-headache",
+              "matched_surface": "剧烈头痛",
+              "severity": "urgent",
+              "label": "剧烈头痛"
+            }
+          ],
+          "message": "检测到需要尽快就医的警示信号：剧烈头痛。请尽快到医院就诊；症状加重时立即拨打 120。",
+          "suggested_action": "尽快到医院就诊，由医生当面评估；症状加重时立即拨打 120。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "9c8db4f50aca4796923ae3432f5dd71e"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "urgent",
+          "red_flags": [
+            {
+              "id": "severe-headache",
+              "matched_surface": "剧烈头痛",
+              "severity": "urgent",
+              "label": "剧烈头痛"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "9c8db4f50aca4796923ae3432f5dd71e",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"剧烈头痛，还一直呕吐\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='severe-headache', matched_surface='剧烈头痛', severity='urgent', label='剧烈头痛')] level='urgent' decision='intercept' message='检测到需要尽快就医的警示信…",
+          "started_at": "2026-10-04T05:47:28.053121Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "urgent",
+            "red_flags": [
+              {
+                "id": "severe-headache",
+                "matched_surface": "剧烈头痛",
+                "severity": "urgent",
+                "label": "剧烈头痛"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-fever-rash",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1005,
+        "message": "高热3天，全身起皮疹，还喉头水肿喘不上气",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1005
+        },
+        {
+          "type": "trace",
+          "trace_id": "4b358f34f7f24477a78bc6cc931b7f15"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            },
+            {
+              "id": "anaphylaxis",
+              "matched_surface": "喉头水肿",
+              "severity": "emergency",
+              "label": "严重过敏"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：呼吸困难、严重过敏。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "4b358f34f7f24477a78bc6cc931b7f15"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            },
+            {
+              "id": "anaphylaxis",
+              "matched_surface": "喉头水肿",
+              "severity": "emergency",
+              "label": "严重过敏"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "4b358f34f7f24477a78bc6cc931b7f15",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"高热3天，全身起皮疹，还喉头水肿喘不上气\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='dyspnea', matched_surface='喘不上气', severity='emergency', label='呼吸困难'), RedFlagMatch(id='anaphylaxis', matched_surface='喉头水肿', severity…",
+          "started_at": "2026-10-04T05:47:28.053217Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "dyspnea",
+                "matched_surface": "喘不上气",
+                "severity": "emergency",
+                "label": "呼吸困难"
+              },
+              {
+                "id": "anaphylaxis",
+                "matched_surface": "喉头水肿",
+                "severity": "emergency",
+                "label": "严重过敏"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-seizure",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1006,
+        "message": "突然四肢抽搐，口吐白沫",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1006
+        },
+        {
+          "type": "trace",
+          "trace_id": "eb7b6498c42f4a01b78177f5152b0af6"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "抽搐",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：意识障碍。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "eb7b6498c42f4a01b78177f5152b0af6"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "抽搐",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "eb7b6498c42f4a01b78177f5152b0af6",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"突然四肢抽搐，口吐白沫\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='altered-consciousness', matched_surface='抽搐', severity='emergency', label='意识障碍')] level='emergency' decision='intercept' message='检测到…",
+          "started_at": "2026-10-04T05:47:28.053319Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "altered-consciousness",
+                "matched_surface": "抽搐",
+                "severity": "emergency",
+                "label": "意识障碍"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "llm-headache-alias",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1007,
+        "message": "我头疼",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1007
+        },
+        {
+          "type": "trace",
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "反复头痛建议做血压测量，并注意休息、及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "头痛"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "头痛"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1007,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 3,
+          "graph_candidates": 2,
+          "degraded": [],
+          "answer_length": 23
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "高血压",
+              "matched_symptoms": [
+                "头痛"
+              ],
+              "department": "心血管内科"
+            },
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "头痛"
+              ],
+              "department": "呼吸内科"
+            }
+          ]
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "反复头痛建议做血压测量，并注意休息、及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我头疼\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.053410Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我头疼\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['头痛']\"",
+          "started_at": "2026-10-04T05:47:28.053437Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "头痛"
+            ]
+          }
+        },
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"我头疼\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.053823Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"头痛\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['头痛'] candidates=[DiseaseCandidate(disease='感冒', match_count=1, coverage=1.0, department='呼吸内科', matched_symptoms=['头痛']), …",
+          "started_at": "2026-10-04T05:47:28.053926Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "头痛"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "头痛"
+                ]
+              },
+              {
+                "disease": "高血压",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "心血管内科",
+                "matched_symptoms": [
+                  "头痛"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "反复头痛建议做血压测量，并注意休息、及时就医。",
+          "started_at": "2026-10-04T05:47:28.054113Z",
+          "detail": {
+            "prompt_chars": 388,
+            "chunk_count": 1,
+            "answer_length": 23
+          }
+        },
+        {
+          "trace_id": "aaa889e430be4df7abc85867e601dd0f",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1007, \"message\": \"我头疼\"}",
+          "output_digest": "{\"session_id\": 1007, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 3, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.053405Z",
+          "detail": {
+            "session_id": 1007,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 3,
+            "graph_candidates": 2,
+            "degraded": [],
+            "answer_length": 23
+          }
+        }
+      ],
+      "answer": "反复头痛建议做血压测量，并注意休息、及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-bellyache-alias",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1008,
+        "message": "肚子痛",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1008
+        },
+        {
+          "type": "trace",
+          "trace_id": "95eac144e82046e186a5d4509563008a"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "腹痛可先观察，注意清淡饮食，若持续加重请及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "95eac144e82046e186a5d4509563008a"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "腹痛"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "腹痛"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1008,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 3,
+          "graph_candidates": 0,
+          "degraded": [],
+          "answer_length": 25
+        }
+      },
+      "ports": {
+        "graph": [
+          []
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "腹痛可先观察，注意清淡饮食，若持续加重请及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"肚子痛\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.054237Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"肚子痛\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['腹痛']\"",
+          "started_at": "2026-10-04T05:47:28.054271Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "腹痛"
+            ]
+          }
+        },
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"肚子痛\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.054336Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"腹痛\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['腹痛'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.054400Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "腹痛"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "腹痛可先观察，注意清淡饮食，若持续加重请及时就医。",
+          "started_at": "2026-10-04T05:47:28.054464Z",
+          "detail": {
+            "prompt_chars": 313,
+            "chunk_count": 1,
+            "answer_length": 25
+          }
+        },
+        {
+          "trace_id": "95eac144e82046e186a5d4509563008a",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1008, \"message\": \"肚子痛\"}",
+          "output_digest": "{\"session_id\": 1008, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 3, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.054225Z",
+          "detail": {
+            "session_id": 1008,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 3,
+            "graph_candidates": 0,
+            "degraded": [],
+            "answer_length": 25
+          }
+        }
+      ],
+      "answer": "腹痛可先观察，注意清淡饮食，若持续加重请及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-diarrhea-alias",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1009,
+        "message": "拉肚子",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1009
+        },
+        {
+          "type": "trace",
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "腹泻期间注意补充水分，症状加重请及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "腹泻"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "腹泻"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1009,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 3,
+          "graph_candidates": 0,
+          "degraded": [],
+          "answer_length": 21
+        }
+      },
+      "ports": {
+        "graph": [
+          []
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "腹泻期间注意补充水分，症状加重请及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"拉肚子\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.054564Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"拉肚子\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['腹泻']\"",
+          "started_at": "2026-10-04T05:47:28.054595Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "腹泻"
+            ]
+          }
+        },
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"拉肚子\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.054645Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"腹泻\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['腹泻'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.054698Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "腹泻"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "腹泻期间注意补充水分，症状加重请及时就医。",
+          "started_at": "2026-10-04T05:47:28.054750Z",
+          "detail": {
+            "prompt_chars": 313,
+            "chunk_count": 1,
+            "answer_length": 21
+          }
+        },
+        {
+          "trace_id": "052d9fe44e45406abede0e2eed4f377e",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1009, \"message\": \"拉肚子\"}",
+          "output_digest": "{\"session_id\": 1009, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 3, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.054554Z",
+          "detail": {
+            "session_id": 1009,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 3,
+            "graph_candidates": 0,
+            "degraded": [],
+            "answer_length": 21
+          }
+        }
+      ],
+      "answer": "腹泻期间注意补充水分，症状加重请及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-sore-throat-alias",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1010,
+        "message": "嗓子痛",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1010
+        },
+        {
+          "type": "trace",
+          "trace_id": "045334668cf34ea290e014ebb0e482e0"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "嗓子痛多见于感冒，建议多饮水、注意休息。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            }
+          ],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咽痛"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "045334668cf34ea290e014ebb0e482e0"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "咽痛"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "咽痛"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咽痛"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1010,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 1,
+          "graph_candidates": 1,
+          "degraded": [],
+          "answer_length": 20
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "咽痛"
+              ],
+              "department": "呼吸内科"
+            }
+          ]
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "嗓子痛多见于感冒，建议多饮水、注意休息。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"嗓子痛\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.054836Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"嗓子痛\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['咽痛']\"",
+          "started_at": "2026-10-04T05:47:28.054862Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "咽痛"
+            ]
+          }
+        },
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"嗓子痛\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='感冒与流感指南.md', snippet='发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。', distance=0.2, context='发…",
+          "started_at": "2026-10-04T05:47:28.054907Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"咽痛\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['咽痛'] candidates=[DiseaseCandidate(disease='感冒', match_count=1, coverage=1.0, department='呼吸内科', matched_symptoms=['咽痛'])]\"",
+          "started_at": "2026-10-04T05:47:28.054944Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "咽痛"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "咽痛"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。\n\n知识图谱推理结果…",
+          "output_digest": "嗓子痛多见于感冒，建议多饮水、注意休息。",
+          "started_at": "2026-10-04T05:47:28.055020Z",
+          "detail": {
+            "prompt_chars": 259,
+            "chunk_count": 1,
+            "answer_length": 20
+          }
+        },
+        {
+          "trace_id": "045334668cf34ea290e014ebb0e482e0",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1010, \"message\": \"嗓子痛\"}",
+          "output_digest": "{\"session_id\": 1010, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 1, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.054828Z",
+          "detail": {
+            "session_id": 1010,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 1,
+            "graph_candidates": 1,
+            "degraded": [],
+            "answer_length": 20
+          }
+        }
+      ],
+      "answer": "嗓子痛多见于感冒，建议多饮水、注意休息。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-explicit-symptoms",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1011,
+        "message": "最近身体不太舒服",
+        "explicit_symptoms": [
+          "高血压",
+          "糖尿病"
+        ]
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1011
+        },
+        {
+          "type": "trace",
+          "trace_id": "bf77b96955214b9ba83afc2b99004377"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "如有高血压和糖尿病，应按医嘱规律服用氨氯地平或二甲双胍。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "bf77b96955214b9ba83afc2b99004377"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": []
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "高血压",
+            "糖尿病"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1011,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 3,
+          "graph_candidates": 0,
+          "degraded": [],
+          "answer_length": 28
+        }
+      },
+      "ports": {
+        "graph": [
+          []
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "如有高血压和糖尿病，应按医嘱规律服用氨氯地平或二甲双胍。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"最近身体不太舒服\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.055111Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"最近身体不太舒服\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=[]\"",
+          "started_at": "2026-10-04T05:47:28.055142Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": []
+          }
+        },
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"最近身体不太舒服\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.055196Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"高血压\", \"糖尿病\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['高血压', '糖尿病'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.055248Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "高血压",
+              "糖尿病"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "如有高血压和糖尿病，应按医嘱规律服用氨氯地平或二甲双胍。",
+          "started_at": "2026-10-04T05:47:28.055307Z",
+          "detail": {
+            "prompt_chars": 318,
+            "chunk_count": 1,
+            "answer_length": 28
+          }
+        },
+        {
+          "trace_id": "bf77b96955214b9ba83afc2b99004377",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1011, \"message\": \"最近身体不太舒服\"}",
+          "output_digest": "{\"session_id\": 1011, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 3, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.055104Z",
+          "detail": {
+            "session_id": 1011,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 3,
+            "graph_candidates": 0,
+            "degraded": [],
+            "answer_length": 28
+          }
+        }
+      ],
+      "answer": "如有高血压和糖尿病，应按医嘱规律服用氨氯地平或二甲双胍。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-multi-symptom",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1012,
+        "message": "我头疼发烧三天了",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1012
+        },
+        {
+          "type": "trace",
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "发热伴头痛常见于感冒，建议多饮水并及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            }
+          ],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 2,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "头痛",
+                "发热"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 0.5,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "头痛",
+            "发热"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "头痛",
+            "发热"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 2,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "头痛",
+                "发热"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 0.5,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "头痛"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1012,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 1,
+          "graph_candidates": 2,
+          "degraded": [],
+          "answer_length": 22
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "高血压",
+              "matched_symptoms": [
+                "头痛"
+              ],
+              "department": "心血管内科"
+            },
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "发热",
+                "头痛"
+              ],
+              "department": "呼吸内科"
+            }
+          ]
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "发热伴头痛常见于感冒，建议多饮水并及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我头疼发烧三天了\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.055399Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我头疼发烧三天了\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['头痛', '发热']\"",
+          "started_at": "2026-10-04T05:47:28.055427Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "头痛",
+              "发热"
+            ]
+          }
+        },
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"我头疼发烧三天了\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='感冒与流感指南.md', snippet='发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。', distance=0.2, context='发…",
+          "started_at": "2026-10-04T05:47:28.055471Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"头痛\", \"发热\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['头痛', '发热'] candidates=[DiseaseCandidate(disease='感冒', match_count=2, coverage=1.0, department='呼吸内科', matched_symptoms=['头…",
+          "started_at": "2026-10-04T05:47:28.055508Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "头痛",
+              "发热"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 2,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "头痛",
+                  "发热"
+                ]
+              },
+              {
+                "disease": "高血压",
+                "match_count": 1,
+                "coverage": 0.5,
+                "department": "心血管内科",
+                "matched_symptoms": [
+                  "头痛"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。\n\n知识图谱推理结果…",
+          "output_digest": "发热伴头痛常见于感冒，建议多饮水并及时就医。",
+          "started_at": "2026-10-04T05:47:28.055611Z",
+          "detail": {
+            "prompt_chars": 300,
+            "chunk_count": 1,
+            "answer_length": 22
+          }
+        },
+        {
+          "trace_id": "2884f1c2b33d46caa05633c3585f54f7",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1012, \"message\": \"我头疼发烧三天了\"}",
+          "output_digest": "{\"session_id\": 1012, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 1, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.055391Z",
+          "detail": {
+            "session_id": 1012,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 1,
+            "graph_candidates": 2,
+            "degraded": [],
+            "answer_length": 22
+          }
+        }
+      ],
+      "answer": "发热伴头痛常见于感冒，建议多饮水并及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-negation-chest",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1013,
+        "message": "我没有胸痛，只是有点咳嗽",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1013
+        },
+        {
+          "type": "trace",
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "咳嗽期间注意休息，若加重请及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            }
+          ],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咳嗽"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "咳嗽"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "咳嗽"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咳嗽"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1013,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 1,
+          "graph_candidates": 1,
+          "degraded": [],
+          "answer_length": 18
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "咳嗽"
+              ],
+              "department": "呼吸内科"
+            }
+          ]
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "咳嗽期间注意休息，若加重请及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我没有胸痛，只是有点咳嗽\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.055709Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我没有胸痛，只是有点咳嗽\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['咳嗽']\"",
+          "started_at": "2026-10-04T05:47:28.055740Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "咳嗽"
+            ]
+          }
+        },
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"我没有胸痛，只是有点咳嗽\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='感冒与流感指南.md', snippet='发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。', distance=0.2, context='发…",
+          "started_at": "2026-10-04T05:47:28.055786Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"咳嗽\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['咳嗽'] candidates=[DiseaseCandidate(disease='感冒', match_count=1, coverage=1.0, department='呼吸内科', matched_symptoms=['咳嗽'])]\"",
+          "started_at": "2026-10-04T05:47:28.055823Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "咳嗽"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "咳嗽"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。\n\n知识图谱推理结果…",
+          "output_digest": "咳嗽期间注意休息，若加重请及时就医。",
+          "started_at": "2026-10-04T05:47:28.055895Z",
+          "detail": {
+            "prompt_chars": 268,
+            "chunk_count": 1,
+            "answer_length": 18
+          }
+        },
+        {
+          "trace_id": "846f583bbc6b4bdd9097ab3be5344915",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1013, \"message\": \"我没有胸痛，只是有点咳嗽\"}",
+          "output_digest": "{\"session_id\": 1013, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 1, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.055701Z",
+          "detail": {
+            "session_id": 1013,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 1,
+            "graph_candidates": 1,
+            "degraded": [],
+            "answer_length": 18
+          }
+        }
+      ],
+      "answer": "咳嗽期间注意休息，若加重请及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "llm-negation-fever",
+      "group": "llm",
+      "red_flag": false,
+      "input": {
+        "session_id": 1014,
+        "message": "不发烧也不咳嗽，就是有点乏力",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1014
+        },
+        {
+          "type": "trace",
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "乏力可能与多种原因有关，建议规律作息并监测空腹血糖。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 2,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            },
+            {
+              "disease": "糖尿病",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "内分泌科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "乏力"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 2,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "乏力"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            },
+            {
+              "disease": "糖尿病",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "内分泌科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            },
+            {
+              "disease": "高血压",
+              "match_count": 1,
+              "coverage": 1.0,
+              "department": "心血管内科",
+              "matched_symptoms": [
+                "乏力"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1014,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 2,
+          "graph_candidates": 3,
+          "degraded": [],
+          "answer_length": 26
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "高血压",
+              "matched_symptoms": [
+                "乏力"
+              ],
+              "department": "心血管内科"
+            },
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "乏力"
+              ],
+              "department": "呼吸内科"
+            },
+            {
+              "disease": "糖尿病",
+              "matched_symptoms": [
+                "乏力"
+              ],
+              "department": "内分泌科"
+            }
+          ]
+        ],
+        "retrieval": [
+          [
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "乏力可能与多种原因有关，建议规律作息并监测空腹血糖。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"不发烧也不咳嗽，就是有点乏力\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.055979Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"不发烧也不咳嗽，就是有点乏力\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['乏力']\"",
+          "started_at": "2026-10-04T05:47:28.056007Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "乏力"
+            ]
+          }
+        },
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"不发烧也不咳嗽，就是有点乏力\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='感冒与流感指南.md', snippet='发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。', distance=0.2, context='发…",
+          "started_at": "2026-10-04T05:47:28.056053Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 2,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"乏力\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['乏力'] candidates=[DiseaseCandidate(disease='感冒', match_count=1, coverage=1.0, department='呼吸内科', matched_symptoms=['乏力']), …",
+          "started_at": "2026-10-04T05:47:28.056098Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "乏力"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "乏力"
+                ]
+              },
+              {
+                "disease": "糖尿病",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "内分泌科",
+                "matched_symptoms": [
+                  "乏力"
+                ]
+              },
+              {
+                "disease": "高血压",
+                "match_count": 1,
+                "coverage": 1.0,
+                "department": "心血管内科",
+                "matched_symptoms": [
+                  "乏力"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。\n\n[文档2] 糖尿…",
+          "output_digest": "乏力可能与多种原因有关，建议规律作息并监测空腹血糖。",
+          "started_at": "2026-10-04T05:47:28.056203Z",
+          "detail": {
+            "prompt_chars": 383,
+            "chunk_count": 1,
+            "answer_length": 26
+          }
+        },
+        {
+          "trace_id": "8820e849aafe4775aac98dfa4f43b0f9",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1014, \"message\": \"不发烧也不咳嗽，就是有点乏力\"}",
+          "output_digest": "{\"session_id\": 1014, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 2, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.055972Z",
+          "detail": {
+            "session_id": 1014,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 2,
+            "graph_candidates": 3,
+            "degraded": [],
+            "answer_length": 26
+          }
+        }
+      ],
+      "answer": "乏力可能与多种原因有关，建议规律作息并监测空腹血糖。",
+      "exemptions": []
+    },
+    {
+      "id": "deg-graph-ac-e-04",
+      "group": "degraded",
+      "red_flag": false,
+      "input": {
+        "session_id": 1015,
+        "message": "头疼发烧",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1015
+        },
+        {
+          "type": "trace",
+          "trace_id": "fa17b486007248f6919a92c4e63c104f"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "发热头痛建议多饮水休息，若持续不缓解请及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [
+            "graph"
+          ],
+          "cost_time": 0,
+          "trace_id": "fa17b486007248f6919a92c4e63c104f"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "头痛",
+            "发热"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": true,
+          "degraded_reason": "RuntimeError: graph adapter not wired yet",
+          "symptoms": [
+            "头痛",
+            "发热"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1015,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 1,
+          "graph_candidates": 0,
+          "degraded": [
+            "graph"
+          ],
+          "answer_length": 24
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": [
+          [
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "发热头痛建议多饮水休息，若持续不缓解请及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"头疼发烧\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.056326Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"头疼发烧\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['头痛', '发热']\"",
+          "started_at": "2026-10-04T05:47:28.056354Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "头痛",
+              "发热"
+            ]
+          }
+        },
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"头疼发烧\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='感冒与流感指南.md', snippet='发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。', distance=0.2, context='发…",
+          "started_at": "2026-10-04T05:47:28.056398Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"头痛\", \"发热\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=True degraded_reason='RuntimeError: graph adapter not wired yet' symptoms=['头痛', '发热'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.056436Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": true,
+            "degraded_reason": "RuntimeError: graph adapter not wired yet",
+            "symptoms": [
+              "头痛",
+              "发热"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。\n\n用户问题：头疼发…",
+          "output_digest": "发热头痛建议多饮水休息，若持续不缓解请及时就医。",
+          "started_at": "2026-10-04T05:47:28.056487Z",
+          "detail": {
+            "prompt_chars": 218,
+            "chunk_count": 1,
+            "answer_length": 24
+          }
+        },
+        {
+          "trace_id": "fa17b486007248f6919a92c4e63c104f",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1015, \"message\": \"头疼发烧\"}",
+          "output_digest": "{\"session_id\": 1015, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 1, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.056317Z",
+          "detail": {
+            "session_id": 1015,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 1,
+            "graph_candidates": 0,
+            "degraded": [
+              "graph"
+            ],
+            "answer_length": 24
+          }
+        }
+      ],
+      "answer": "发热头痛建议多饮水休息，若持续不缓解请及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "deg-graph-2",
+      "group": "degraded",
+      "red_flag": false,
+      "input": {
+        "session_id": 1016,
+        "message": "拉肚子两天了",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1016
+        },
+        {
+          "type": "trace",
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "腹泻期间注意补充水分，症状加重请及时就医。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [
+            "graph"
+          ],
+          "cost_time": 0,
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "腹泻"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": true,
+          "degraded_reason": "RuntimeError: graph adapter not wired yet",
+          "symptoms": [
+            "腹泻"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1016,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 3,
+          "graph_candidates": 0,
+          "degraded": [
+            "graph"
+          ],
+          "answer_length": 21
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "腹泻期间注意补充水分，症状加重请及时就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"拉肚子两天了\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.056570Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"拉肚子两天了\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['腹泻']\"",
+          "started_at": "2026-10-04T05:47:28.056598Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "腹泻"
+            ]
+          }
+        },
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"拉肚子两天了\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.056645Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"腹泻\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=True degraded_reason='RuntimeError: graph adapter not wired yet' symptoms=['腹泻'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.056691Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": true,
+            "degraded_reason": "RuntimeError: graph adapter not wired yet",
+            "symptoms": [
+              "腹泻"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "腹泻期间注意补充水分，症状加重请及时就医。",
+          "started_at": "2026-10-04T05:47:28.056740Z",
+          "detail": {
+            "prompt_chars": 316,
+            "chunk_count": 1,
+            "answer_length": 21
+          }
+        },
+        {
+          "trace_id": "572ecce722d6417bb0293cbd425c67ac",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1016, \"message\": \"拉肚子两天了\"}",
+          "output_digest": "{\"session_id\": 1016, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 3, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.056562Z",
+          "detail": {
+            "session_id": 1016,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 3,
+            "graph_candidates": 0,
+            "degraded": [
+              "graph"
+            ],
+            "answer_length": 21
+          }
+        }
+      ],
+      "answer": "腹泻期间注意补充水分，症状加重请及时就医。",
+      "exemptions": []
+    },
+    {
+      "id": "deg-retrieval-1",
+      "group": "degraded",
+      "red_flag": false,
+      "input": {
+        "session_id": 1017,
+        "message": "高血压怎么调理",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1017
+        },
+        {
+          "type": "trace",
+          "trace_id": "63970a5f34184b4b9570669f41326e23"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "建议低盐饮食、规律运动，并按医嘱规律服药。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [
+            "retrieval"
+          ],
+          "cost_time": 0,
+          "trace_id": "63970a5f34184b4b9570669f41326e23"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "高血压"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": true,
+          "degraded_reason": "RuntimeError: retrieval adapter not wired yet",
+          "references": []
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "高血压"
+          ],
+          "candidates": []
+        },
+        "orchestration": {
+          "session_id": 1017,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 0,
+          "graph_candidates": 0,
+          "degraded": [
+            "retrieval"
+          ],
+          "answer_length": 21
+        }
+      },
+      "ports": {
+        "graph": [
+          []
+        ],
+        "retrieval": []
+      },
+      "llm_chunks": [
+        [
+          "建议低盐饮食、规律运动，并按医嘱规律服药。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"高血压怎么调理\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.056828Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"高血压怎么调理\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['高血压']\"",
+          "started_at": "2026-10-04T05:47:28.056854Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "高血压"
+            ]
+          }
+        },
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"高血压怎么调理\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=True degraded_reason='RuntimeError: retrieval adapter not wired yet' references=[]\"",
+          "started_at": "2026-10-04T05:47:28.056894Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": true,
+            "degraded_reason": "RuntimeError: retrieval adapter not wired yet",
+            "references": []
+          }
+        },
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"高血压\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['高血压'] candidates=[]\"",
+          "started_at": "2026-10-04T05:47:28.056919Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "高血压"
+            ],
+            "candidates": []
+          }
+        },
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n暂无相关知识库内容。\n\n用户问题：高血压怎么调理\n\n请基于以上参考信息回答用户问题。",
+          "output_digest": "建议低盐饮食、规律运动，并按医嘱规律服药。",
+          "started_at": "2026-10-04T05:47:28.056967Z",
+          "detail": {
+            "prompt_chars": 190,
+            "chunk_count": 1,
+            "answer_length": 21
+          }
+        },
+        {
+          "trace_id": "63970a5f34184b4b9570669f41326e23",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1017, \"message\": \"高血压怎么调理\"}",
+          "output_digest": "{\"session_id\": 1017, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 0, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.056820Z",
+          "detail": {
+            "session_id": 1017,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 0,
+            "graph_candidates": 0,
+            "degraded": [
+              "retrieval"
+            ],
+            "answer_length": 21
+          }
+        }
+      ],
+      "answer": "建议低盐饮食、规律运动，并按医嘱规律服药。",
+      "exemptions": []
+    },
+    {
+      "id": "deg-retrieval-2",
+      "group": "degraded",
+      "red_flag": false,
+      "input": {
+        "session_id": 1018,
+        "message": "我嗓子痛咳嗽",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "graph-inference",
+          "orchestration"
+        ],
+        "skills_skipped": []
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1018
+        },
+        {
+          "type": "trace",
+          "trace_id": "a150916123a146679882f62082f23281"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": []
+        },
+        {
+          "type": "content",
+          "content": "嗓子痛咳嗽建议多饮水休息，症状加重请就医。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [
+            {
+              "disease": "感冒",
+              "match_count": 2,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咽痛",
+                "咳嗽"
+              ]
+            }
+          ],
+          "coverage_note": null,
+          "degraded": [
+            "retrieval"
+          ],
+          "cost_time": 0,
+          "trace_id": "a150916123a146679882f62082f23281"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": [
+            "咽痛",
+            "咳嗽"
+          ]
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": true,
+          "degraded_reason": "RuntimeError: retrieval adapter not wired yet",
+          "references": []
+        },
+        "graph-inference": {
+          "limit": 10,
+          "coverage_decimals": 2,
+          "degraded": false,
+          "degraded_reason": null,
+          "symptoms": [
+            "咽痛",
+            "咳嗽"
+          ],
+          "candidates": [
+            {
+              "disease": "感冒",
+              "match_count": 2,
+              "coverage": 1.0,
+              "department": "呼吸内科",
+              "matched_symptoms": [
+                "咽痛",
+                "咳嗽"
+              ]
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1018,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "graph-inference",
+            "orchestration"
+          ],
+          "skills_skipped": [],
+          "references": 0,
+          "graph_candidates": 1,
+          "degraded": [
+            "retrieval"
+          ],
+          "answer_length": 21
+        }
+      },
+      "ports": {
+        "graph": [
+          [
+            {
+              "disease": "感冒",
+              "matched_symptoms": [
+                "咳嗽",
+                "咽痛"
+              ],
+              "department": "呼吸内科"
+            }
+          ]
+        ],
+        "retrieval": []
+      },
+      "llm_chunks": [
+        [
+          "嗓子痛咳嗽建议多饮水休息，症状加重请就医。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我嗓子痛咳嗽\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.057052Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我嗓子痛咳嗽\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=['咽痛', '咳嗽']\"",
+          "started_at": "2026-10-04T05:47:28.057076Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": [
+              "咽痛",
+              "咳嗽"
+            ]
+          }
+        },
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"我嗓子痛咳嗽\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=True degraded_reason='RuntimeError: retrieval adapter not wired yet' references=[]\"",
+          "started_at": "2026-10-04T05:47:28.057116Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": true,
+            "degraded_reason": "RuntimeError: retrieval adapter not wired yet",
+            "references": []
+          }
+        },
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "graph-inference",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"symptoms\": [\"咽痛\", \"咳嗽\"]}",
+          "output_digest": "\"limit=10 coverage_decimals=2 degraded=False degraded_reason=None symptoms=['咽痛', '咳嗽'] candidates=[DiseaseCandidate(disease='感冒', match_count=2, coverage=1.0, department='呼吸内科', matched_symptoms=['咽…",
+          "started_at": "2026-10-04T05:47:28.057140Z",
+          "detail": {
+            "limit": 10,
+            "coverage_decimals": 2,
+            "degraded": false,
+            "degraded_reason": null,
+            "symptoms": [
+              "咽痛",
+              "咳嗽"
+            ],
+            "candidates": [
+              {
+                "disease": "感冒",
+                "match_count": 2,
+                "coverage": 1.0,
+                "department": "呼吸内科",
+                "matched_symptoms": [
+                  "咽痛",
+                  "咳嗽"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n知识图谱推理结果：\n- 感冒（覆盖率 1.00，科室 呼吸内科，依据症状 咽痛、咳嗽）\n\n用户问题：我…",
+          "output_digest": "嗓子痛咳嗽建议多饮水休息，症状加重请就医。",
+          "started_at": "2026-10-04T05:47:28.057223Z",
+          "detail": {
+            "prompt_chars": 222,
+            "chunk_count": 1,
+            "answer_length": 21
+          }
+        },
+        {
+          "trace_id": "a150916123a146679882f62082f23281",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1018, \"message\": \"我嗓子痛咳嗽\"}",
+          "output_digest": "{\"session_id\": 1018, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"graph-inference\", \"orchestration\"], \"skills_skipped\": [], \"references\": 0, \"graph_cand…",
+          "started_at": "2026-10-04T05:47:28.057045Z",
+          "detail": {
+            "session_id": 1018,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "graph-inference",
+              "orchestration"
+            ],
+            "skills_skipped": [],
+            "references": 0,
+            "graph_candidates": 1,
+            "degraded": [
+              "retrieval"
+            ],
+            "answer_length": 21
+          }
+        }
+      ],
+      "answer": "嗓子痛咳嗽建议多饮水休息，症状加重请就医。",
+      "exemptions": []
+    },
+    {
+      "id": "edge-empty-normalization",
+      "group": "boundary",
+      "red_flag": false,
+      "input": {
+        "session_id": 1019,
+        "message": "你好",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "orchestration"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "graph-inference",
+            "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1019
+        },
+        {
+          "type": "trace",
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "orchestration"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "graph-inference",
+              "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+            }
+          ]
+        },
+        {
+          "type": "content",
+          "content": "您好，请描述具体不适，我会尽力提供健康建议。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "snippet": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": "未识别到可用症状，本次未进行图谱推理。",
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": []
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            },
+            {
+              "index": 3,
+              "file_name": "糖尿病管理指南.md",
+              "distance": 0.3
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1019,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "orchestration"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "graph-inference",
+              "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+            }
+          ],
+          "references": 3,
+          "graph_candidates": 0,
+          "degraded": [],
+          "answer_length": 22
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            },
+            {
+              "content": "糖尿病患者需控制饮食、规律运动，并按医嘱使用二甲双胍或胰岛素，定期监测空腹血糖。",
+              "metadata": {
+                "file_name": "糖尿病管理指南.md"
+              },
+              "distance": 0.3
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "您好，请描述具体不适，我会尽力提供健康建议。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"你好\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.057314Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"你好\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=[]\"",
+          "started_at": "2026-10-04T05:47:28.057343Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": []
+          }
+        },
+        {
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"你好\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.057387Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              },
+              {
+                "index": 3,
+                "file_name": "糖尿病管理指南.md",
+                "distance": 0.3
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "您好，请描述具体不适，我会尽力提供健康建议。",
+          "started_at": "2026-10-04T05:47:28.057450Z",
+          "detail": {
+            "prompt_chars": 312,
+            "chunk_count": 1,
+            "answer_length": 22
+          }
+        },
+        {
+          "trace_id": "ca61bc3884a1447490f772ae3d8712dc",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1019, \"message\": \"你好\"}",
+          "output_digest": "{\"session_id\": 1019, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"orchestration\"], \"skills_skipped\": [{\"skill\": \"graph-inference\", \"reason\": \"安全门放行后未识别到…",
+          "started_at": "2026-10-04T05:47:28.057307Z",
+          "detail": {
+            "session_id": 1019,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "orchestration"
+            ],
+            "skills_skipped": [
+              {
+                "skill": "graph-inference",
+                "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+              }
+            ],
+            "references": 3,
+            "graph_candidates": 0,
+            "degraded": [],
+            "answer_length": 22
+          }
+        }
+      ],
+      "answer": "您好，请描述具体不适，我会尽力提供健康建议。",
+      "exemptions": []
+    },
+    {
+      "id": "edge-pure-negation",
+      "group": "boundary",
+      "red_flag": false,
+      "input": {
+        "session_id": 1020,
+        "message": "我没有头痛",
+        "explicit_symptoms": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate",
+          "symptom-normalization",
+          "vector-retrieval",
+          "orchestration"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "graph-inference",
+            "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1020
+        },
+        {
+          "type": "trace",
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "orchestration"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "graph-inference",
+              "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+            }
+          ]
+        },
+        {
+          "type": "content",
+          "content": "如无明显不适，注意休息即可。"
+        },
+        {
+          "type": "done",
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "snippet": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。"
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "snippet": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。"
+            }
+          ],
+          "graph": [],
+          "coverage_note": "未识别到可用症状，本次未进行图谱推理。",
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "allow",
+          "level": null,
+          "red_flags": []
+        },
+        "symptom-normalization": {
+          "vocabulary_version": "symptom-vocabulary-v1",
+          "symptoms": []
+        },
+        "vector-retrieval": {
+          "top_k": 5,
+          "snippet_length": 200,
+          "degraded": false,
+          "degraded_reason": null,
+          "references": [
+            {
+              "index": 1,
+              "file_name": "高血压防治指南.md",
+              "distance": 0.1
+            },
+            {
+              "index": 2,
+              "file_name": "感冒与流感指南.md",
+              "distance": 0.2
+            }
+          ]
+        },
+        "orchestration": {
+          "session_id": 1020,
+          "status": "ok",
+          "skills_run": [
+            "safety-gate",
+            "symptom-normalization",
+            "vector-retrieval",
+            "orchestration"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "graph-inference",
+              "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+            }
+          ],
+          "references": 2,
+          "graph_candidates": 0,
+          "degraded": [],
+          "answer_length": 14
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": [
+          [
+            {
+              "content": "高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。",
+              "metadata": {
+                "file_name": "高血压防治指南.md"
+              },
+              "distance": 0.1
+            },
+            {
+              "content": "发热、咳嗽、咽痛多为感冒表现，应多饮水、注意休息，必要时做血常规检查。",
+              "metadata": {
+                "file_name": "感冒与流感指南.md"
+              },
+              "distance": 0.2
+            }
+          ]
+        ]
+      },
+      "llm_chunks": [
+        [
+          "如无明显不适，注意休息即可。"
+        ]
+      ],
+      "spans": [
+        {
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我没有头痛\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[] level=None decision='allow' message='' suggested_action=''\"",
+          "started_at": "2026-10-04T05:47:28.057548Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "allow",
+            "level": null,
+            "red_flags": []
+          }
+        },
+        {
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f",
+          "name": "symptom-normalization",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"我没有头痛\"}",
+          "output_digest": "\"vocabulary_version='symptom-vocabulary-v1' symptoms=[]\"",
+          "started_at": "2026-10-04T05:47:28.057581Z",
+          "detail": {
+            "vocabulary_version": "symptom-vocabulary-v1",
+            "symptoms": []
+          }
+        },
+        {
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f",
+          "name": "vector-retrieval",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"query\": \"我没有头痛\"}",
+          "output_digest": "\"top_k=5 snippet_length=200 degraded=False degraded_reason=None references=[RetrievalReference(index=1, file_name='高血压防治指南.md', snippet='高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。', distance=0.1, conte…",
+          "started_at": "2026-10-04T05:47:28.057626Z",
+          "detail": {
+            "top_k": 5,
+            "snippet_length": 200,
+            "degraded": false,
+            "degraded_reason": null,
+            "references": [
+              {
+                "index": 1,
+                "file_name": "高血压防治指南.md",
+                "distance": 0.1
+              },
+              {
+                "index": 2,
+                "file_name": "感冒与流感指南.md",
+                "distance": 0.2
+              }
+            ]
+          }
+        },
+        {
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f",
+          "name": "llm",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "你是AI智能医疗问诊助手，基于提供的知识库和医疗知识图谱为用户提供健康咨询。\n请注意：\n1. 你的回答仅供参考，不能替代专业医生的诊断\n2. 如有严重症状，请建议用户及时就医\n3. 结合知识库内容和图谱推理结果给出专业、易懂的建议\n4. 回答要条理清晰，适当分点说明\n\n[当前问题]\n参考知识：\n[文档1] 高血压患者应低盐饮食、规律服用氨氯地平并定期做血压测量，出现头晕头痛应及时就医。\n\n[文档…",
+          "output_digest": "如无明显不适，注意休息即可。",
+          "started_at": "2026-10-04T05:47:28.057684Z",
+          "detail": {
+            "prompt_chars": 267,
+            "chunk_count": 1,
+            "answer_length": 14
+          }
+        },
+        {
+          "trace_id": "ceb239cd238248b284d0ad57e7bb6f8f",
+          "name": "orchestration",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"session_id\": 1020, \"message\": \"我没有头痛\"}",
+          "output_digest": "{\"session_id\": 1020, \"status\": \"ok\", \"skills_run\": [\"safety-gate\", \"symptom-normalization\", \"vector-retrieval\", \"orchestration\"], \"skills_skipped\": [{\"skill\": \"graph-inference\", \"reason\": \"安全门放行后未识别到…",
+          "started_at": "2026-10-04T05:47:28.057540Z",
+          "detail": {
+            "session_id": 1020,
+            "status": "ok",
+            "skills_run": [
+              "safety-gate",
+              "symptom-normalization",
+              "vector-retrieval",
+              "orchestration"
+            ],
+            "skills_skipped": [
+              {
+                "skill": "graph-inference",
+                "reason": "安全门放行后未识别到任何标准症状（含显式症状），无可用图谱查询输入"
+              }
+            ],
+            "references": 2,
+            "graph_candidates": 0,
+            "degraded": [],
+            "answer_length": 14
+          }
+        }
+      ],
+      "answer": "如无明显不适，注意休息即可。",
+      "exemptions": []
+    }
+  ],
+  "exempt_divergences": [
+    "A-1",
+    "A-2",
+    "A-3",
+    "A-4",
+    "A-5",
+    "A-6",
+    "A-7"
+  ],
+  "recorded_divergences": [
+    "H-1",
+    "H-2",
+    "H-3",
+    "H-4",
+    "H-5",
+    "H-6",
+    "H-7",
+    "H-8",
+    "H-9",
+    "H-10",
+    "H-11",
+    "H-12"
+  ]
+}

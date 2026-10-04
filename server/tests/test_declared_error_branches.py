@@ -100,6 +100,10 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/stat/appointments-by-department", "get"): {401, 403},
     ("/api/v1/stat/user-growth", "get"): {401, 403, 422},
     ("/api/v1/stat/knowledge-types", "get"): {401, 403},
+    # TICKET-023 回归基线框架（/regression/* 三端点，SPEC.md 5.4）
+    ("/api/v1/regression/runs", "post"): {401, 403, 404, 422},
+    ("/api/v1/regression/runs/{run_id}", "get"): {401, 403, 404},
+    ("/api/v1/regression/baselines", "get"): {401, 403},
 }
 
 

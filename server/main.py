@@ -12,6 +12,8 @@ from core.contract import install_envelope_error_responses
 from core.errors import register_error_handlers
 from core.response import EnvelopeJSONResponse
 from db.session import Database
+from regression.runs import RegressionRuns
+from regression.schema import default_store
 from services.generation import SessionGenerationGuard
 from services.knowledge import KnowledgeJobs
 from skills.orchestration import OrchestrationPorts
@@ -42,6 +44,9 @@ def create_app(
             session_factory=app.state.database.session_factory,
             store=active_ports.retrieval,
         )
+        # 回归回放是后台 job（ticket 023 §6）：baseline 由提交-轮询接口驱动，
+        # 与请求路径上的真实适配器无关（回放全程零外部 I/O，AC-B-35）。
+        app.state.regression_runs = RegressionRuns(store=default_store())
         _prepare_uploads(app, active_settings)
         yield
         for port in (active_ports.graph, active_ports.retrieval):

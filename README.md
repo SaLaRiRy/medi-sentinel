@@ -151,6 +151,23 @@ cd server
 
 两侧测试都对着这两份文件校验：后端断言产出满足契约，前端断言能解析契约声明的全部形状；契约与实现不一致时测试会失败。
 
+## 回归基线
+
+行为回归框架（TICKET-023，`SPEC.md` 3.8）由两条命令驱动；用例集与基线是版本控制
+的数据（`server/regression/cases/`、`server/regression/baselines/`），随代码一同入库：
+
+```bash
+cd server
+.venv\Scripts\python.exe scripts\regression.py record --case-set v1 --baseline-version v1
+.venv\Scripts\python.exe scripts\regression.py replay --case-set v1 --baseline-version v1
+```
+
+`record` 用确定性端口离线录制基线（不触碰图库、向量索引、嵌入服务与大模型）；
+`replay` 只读基线重建一次问诊并打印 `MetricsReport`（红旗拦截率、误拦率、诊断漂移率、
+幻觉率与按 `intercepted`/`llm`/`degraded` 分组的 P95 延迟），回放期间外部调用次数为 0。
+拦截率 < 100% 或误拦率 > 0% 时以非零码退出。同一版本也可经 `POST /regression/runs`
+提交、`GET /regression/runs/{run_id}` 轮询。
+
 ## 工程约定
 
 - **仓库结构**：Monorepo，`client/` 与 `server/` 两个顶层目录。
