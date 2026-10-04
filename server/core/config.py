@@ -6,21 +6,28 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Every configurable value in one place (SPEC.md 5.1 / 7.1)."""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # TICKET-027: `env_ignore_empty` keeps a blank value in `.env` (the shape
+    # shipped by `.env.example`) from overriding a code default, so "blank" reads
+    # as "use the default / not provided" for every field.
+    model_config = SettingsConfigDict(
+        env_file=".env", extra="ignore", env_ignore_empty=True
+    )
 
     project_name: str = "MediSentinel"
     version: str = "0.1.0"
     api_prefix: str = "/api/v1"
 
-    # Credentials stay exactly as the reference implementation had them (SPEC.md 7.1):
-    # hardcoded defaults, overridable by environment for tests only.
-    database_url: str = "mysql+aiomysql://root:123456@127.0.0.1:3306/medi_sentinel"
+    # TICKET-027: credentials come from the environment (`.env`) only — never from
+    # source. Blank means "not provided"; `db.session.Database` refuses to build and
+    # raises a clear error instead of falling back to a wrong default. Tests inject
+    # their own URL (SQLite memory/tmp file).
+    database_url: str = ""
 
-    # Graph store (FUNCTIONAL_SPEC 6.2/6.6): Bolt, hardcoded credentials, like the
-    # reference implementation (SPEC.md 7.1). The async adapter is built from these.
+    # Graph store (FUNCTIONAL_SPEC 6.2/6.6): Bolt. The endpoint and user are plain
+    # defaults; the password is a credential and stays blank until supplied via env.
     neo4j_uri: str = "bolt://127.0.0.1:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: str = "12345678"
+    neo4j_password: str = ""
 
     # Vector index + embeddings (FUNCTIONAL_SPEC 6.2/6.6): local Chroma collection,
     # OpenAI-compatible embedding service. Only the key comes from the environment.
@@ -38,10 +45,10 @@ class Settings(BaseSettings):
     chunk_overlap: int = 80
     retrieval_top_k: int = 5
 
-    # Token rules stay exactly as the reference implementation had them
-    # (FUNCTIONAL_SPEC 5.8 / SPEC.md 7.1): HS256, a 24-hour lifetime and a
-    # hardcoded signing key. Environment overrides exist for tests only.
-    jwt_secret_key: str = "medi-sentinel-jwt-secret"
+    # Token rules keep the reference behaviour (FUNCTIONAL_SPEC 5.8): HS256 and a
+    # 24-hour lifetime. The signing key is a credential and comes from the
+    # environment; blank only for local/test runs that never leave the process.
+    jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
 

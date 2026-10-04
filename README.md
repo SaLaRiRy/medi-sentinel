@@ -68,7 +68,7 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 | AI | 兼容 OpenAI 接口的大模型与嵌入服务 |
 | 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus + ECharts + axios，仅通过 RESTful API（含 SSE）通信 |
 
-**配置**：除大模型密钥经环境变量 `OPENAI_API_KEY` 注入外，其余连接参数均为源码常量（`FUNCTIONAL_SPEC.md` 附录 B.2 记录的现状，`SPEC.md` 第 7.1 节明确保持原样）。
+**配置**：连接串、口令与密钥一律经环境变量注入，由 `server/.env` 提供——`core.config.Settings` 读取，样例见 `server/.env.example`。`DATABASE_URL` 必填；缺失时后端启动即报错，不再退回源码里的默认值（TICKET-027）。
 
 ## 启动方式
 
@@ -89,8 +89,11 @@ python -m venv .venv
 .venv\Scripts\activate          # Windows；Linux/macOS 用 source .venv/bin/activate
 pip install -r requirements-dev.txt   # 含测试依赖；只运行服务可用 requirements.txt
 
+# 配置：复制样例再填写（.env 已被 gitignore）。
+# 至少填 DATABASE_URL；需要图谱/令牌/大模型时再补 NEO4J_*、JWT_SECRET_KEY、OPENAI_*。
+copy .env.example .env          # Linux/macOS 用 cp .env.example .env
+
 alembic upgrade head            # 建表：应用 Schema 迁移，可重复执行
-set OPENAI_API_KEY=<your-key>   # Windows；Linux/macOS 用 export OPENAI_API_KEY=<your-key>
 uvicorn main:app --reload --port 8000
 ```
 

@@ -10,6 +10,11 @@ from sqlalchemy.ext.asyncio import (
 
 class Database:
     def __init__(self, url: str) -> None:
+        if not url:
+            raise ValueError(
+                "DATABASE_URL 未配置：请在 server/.env 中设置 DATABASE_URL"
+                "（例如 mysql+aiomysql://<user>:<password>@127.0.0.1:3306/medi_sentinel）。"
+            )
         self._engine: AsyncEngine = create_async_engine(url, pool_pre_ping=True)
         self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
             self._engine, expire_on_commit=False
