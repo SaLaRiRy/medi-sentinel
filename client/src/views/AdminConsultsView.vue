@@ -85,6 +85,10 @@ onMounted(load)
 
 <template>
   <section class="admin-consults">
+    <header class="page-head">
+      <h1 class="page-head__title">人工问诊</h1>
+    </header>
+
     <el-card class="admin-consults__card" shadow="never">
       <template #header>
         <div class="card-head">
