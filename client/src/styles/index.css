@@ -73,3 +73,37 @@ button {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ---------------------------------- 列表/内容卡片统一 ---------------------------------- */
+/* 大圆角 + 柔和阴影，覆盖 el-card 默认的浅边框小圆角。 */
+.el-card {
+  border: 1px solid var(--ms-border);
+  border-radius: var(--ms-radius-lg);
+  box-shadow: var(--ms-shadow);
+}
+
+/* 表头浅灰背景 + 更柔和的分隔线。 */
+.el-table {
+  --el-table-header-bg-color: var(--ms-bg);
+  --el-table-header-text-color: var(--ms-text-secondary);
+  --el-table-border-color: var(--ms-border);
+  --el-table-row-hover-bg-color: var(--ms-bg);
+}
+
+.el-table th.el-table__cell {
+  background: var(--ms-bg);
+  font-weight: 600;
+}
+
+/* 页面标题行（图2/4/7/8 的 H1）。 */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ms-space-4);
+}
+
+.page-head__title {
+  font-size: var(--ms-font-lg);
+  font-weight: 700;
+}
