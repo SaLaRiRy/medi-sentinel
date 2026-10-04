@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from adapters import build_graph_store, build_vector_store
+from adapters import build_graph_store, build_llm, build_vector_store
 from api.v1 import api_router
 from core.config import Settings, get_settings
 from core.contract import install_envelope_error_responses
@@ -17,7 +17,6 @@ from regression.schema import default_store
 from services.generation import SessionGenerationGuard
 from services.knowledge import KnowledgeJobs
 from skills.orchestration import OrchestrationPorts
-from skills.ports import UnavailableLlmPort
 
 
 def create_app(
@@ -25,13 +24,14 @@ def create_app(
 ) -> FastAPI:
     active_settings = settings or get_settings()
     # TICKET-013 wired the real async graph and vector stores (SPEC.md 3.1): they
-    # degrade the branch when unreachable rather than crashing. The model adapter
-    # is still pending, so generation ends in an `error` frame; tests inject B-3
-    # fakes instead.
+    # degrade the branch when unreachable rather than crashing. TICKET-025 wires
+    # the real streaming model client the same way; with no key or base URL it
+    # falls back to the unavailable port, so generation still ends in a 503
+    # `error` frame (SPEC.md 5.2). Tests inject B-3 fakes instead.
     active_ports = ports or OrchestrationPorts(
         graph=build_graph_store(active_settings),
         retrieval=build_vector_store(active_settings),
-        llm=UnavailableLlmPort(),
+        llm=build_llm(active_settings),
     )
 
     @asynccontextmanager
@@ -49,7 +49,7 @@ def create_app(
         app.state.regression_runs = RegressionRuns(store=default_store())
         _prepare_uploads(app, active_settings)
         yield
-        for port in (active_ports.graph, active_ports.retrieval):
+        for port in (active_ports.graph, active_ports.retrieval, active_ports.llm):
             close = getattr(port, "close", None)
             if callable(close):
                 await close()

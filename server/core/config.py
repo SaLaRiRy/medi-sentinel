@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Credentials stay exactly as the reference implementation had them (SPEC.md 7.1):
     # hardcoded defaults, overridable by environment for tests only.
-    database_url: str = "mysql+aiomysql://root:root@127.0.0.1:3306/medi_sentinel"
+    database_url: str = "mysql+aiomysql://root:123456@127.0.0.1:3306/medi_sentinel"
 
     # Graph store (FUNCTIONAL_SPEC 6.2/6.6): Bolt, hardcoded credentials, like the
     # reference implementation (SPEC.md 7.1). The async adapter is built from these.
@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     chroma_collection: str = "medical_knowledge"
     openai_api_key: str = ""
     openai_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    llm_model: str = "qwen3.7-plus"
+    llm_model: str = "qwen3.8-flash"
     embedding_model: str = "text-embedding-v4"
     embedding_dimensions: int = 2048
     embedding_batch_size: int = 10
