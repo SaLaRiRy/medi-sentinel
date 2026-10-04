@@ -1,0 +1,75 @@
+/**
+ * 全局样式入口：引入设计令牌 + reset + 基础排版。
+ * 只做“地基”，页面观感由各视图/外壳的 scoped 样式承接。
+ */
+
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    sans-serif;
+  font-size: var(--ms-font-base);
+  line-height: 1.55;
+  color: var(--ms-text);
+  background: var(--ms-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: var(--ms-primary);
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c7cad9;
+  border-radius: var(--ms-radius-full);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

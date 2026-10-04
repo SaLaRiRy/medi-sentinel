@@ -1,0 +1,106 @@
+/**
+ * MediSentinel 设计令牌（视觉重做 第一阶段）。
+ *
+ * 单一来源：色板 / 字阶 / 间距（4px 基准）/ 圆角 / 阴影 / 布局尺寸。
+ * 组件只引用变量，不写死颜色与尺寸，便于后续阶段统一调整。
+ */
+
+:root {
+  /* ---- 色板 ---- */
+  --ms-primary: #6366f1;
+  --ms-primary-dark: #4f46e5;
+  --ms-primary-darker: #4338ca;
+  --ms-accent: #8b5cf6;
+
+  --ms-gradient-from: #667eea;
+  --ms-gradient-to: #764ba2;
+  --ms-gradient: linear-gradient(135deg, var(--ms-gradient-from) 0%, var(--ms-gradient-to) 100%);
+
+  --ms-sidebar: #1e2a5a;
+  --ms-sidebar-hover: #2b3a72;
+  --ms-sidebar-active: #39498f;
+
+  --ms-success: #10b981;
+  --ms-warning: #f59e0b;
+  --ms-danger: #ef4444;
+  --ms-info: #64748b;
+
+  /* ---- 文本 ---- */
+  --ms-text: #1f2333;
+  --ms-text-secondary: #5b6178;
+  --ms-text-muted: #8a90a6;
+  --ms-text-inverse: #ffffff;
+
+  /* ---- 背景 / 边框 ---- */
+  --ms-bg: #f5f6fb;
+  --ms-bg-elevated: #ffffff;
+  --ms-border: #e6e8f0;
+  --ms-border-strong: #d5d8e5;
+
+  /* ---- 字阶 ---- */
+  --ms-font-xs: 12px;
+  --ms-font-sm: 13px;
+  --ms-font-base: 14px;
+  --ms-font-md: 16px;
+  --ms-font-lg: 20px;
+  --ms-font-xl: 26px;
+  --ms-font-2xl: 34px;
+
+  /* ---- 间距（4px 基准） ---- */
+  --ms-space-1: 4px;
+  --ms-space-2: 8px;
+  --ms-space-3: 12px;
+  --ms-space-4: 16px;
+  --ms-space-5: 20px;
+  --ms-space-6: 24px;
+  --ms-space-8: 32px;
+
+  /* ---- 圆角 ---- */
+  --ms-radius-sm: 8px;
+  --ms-radius: 12px;
+  --ms-radius-lg: 16px;
+  --ms-radius-full: 999px;
+
+  /* ---- 阴影 ---- */
+  --ms-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --ms-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --ms-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* ---- 布局尺寸 ---- */
+  --ms-sidebar-width: 220px;
+  --ms-header-height: 56px;
+  --ms-content-padding: 24px;
+}
+
+/*
+ * element-plus 主题色统一到色板。
+ * 用 `html:root` 提升优先级，确保无论 EP 默认 :root 在样式表中的顺序如何，
+ * 这里的覆写都生效（按需引入下组件样式会单独注入）。
+ */
+html:root {
+  --el-color-primary: var(--ms-primary);
+  --el-color-primary-rgb: 99, 102, 241;
+  --el-color-primary-light-3: #9294f5;
+  --el-color-primary-light-5: #b1b3f8;
+  --el-color-primary-light-7: #d0d1fb;
+  --el-color-primary-light-8: #e0e0fc;
+  --el-color-primary-light-9: #eff0fe;
+  --el-color-primary-dark-2: #4f52c1;
+
+  --el-color-success: var(--ms-success);
+  --el-color-warning: var(--ms-warning);
+  --el-color-danger: var(--ms-danger);
+  --el-color-info: var(--ms-info);
+
+  --el-text-color-primary: var(--ms-text);
+  --el-text-color-regular: var(--ms-text-secondary);
+  --el-border-color: var(--ms-border);
+  --el-border-color-light: var(--ms-border);
+  --el-border-color-lighter: var(--ms-border);
+
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 8px;
+
+  --el-box-shadow-light: var(--ms-shadow);
+  --el-font-size-base: var(--ms-font-base);
+}
