@@ -116,6 +116,10 @@ onMounted(load)
 
 <template>
   <section class="admin-departments">
+    <header class="page-head">
+      <h1 class="page-head__title">科室管理</h1>
+    </header>
+
     <el-card class="admin-departments__card" shadow="never">
       <template #header>
         <span class="card-title">{{ editingId === null ? '新建科室' : '编辑科室' }}</span>
