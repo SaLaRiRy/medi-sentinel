@@ -142,8 +142,8 @@ describe('TICKET-029 core views use element-plus components', () => {
     uses(await mountView(DoctorConsultsView, client), [ElTable, ElInput, ElButton])
   })
 
-  it('PortalHomeView: el-card overview + el-table notices', async () => {
-    uses(await mountView(PortalHomeView), [ElCard, ElTable])
+  it('PortalHomeView: el-card hero/overview/sections (notices are a list, 图5)', async () => {
+    uses(await mountView(PortalHomeView), [ElCard])
   })
 
   it('LoginView: el-form + el-select role + el-input + el-button', async () => {

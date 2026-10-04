@@ -45,6 +45,12 @@ function logout() {
 </template>
 
 <style scoped>
+/* el-dropdown sets its own text color; re-inherit so the trigger follows the
+   surrounding bar (light console header vs. the portal's purple gradient). */
+.user-menu {
+  color: inherit;
+}
+
 /* 触发器颜色继承所在顶栏（深色侧边栏旁的白底顶栏 / 门户的紫色渐变顶栏都适用）。 */
 .user-menu__trigger {
   display: inline-flex;

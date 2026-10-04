@@ -77,6 +77,7 @@ function handleError(error) {
         <component
           :is="Component"
           :client="client"
+          @navigate="navigate"
           @error="handleError"
           @authenticated="onAuthenticated"
           @register="goRegister"

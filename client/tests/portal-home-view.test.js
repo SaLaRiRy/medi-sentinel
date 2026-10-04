@@ -63,8 +63,9 @@ describe('PortalHomeView notices (TICKET-021)', () => {
     const wrapper = mount(PortalHomeView, { props: { client } })
     await flushPromises()
 
-    // TICKET-029: ElTable rows are grouped by the stable `.el-table__row`.
-    const rows = wrapper.findAll('.el-table__row')
+    // Phase 2 (图5): the notices are a list, not a table — rows are anchored
+    // by `[data-notice-row]`; assertion strength is unchanged.
+    const rows = wrapper.findAll('[data-notice-row]')
     expect(rows).toHaveLength(2)
     expect(rows[1].text()).toContain('停诊通知')
   })
@@ -76,7 +77,7 @@ describe('PortalHomeView notices (TICKET-021)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
+    expect(wrapper.findAll('[data-notice-row]')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 
@@ -88,7 +89,7 @@ describe('PortalHomeView notices (TICKET-021)', () => {
     const wrapper = mount(PortalHomeView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('.el-table__row').find('[data-open="4"]').trigger('click')
+    await wrapper.find('[data-notice-row]').find('[data-open="4"]').trigger('click')
     await flushPromises()
 
     expect(client.notice).toHaveBeenCalledWith(4)
