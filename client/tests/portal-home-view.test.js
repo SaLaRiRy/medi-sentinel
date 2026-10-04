@@ -13,7 +13,7 @@ function noticeRow(overrides = {}) {
   }
 }
 
-function fakeClient({ notices = [], detail, listError, detailError } = {}) {
+function fakeClient({ notices = [], detail, listError, detailError, overview } = {}) {
   return {
     notices: vi.fn(async () => {
       if (listError) throw listError
@@ -23,8 +23,37 @@ function fakeClient({ notices = [], detail, listError, detailError } = {}) {
       if (detailError) throw detailError
       return detail ?? noticeRow()
     }),
+    userOverview: vi.fn(
+      async () =>
+        overview ?? {
+          consult_count: 0,
+          appointment_count: 0,
+          record_count: 0,
+          session_count: 0,
+        }
+    ),
   }
 }
+
+describe('PortalHomeView patient overview (TICKET-022)', () => {
+  it('renders the four personal counts', async () => {
+    const client = fakeClient({
+      overview: {
+        consult_count: 2,
+        appointment_count: 1,
+        record_count: 3,
+        session_count: 4,
+      },
+    })
+    const wrapper = mount(PortalHomeView, { props: { client } })
+    await flushPromises()
+
+    const overview = wrapper.find('[data-user-overview]').text()
+    expect(overview).toContain('人工问诊')
+    expect(overview).toContain('健康档案')
+    expect(wrapper.findAll('[data-overview-stat]')).toHaveLength(4)
+  })
+})
 
 describe('PortalHomeView notices (TICKET-021)', () => {
   it('renders the published notices', async () => {

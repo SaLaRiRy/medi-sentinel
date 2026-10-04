@@ -167,8 +167,14 @@ describe('C-1 from the consuming side', () => {
     await client.createNotice({ title: '新公告' })
     await client.updateNotice(1, { title: '改标题' })
     await client.deleteNotice(1)
+    await client.statOverview()
+    await client.userOverview()
+    await client.consultTrend(7)
+    await client.appointmentsByDepartment()
+    await client.userGrowth(7)
+    await client.knowledgeTypes()
 
-    expect(requested).toHaveLength(61)
+    expect(requested).toHaveLength(67)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
@@ -231,5 +237,11 @@ describe('C-1 from the consuming side', () => {
     expect(matchesDeclaredPath('PUT', '/notices/1')).toBe(true)
     expect(matchesDeclaredPath('DELETE', '/notices/1')).toBe(true)
     expect(matchesDeclaredPath('GET', '/notices/1')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/overview')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/user-overview')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/consult-trend')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/appointments-by-department')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/user-growth')).toBe(true)
+    expect(matchesDeclaredPath('GET', '/stat/knowledge-types')).toBe(true)
   })
 })

@@ -426,6 +426,34 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ method: 'DELETE', path: `/notices/${noticeId}`, authed: true })
     },
 
+    // TICKET-022 statistics surface (SPEC.md 5.4「内容与统计」). The overview
+    // answers by role (admin totals / doctor workbench); the patient overview is
+    // patient-only; trends take a `days` window; the two distributions are
+    // admin-only chart data.
+    async statOverview() {
+      return call({ path: '/stat/overview', authed: true })
+    },
+
+    async userOverview() {
+      return call({ path: '/stat/user-overview', authed: true })
+    },
+
+    async consultTrend(days = 7) {
+      return call({ path: '/stat/consult-trend', query: { days }, authed: true })
+    },
+
+    async appointmentsByDepartment() {
+      return call({ path: '/stat/appointments-by-department', authed: true })
+    },
+
+    async userGrowth(days = 7) {
+      return call({ path: '/stat/user-growth', query: { days }, authed: true })
+    },
+
+    async knowledgeTypes() {
+      return call({ path: '/stat/knowledge-types', authed: true })
+    },
+
     // TICKET-016 graph surface (SPEC.md 5.4「知识图谱」). The four read-only
     // endpoints are public; inference and stats carry the token.
     async graphOverview() {

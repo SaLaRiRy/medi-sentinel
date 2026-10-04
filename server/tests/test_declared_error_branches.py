@@ -93,6 +93,13 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/notices/{notice_id}", "put"): {401, 403, 404, 422},
     ("/api/v1/notices/{notice_id}", "delete"): {401, 403, 404},
     ("/api/v1/notices/{notice_id}", "get"): {404},
+    # TICKET-022 数据统计
+    ("/api/v1/stat/overview", "get"): {401, 403},
+    ("/api/v1/stat/user-overview", "get"): {401, 403},
+    ("/api/v1/stat/consult-trend", "get"): {401, 403, 422},
+    ("/api/v1/stat/appointments-by-department", "get"): {401, 403},
+    ("/api/v1/stat/user-growth", "get"): {401, 403, 422},
+    ("/api/v1/stat/knowledge-types", "get"): {401, 403},
 }
 
 

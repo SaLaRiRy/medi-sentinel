@@ -15,6 +15,7 @@ from api.v1 import (
     observability,
     profile,
     records,
+    stat,
     users,
 )
 
@@ -34,3 +35,4 @@ api_router.include_router(users.router)
 api_router.include_router(doctors.router)
 api_router.include_router(articles.router)
 api_router.include_router(notices.router)
+api_router.include_router(stat.router)

@@ -4884,6 +4884,300 @@
           }
         }
       }
+    },
+    "/api/v1/stat/overview": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "Stat Overview",
+        "operationId": "stat_overview_api_v1_stat_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_StatOverviewView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stat/user-overview": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "User Overview",
+        "operationId": "user_overview_api_v1_stat_user_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UserStatView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stat/consult-trend": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "Consult Trend",
+        "operationId": "consult_trend_api_v1_stat_consult_trend_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_StatTrendPoint__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stat/appointments-by-department": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "Appointments By Department",
+        "operationId": "appointments_by_department_api_v1_stat_appointments_by_department_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_StatDistributionItem__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stat/user-growth": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "User Growth",
+        "operationId": "user_growth_api_v1_stat_user_growth_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_StatTrendPoint__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/stat/knowledge-types": {
+      "get": {
+        "tags": [
+          "stat"
+        ],
+        "summary": "Knowledge Types",
+        "operationId": "knowledge_types_api_v1_stat_knowledge_types_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_StatDistributionItem__"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6839,6 +7133,32 @@
         "type": "object",
         "title": "Envelope[ProfileView]"
       },
+      "Envelope_StatOverviewView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StatOverviewView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[StatOverviewView]"
+      },
       "Envelope_TokenResponse_": {
         "properties": {
           "code": {
@@ -6890,6 +7210,32 @@
         },
         "type": "object",
         "title": "Envelope[TraceView]"
+      },
+      "Envelope_UserStatView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserStatView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[UserStatView]"
       },
       "Envelope_UserView_": {
         "properties": {
@@ -7276,6 +7622,66 @@
         },
         "type": "object",
         "title": "Envelope[list[SkillManifestView]]"
+      },
+      "Envelope_list_StatDistributionItem__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StatDistributionItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[list[StatDistributionItem]]"
+      },
+      "Envelope_list_StatTrendPoint__": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StatTrendPoint"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "title": "Envelope[list[StatTrendPoint]]"
       },
       "GraphEdge": {
         "properties": {
@@ -8877,6 +9283,162 @@
         ],
         "title": "SpanView"
       },
+      "StatDistributionItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "integer",
+            "title": "Value",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "StatDistributionItem",
+        "description": "分布的一项（`{name, value}`）。"
+      },
+      "StatOverviewView": {
+        "properties": {
+          "user_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Count"
+          },
+          "doctor_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Count"
+          },
+          "session_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Count"
+          },
+          "appointment_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appointment Count"
+          },
+          "knowledge_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Knowledge Count"
+          },
+          "article_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Article Count"
+          },
+          "pending_consults": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Consults"
+          },
+          "today_appointments": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Today Appointments"
+          },
+          "replied_consults": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replied Consults"
+          },
+          "total_patients": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Patients"
+          }
+        },
+        "type": "object",
+        "title": "StatOverviewView",
+        "description": "`SPEC.md` 5.4：`StatOverviewView`（按角色字段不同）。\n\n管理员填前六项总数，医生填后四项工作台指标；另一角色的字段为 `None`，\n由 `response_model_exclude_none=True` 从响应中略去。"
+      },
+      "StatTrendPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Date"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "date"
+        ],
+        "title": "StatTrendPoint",
+        "description": "趋势上的一天（`{date, count}`）。"
+      },
       "TokenResponse": {
         "properties": {
           "access_token": {
@@ -9080,6 +9642,33 @@
         ],
         "title": "UserCreateRequest",
         "description": "`SPEC.md` 5.3：`UserCreateRequest`。"
+      },
+      "UserStatView": {
+        "properties": {
+          "consult_count": {
+            "type": "integer",
+            "title": "Consult Count",
+            "default": 0
+          },
+          "appointment_count": {
+            "type": "integer",
+            "title": "Appointment Count",
+            "default": 0
+          },
+          "record_count": {
+            "type": "integer",
+            "title": "Record Count",
+            "default": 0
+          },
+          "session_count": {
+            "type": "integer",
+            "title": "Session Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "UserStatView",
+        "description": "`SPEC.md` 5.4：`UserStatView`（患者个人概览）。"
       },
       "UserStatusRequest": {
         "properties": {

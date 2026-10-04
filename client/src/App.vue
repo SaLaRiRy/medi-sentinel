@@ -12,6 +12,7 @@ import { resolveNavigation } from './session/routes.js'
 import AdminAppointmentsView from './views/AdminAppointmentsView.vue'
 import AdminArticlesView from './views/AdminArticlesView.vue'
 import AdminConsultsView from './views/AdminConsultsView.vue'
+import AdminDashboardView from './views/AdminDashboardView.vue'
 import AdminDepartmentsView from './views/AdminDepartmentsView.vue'
 import AdminDoctorsView from './views/AdminDoctorsView.vue'
 import AdminNoticesView from './views/AdminNoticesView.vue'
@@ -22,6 +23,7 @@ import ChatView from './views/ChatView.vue'
 import ConsultView from './views/ConsultView.vue'
 import DoctorAppointmentsView from './views/DoctorAppointmentsView.vue'
 import DoctorConsultsView from './views/DoctorConsultsView.vue'
+import DoctorDashboardView from './views/DoctorDashboardView.vue'
 import DoctorPatientsView from './views/DoctorPatientsView.vue'
 import GraphView from './views/GraphView.vue'
 import LoginView from './views/LoginView.vue'
@@ -207,6 +209,16 @@ function handleError(error) {
         />
         <AdminNoticesView
           v-else-if="screen === 'admin-notices'"
+          :client="client"
+          @error="handleError"
+        />
+        <AdminDashboardView
+          v-else-if="screen === 'home' && auth.role === 'admin'"
+          :client="client"
+          @error="handleError"
+        />
+        <DoctorDashboardView
+          v-else-if="screen === 'home' && auth.role === 'doctor'"
           :client="client"
           @error="handleError"
         />
