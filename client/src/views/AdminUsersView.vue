@@ -182,6 +182,10 @@ onMounted(load)
 
 <template>
   <section class="admin-users">
+    <header class="page-head">
+      <h1 class="page-head__title">患者管理</h1>
+    </header>
+
     <el-card class="admin-users__card admin-users__card--form" shadow="never">
       <template #header>
         <span class="card-title">{{ editingId === null ? '新建患者' : '编辑患者' }}</span>
