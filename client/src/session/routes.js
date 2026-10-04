@@ -1,9 +1,14 @@
 /**
  * F-3: the front-end's single route table, framework-free.
  *
- * vue-router cannot be installed offline (TICKET-012 已确认), so the route table
- * is one plain map and the F-3 guard is the only auth pivot that reads it
+ * 014–022 shipped without vue-router (012 时离线装不上), so the route table is
+ * one plain map and the F-3 guard is the only auth pivot that reads it
  * (AC-F-09). Views never decide access themselves.
+ *
+ * TICKET-028 installed vue-router; `router/routes.js` now builds its records
+ * from this table (path → screen + access), so this stays the single source of
+ * truth for access semantics. `resolveRoute` / `resolveNavigation` are kept
+ * until 029/030 finish migrating the views.
  */
 
 import { resolveAccess } from './guard.js'
