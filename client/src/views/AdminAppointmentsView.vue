@@ -1,5 +1,7 @@
 <!--
   管理端预约管理（TICKET-017，FUNCTIONAL_SPEC 2.7 / 5.20）。
+  TICKET-030 改用 element-plus：el-form/el-input/el-select/el-date-picker 过滤，
+  el-table 列预约，el-tag 状态，el-button 操作，el-pagination 翻页。
 
   分页查看全部预约，可按科室、就诊日期、状态与关键字过滤；可更新状态、删除记录。
   删除最后一条时页码回退（AC-F-12），列表加载失败置空并展示空状态。所有后端调用
@@ -24,6 +26,7 @@ const total = ref(0)
 const page = ref(1)
 const filters = ref({ keyword: '', department_id: '', visit_date: '', status: '' })
 const loadError = ref(null)
+const loading = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
@@ -32,6 +35,7 @@ function optionalNumber(value) {
 }
 
 async function load() {
+  loading.value = true
   try {
     const data = await props.client.adminAppointments({
       page: page.value,
@@ -49,6 +53,8 @@ async function load() {
     total.value = 0
     loadError.value = '预约列表加载失败'
     emit('error', failure)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -67,6 +73,7 @@ function goTo(target) {
 async function update(appointmentId, status) {
   try {
     await props.client.updateAppointmentStatus(appointmentId, status)
+    ElMessage.success('预约状态已更新')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -78,6 +85,7 @@ async function remove(appointmentId) {
     await props.client.deleteAppointment(appointmentId)
     // Deleting the last row of a page falls back one page (AC-F-12).
     if (items.value.length === 1 && page.value > 1) page.value -= 1
+    ElMessage.success('预约已删除')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -89,80 +97,165 @@ onMounted(load)
 
 <template>
   <section class="admin-appointments">
-    <form data-filter-form class="admin-appointments__filters" @submit.prevent="search">
-      <input v-model="filters.keyword" data-filter-keyword placeholder="按患者或医生搜索" />
-      <input
-        v-model="filters.department_id"
-        data-filter-department-id
-        placeholder="科室编号"
-      />
-      <input v-model="filters.visit_date" data-filter-visit-date type="date" />
-      <select v-model="filters.status" data-filter-status>
-        <option value="">全部状态</option>
-        <option value="0">待确认</option>
-        <option value="1">已确认</option>
-        <option value="2">已完成</option>
-        <option value="3">已取消</option>
-      </select>
-      <button type="submit">筛选</button>
-    </form>
+    <el-card class="admin-appointments__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span class="card-title">预约管理</span>
+          <el-tag size="small" type="info" effect="plain">{{ total }} 条</el-tag>
+        </div>
+      </template>
 
-    <p v-if="loadError" data-error class="admin-appointments__error">
-      {{ loadError }}
-    </p>
-    <p v-else-if="items.length === 0" data-empty class="admin-appointments__empty">
-      暂无预约
-    </p>
+      <el-form
+        data-filter-form
+        class="admin-appointments__filters"
+        :model="filters"
+        @submit.prevent="search"
+      >
+        <el-input v-model="filters.keyword" data-filter-keyword placeholder="按患者或医生搜索" clearable />
+        <el-input v-model="filters.department_id" data-filter-department-id placeholder="科室编号" />
+        <span data-filter-visit-date>
+          <el-date-picker
+            v-model="filters.visit_date"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="就诊日期"
+          />
+        </span>
+        <el-select
+          v-model="filters.status"
+          data-filter-status
+          placeholder="全部状态"
+          :teleported="false"
+        >
+          <el-option value="" label="全部状态" />
+          <el-option value="0" label="待确认" />
+          <el-option value="1" label="已确认" />
+          <el-option value="2" label="已完成" />
+          <el-option value="3" label="已取消" />
+        </el-select>
+        <el-button type="primary" native-type="submit">筛选</el-button>
+      </el-form>
 
-    <table v-else class="admin-appointments__table">
-      <thead>
-        <tr>
-          <th>患者</th>
-          <th>医生</th>
-          <th>科室编号</th>
-          <th>就诊日期</th>
-          <th>时段</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-appointment-row>
-          <td data-patient-name>{{ item.user_name ?? '-' }}</td>
-          <td data-doctor-name>{{ item.doctor_name ?? '-' }}</td>
-          <td>{{ item.department_id }}</td>
-          <td data-visit-date>{{ item.visit_date }}</td>
-          <td>{{ item.time_slot }}</td>
-          <td data-status>{{ appointmentStatusLabel(item.status) }}</td>
-          <td class="admin-appointments__actions">
-            <button
+      <p v-if="loadError" data-error class="admin-appointments__message admin-appointments__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="admin-appointments__table">
+        <template #empty>
+          <span data-empty>暂无预约</span>
+        </template>
+        <el-table-column prop="user_name" label="患者" min-width="100">
+          <template #default="{ row }">
+            <span data-patient-name>{{ row.user_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="doctor_name" label="医生" min-width="100">
+          <template #default="{ row }">
+            <span data-doctor-name>{{ row.doctor_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="department_id" label="科室编号" min-width="90">
+          <template #default="{ row }">
+            <span data-department-id>{{ row.department_id }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="visit_date" label="就诊日期" min-width="120">
+          <template #default="{ row }">
+            <span data-visit-date>{{ row.visit_date }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="time_slot" label="时段" min-width="90">
+          <template #default="{ row }">
+            <span data-time-slot>{{ row.time_slot }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag data-status effect="plain">{{ appointmentStatusLabel(row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="240">
+          <template #default="{ row }">
+            <el-button
               v-for="action in APPOINTMENT_STATUS_ACTIONS"
               :key="action.value"
-              type="button"
+              size="small"
+              plain
               :data-set-status="action.value"
-              @click="update(item.id, action.value)"
+              @click="update(row.id, action.value)"
             >
               {{ action.label }}
-            </button>
-            <button type="button" data-delete @click="remove(item.id)">删除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </el-button>
+            <el-button size="small" type="danger" plain data-delete @click="remove(row.id)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <footer class="admin-appointments__pager">
-      <button type="button" data-prev :disabled="page <= 1" @click="goTo(page - 1)">
-        上一页
-      </button>
-      <span data-page>{{ page }} / {{ totalPages }}</span>
-      <button
-        type="button"
-        data-next
-        :disabled="page >= totalPages"
-        @click="goTo(page + 1)"
-      >
-        下一页
-      </button>
-    </footer>
+      <div class="admin-appointments__pager">
+        <el-pagination
+          data-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="PAGE_SIZE"
+          :total="total"
+          @current-change="goTo"
+        />
+      </div>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.admin-appointments {
+  padding: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-appointments__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-appointments__filters :deep(.el-input) {
+  width: 200px;
+}
+
+.admin-appointments__filters :deep(.el-select) {
+  width: 160px;
+}
+
+/* el-date-picker does not forward attrs; its outer span carries the anchor and
+   keeps the non-teleported select dropdown / date panel inside the card. */
+.admin-appointments__filters [data-filter-visit-date] {
+  display: inline-flex;
+}
+
+.admin-appointments__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.admin-appointments__message--error {
+  color: var(--el-color-danger);
+}
+
+.admin-appointments__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>

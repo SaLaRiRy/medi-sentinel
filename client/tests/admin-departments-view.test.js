@@ -41,7 +41,8 @@ describe('AdminDepartmentsView list (TICKET-020)', () => {
     const wrapper = mount(AdminDepartmentsView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-department-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(2)
     expect(rows[0].text()).toContain('内科')
     expect(rows[0].text()).toContain('3')

@@ -69,7 +69,8 @@ describe('KnowledgeView list (TICKET-015)', () => {
     const wrapper = mount(KnowledgeView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-knowledge-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('高血压.md')
     expect(rows[0].text()).toContain('已向量化')
@@ -90,7 +91,7 @@ describe('KnowledgeView list (TICKET-015)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-knowledge-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 
@@ -100,7 +101,8 @@ describe('KnowledgeView list (TICKET-015)', () => {
     await flushPromises()
 
     await wrapper.find('[data-keyword]').setValue('糖尿病')
-    await wrapper.find('[data-file-type]').setValue('pdf')
+    // TICKET-030: el-select is a component; drive its model.
+    await wrapper.findComponent('[data-file-type]').setValue('pdf')
     await wrapper.find('[data-search]').trigger('submit.prevent')
     await flushPromises()
 
@@ -116,7 +118,9 @@ describe('KnowledgeView actions (TICKET-015)', () => {
     const wrapper = mount(KnowledgeView, { props: { client } })
     await flushPromises()
     const file = new File(['高血压'], '指南.md', { type: 'text/markdown' })
-    const input = wrapper.find('[data-upload]')
+    // TICKET-030: el-upload renders its own <input type="file"> under the
+    // `data-upload` anchor; the change-driven upload flow is unchanged.
+    const input = wrapper.find('[data-upload] input[type="file"]')
     Object.defineProperty(input.element, 'files', { value: [file] })
 
     await input.trigger('change')
@@ -131,7 +135,7 @@ describe('KnowledgeView actions (TICKET-015)', () => {
     const wrapper = mount(KnowledgeView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-revectorize]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-revectorize]').trigger('click')
     await flushPromises()
 
     expect(client.revectorizeKnowledge).toHaveBeenCalledWith(8)
@@ -147,13 +151,13 @@ describe('KnowledgeView actions (TICKET-015)', () => {
     })
     const wrapper = mount(KnowledgeView, { props: { client } })
     await flushPromises()
-    await wrapper.find('[data-next]').trigger('click')
+    await wrapper.find('.btn-next').trigger('click')
     await flushPromises()
     expect(client.knowledgeFiles).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 2 })
     )
 
-    await wrapper.find('[data-delete]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-delete]').trigger('click')
     await flushPromises()
 
     expect(client.deleteKnowledge).toHaveBeenCalledWith(11)

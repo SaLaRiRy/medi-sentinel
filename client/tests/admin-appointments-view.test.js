@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { ElDatePicker } from 'element-plus'
 
 import AdminAppointmentsView from '../src/views/AdminAppointmentsView.vue'
 
@@ -46,7 +47,8 @@ describe('AdminAppointmentsView list (TICKET-017)', () => {
     const wrapper = mount(AdminAppointmentsView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-appointment-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('张三')
     expect(rows[0].text()).toContain('李医生')
@@ -61,7 +63,7 @@ describe('AdminAppointmentsView list (TICKET-017)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-appointment-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 
@@ -72,8 +74,9 @@ describe('AdminAppointmentsView list (TICKET-017)', () => {
 
     await wrapper.find('[data-filter-keyword]').setValue('张三')
     await wrapper.find('[data-filter-department-id]').setValue('3')
-    await wrapper.find('[data-filter-visit-date]').setValue('2026-10-20')
-    await wrapper.find('[data-filter-status]').setValue('1')
+    // TICKET-030: el-date-picker / el-select are components; drive their models.
+    await wrapper.findComponent(ElDatePicker).setValue('2026-10-20')
+    await wrapper.findComponent('[data-filter-status]').setValue('1')
     await wrapper.find('[data-filter-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -95,7 +98,9 @@ describe('AdminAppointmentsView actions (TICKET-017)', () => {
     const wrapper = mount(AdminAppointmentsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-set-status="2"]').trigger('click')
+    // TICKET-030: scope row actions to the stable `.el-table__row` — ElTable
+    // renders a hidden measuring copy of every column's slot.
+    await wrapper.find('.el-table__row').find('[data-set-status="2"]').trigger('click')
     await flushPromises()
 
     expect(client.updateAppointmentStatus).toHaveBeenCalledWith(8, 2)
@@ -112,13 +117,13 @@ describe('AdminAppointmentsView actions (TICKET-017)', () => {
     })
     const wrapper = mount(AdminAppointmentsView, { props: { client } })
     await flushPromises()
-    await wrapper.find('[data-next]').trigger('click')
+    await wrapper.find('.btn-next').trigger('click')
     await flushPromises()
     expect(client.adminAppointments).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 2 })
     )
 
-    await wrapper.find('[data-delete]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-delete]').trigger('click')
     await flushPromises()
 
     expect(client.deleteAppointment).toHaveBeenCalledWith(11)

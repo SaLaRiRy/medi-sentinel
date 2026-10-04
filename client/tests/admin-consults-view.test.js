@@ -37,7 +37,8 @@ describe('AdminConsultsView (TICKET-019)', () => {
     const wrapper = mount(AdminConsultsView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-consult-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('张三')
     expect(rows[0].text()).toContain('李医生')
@@ -53,7 +54,8 @@ describe('AdminConsultsView (TICKET-019)', () => {
     const wrapper = mount(AdminConsultsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-status-filter]').setValue('0')
+    // TICKET-030: el-select is a component; drive its model.
+    await wrapper.findComponent('[data-status-filter]').setValue('0')
     await flushPromises()
 
     expect(client.adminConsults).toHaveBeenLastCalledWith({
@@ -70,7 +72,7 @@ describe('AdminConsultsView (TICKET-019)', () => {
     })
     const wrapper = mount(AdminConsultsView, { props: { client } })
     await flushPromises()
-    await wrapper.find('[data-next-page]').trigger('click')
+    await wrapper.find('.btn-next').trigger('click')
     await flushPromises()
 
     await wrapper.find('[data-delete="42"]').trigger('click')

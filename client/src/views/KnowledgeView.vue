@@ -1,5 +1,7 @@
 <!--
   管理端知识库管理（TICKET-015，FUNCTIONAL_SPEC 2.12 / 5.6）。
+  TICKET-030 改用 element-plus：el-form/el-input/el-select 检索 + el-upload 上传，
+  el-table 列文档，el-tag 状态，el-button 操作，el-pagination 翻页。
 
   上传 → 「已上传 → 处理中 → 已向量化 / 失败」的状态流转、按文件名与类型检索、
   重新向量化、删除。列表只要还有状态 0 或 1 的行就按 `POLL_INTERVAL_MS` 静默
@@ -10,7 +12,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 import { POLL_INTERVAL_MS, needsPolling } from '../knowledge/polling.js'
-import { vectorStatusLabel } from '../knowledge/status.js'
+import { vectorStatusColor, vectorStatusLabel } from '../knowledge/status.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -27,12 +29,14 @@ const page = ref(1)
 const keyword = ref('')
 const fileType = ref('')
 const loadError = ref(null)
+const loading = ref(false)
 
 let timer = null
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
 async function load() {
+  loading.value = true
   try {
     const data = await props.client.knowledgeFiles({
       page: page.value,
@@ -49,6 +53,7 @@ async function load() {
     loadError.value = '知识库列表加载失败'
     emit('error', failure)
   } finally {
+    loading.value = false
     syncPolling()
   }
 }
@@ -81,22 +86,22 @@ function goTo(target) {
   load()
 }
 
-async function upload(event) {
-  const file = event.target.files?.[0]
+async function upload(uploadFile) {
+  const file = uploadFile?.raw
   if (!file) return
   try {
     await props.client.uploadKnowledge(file)
+    ElMessage.success('文档已上传')
     await load()
   } catch (failure) {
     emit('error', failure)
-  } finally {
-    event.target.value = ''
   }
 }
 
 async function revectorize(fileId) {
   try {
     await props.client.revectorizeKnowledge(fileId)
+    ElMessage.success('已重新触发向量化')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -108,6 +113,7 @@ async function remove(fileId) {
     await props.client.deleteKnowledge(fileId)
     // Deleting the last row of a page falls back one page (AC-F-12).
     if (items.value.length === 1 && page.value > 1) page.value -= 1
+    ElMessage.success('文档已删除')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -120,82 +126,156 @@ onUnmounted(stopPolling)
 
 <template>
   <section class="knowledge">
-    <header class="knowledge__toolbar">
-      <form data-search class="knowledge__search" @submit.prevent="search">
-        <input v-model="keyword" data-keyword placeholder="按文件名或类型搜索" />
-        <select v-model="fileType" data-file-type>
-          <option value="">全部类型</option>
-          <option value="txt">txt</option>
-          <option value="md">md</option>
-          <option value="markdown">markdown</option>
-          <option value="pdf">pdf</option>
-          <option value="doc">doc</option>
-          <option value="docx">docx</option>
-        </select>
-        <button type="submit">搜索</button>
-      </form>
-      <label class="knowledge__upload">
-        上传文档
-        <input
+    <el-card class="knowledge__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span class="card-title">知识库文档</span>
+          <el-tag size="small" type="info" effect="plain">{{ total }} 个</el-tag>
+        </div>
+      </template>
+
+      <header class="knowledge__toolbar">
+        <el-form data-search class="knowledge__search" @submit.prevent="search">
+          <el-input v-model="keyword" data-keyword placeholder="按文件名或类型搜索" clearable />
+          <el-select
+            v-model="fileType"
+            data-file-type
+            placeholder="全部类型"
+            :teleported="false"
+          >
+            <el-option value="" label="全部类型" />
+            <el-option value="txt" label="txt" />
+            <el-option value="md" label="md" />
+            <el-option value="markdown" label="markdown" />
+            <el-option value="pdf" label="pdf" />
+            <el-option value="doc" label="doc" />
+            <el-option value="docx" label="docx" />
+          </el-select>
+          <el-button native-type="submit">搜索</el-button>
+        </el-form>
+
+        <el-upload
           data-upload
-          type="file"
+          class="knowledge__upload"
+          :auto-upload="false"
+          :show-file-list="false"
           :accept="ACCEPTED_TYPES"
-          @change="upload"
-        />
-      </label>
-    </header>
+          :on-change="upload"
+        >
+          <el-button type="primary" plain>上传文档</el-button>
+        </el-upload>
+      </header>
 
-    <p v-if="loadError" data-error class="knowledge__error">{{ loadError }}</p>
-    <p v-else-if="items.length === 0" data-empty class="knowledge__empty">
-      暂无知识库文档
-    </p>
-
-    <table v-else class="knowledge__table">
-      <thead>
-        <tr>
-          <th>文件名</th>
-          <th>类型</th>
-          <th>大小</th>
-          <th>分块数</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-knowledge-row>
-          <td data-file-name>{{ item.file_name }}</td>
-          <td>{{ item.file_type }}</td>
-          <td>{{ item.file_size }}</td>
-          <td data-chunk-count>{{ item.chunk_count }}</td>
-          <td data-status>{{ vectorStatusLabel(item.vector_status) }}</td>
-          <td class="knowledge__actions">
-            <button type="button" data-revectorize @click="revectorize(item.id)">
+      <p v-if="loadError" data-error class="knowledge__message knowledge__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="knowledge__table">
+        <template #empty>
+          <span data-empty>暂无知识库文档</span>
+        </template>
+        <el-table-column prop="file_name" label="文件名" min-width="180">
+          <template #default="{ row }">
+            <span data-file-name>{{ row.file_name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="file_type" label="类型" min-width="90">
+          <template #default="{ row }">
+            <span data-file-type>{{ row.file_type }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="file_size" label="大小" min-width="90">
+          <template #default="{ row }">
+            <span data-file-size>{{ row.file_size }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="chunk_count" label="分块数" min-width="90">
+          <template #default="{ row }">
+            <span data-chunk-count>{{ row.chunk_count }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="110">
+          <template #default="{ row }">
+            <el-tag data-status :type="vectorStatusColor(row.vector_status)" effect="light">
+              {{ vectorStatusLabel(row.vector_status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="200">
+          <template #default="{ row }">
+            <el-button size="small" data-revectorize @click="revectorize(row.id)">
               重新向量化
-            </button>
-            <button type="button" data-delete @click="remove(item.id)">删除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </el-button>
+            <el-button size="small" type="danger" plain data-delete @click="remove(row.id)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <footer class="knowledge__pager">
-      <button
-        type="button"
-        data-prev
-        :disabled="page <= 1"
-        @click="goTo(page - 1)"
-      >
-        上一页
-      </button>
-      <span data-page>{{ page }} / {{ totalPages }}</span>
-      <button
-        type="button"
-        data-next
-        :disabled="page >= totalPages"
-        @click="goTo(page + 1)"
-      >
-        下一页
-      </button>
-    </footer>
+      <div class="knowledge__pager">
+        <el-pagination
+          data-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="PAGE_SIZE"
+          :total="total"
+          @current-change="goTo"
+        />
+      </div>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.knowledge {
+  padding: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.knowledge__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.knowledge__search {
+  display: flex;
+  gap: 12px;
+}
+
+.knowledge__search :deep(.el-input) {
+  width: 240px;
+}
+
+.knowledge__search :deep(.el-select) {
+  width: 140px;
+}
+
+.knowledge__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.knowledge__message--error {
+  color: var(--el-color-danger);
+}
+
+.knowledge__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>

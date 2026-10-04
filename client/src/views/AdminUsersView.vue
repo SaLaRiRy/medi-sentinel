@@ -1,5 +1,7 @@
 <!--
   管理端患者管理（TICKET-020，FUNCTIONAL_SPEC 2.5 / SPEC.md 5.4）。
+  TICKET-030 改用 element-plus：el-form/el-input/el-select 录入，el-table 列患者，
+  el-tag 状态，el-button 操作，el-pagination 翻页。
 
   分页查看患者、新建、编辑、启停与删除。删除患者由后端按 5.11 的顺序级联清理
   会话与消息、工单与回复、预约、档案。表单校验在提交时命令式判断（FUNCTIONAL_SPEC
@@ -9,7 +11,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 
-import { accountStatusAction, accountStatusLabel, accountStatusToggleValue } from '../account/status.js'
+import {
+  accountStatusAction,
+  accountStatusColor,
+  accountStatusLabel,
+  accountStatusToggleValue,
+} from '../account/status.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -24,6 +31,7 @@ const keyword = ref('')
 const loadError = ref(null)
 const formError = ref(null)
 const editingId = ref(null)
+const loading = ref(false)
 
 const emptyForm = () => ({
   username: '',
@@ -38,6 +46,7 @@ const emptyForm = () => ({
 const form = ref(emptyForm())
 
 async function load() {
+  loading.value = true
   try {
     const data = await props.client.adminUsers({
       page: page.value,
@@ -52,6 +61,8 @@ async function load() {
     total.value = 0
     loadError.value = '患者列表加载失败'
     emit('error', failure)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -137,6 +148,7 @@ async function submit() {
   try {
     if (editingId.value === null) await props.client.createUser(payload())
     else await props.client.updateUser(editingId.value, payload())
+    ElMessage.success(editingId.value === null ? '患者已创建' : '患者已更新')
     resetForm()
     await load()
   } catch (failure) {
@@ -148,6 +160,7 @@ async function remove(userId) {
   try {
     await props.client.deleteUser(userId)
     if (items.value.length === 1 && page.value > 1) page.value -= 1
+    ElMessage.success('患者已删除')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -157,6 +170,7 @@ async function remove(userId) {
 async function toggleStatus(item) {
   try {
     await props.client.updateUserStatus(item.id, accountStatusToggleValue(item.status))
+    ElMessage.success('状态已更新')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -168,79 +182,192 @@ onMounted(load)
 
 <template>
   <section class="admin-users">
-    <form data-user-form class="admin-users__form" @submit.prevent="submit">
-      <input v-model="form.username" data-username placeholder="用户名" :disabled="editingId !== null" />
-      <input v-model="form.password" data-password type="password" placeholder="口令" />
-      <input
-        v-model="form.confirm_password"
-        data-confirm-password
-        type="password"
-        placeholder="确认口令"
-      />
-      <input v-model="form.real_name" data-real-name placeholder="姓名" />
-      <select v-model="form.gender" data-gender>
-        <option :value="1">男</option>
-        <option :value="2">女</option>
-      </select>
-      <input v-model="form.age" data-age type="number" placeholder="年龄" />
-      <input v-model="form.phone" data-phone placeholder="手机号" />
-      <input v-model="form.allergy_history" data-allergy-history placeholder="过敏史" />
-      <button type="submit" data-submit>保存</button>
-      <button v-if="editingId !== null" type="button" data-cancel @click="resetForm">
-        取消
-      </button>
-    </form>
+    <el-card class="admin-users__card admin-users__card--form" shadow="never">
+      <template #header>
+        <span class="card-title">{{ editingId === null ? '新建患者' : '编辑患者' }}</span>
+      </template>
 
-    <form data-search class="admin-users__search" @submit.prevent="search">
-      <input v-model="keyword" data-keyword placeholder="按用户名或姓名搜索" />
-      <button type="submit">搜索</button>
-    </form>
-
-    <p v-if="formError" data-form-error class="admin-users__error">{{ formError }}</p>
-    <p v-if="loadError" data-error class="admin-users__error">{{ loadError }}</p>
-    <p v-else-if="items.length === 0" data-empty class="admin-users__empty">暂无患者</p>
-
-    <table v-else class="admin-users__table">
-      <thead>
-        <tr>
-          <th>用户名</th>
-          <th>姓名</th>
-          <th>性别</th>
-          <th>年龄</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-user-row>
-          <td data-cell-username>{{ item.username }}</td>
-          <td data-cell-name>{{ item.real_name ?? '-' }}</td>
-          <td data-cell-gender>{{ item.gender === 2 ? '女' : '男' }}</td>
-          <td data-cell-age>{{ item.age ?? '-' }}</td>
-          <td data-cell-status>{{ accountStatusLabel(item.status) }}</td>
-          <td class="admin-users__actions">
-            <button type="button" :data-edit="item.id" @click="startEdit(item)">编辑</button>
-            <button type="button" :data-status-toggle="item.id" @click="toggleStatus(item)">
-              {{ accountStatusAction(item.status) }}
-            </button>
-            <button type="button" :data-delete="item.id" @click="remove(item.id)">删除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <footer class="admin-users__pager">
-      <button type="button" data-prev :disabled="page <= 1" @click="goTo(page - 1)">
-        上一页
-      </button>
-      <button
-        type="button"
-        data-next
-        :disabled="page * PAGE_SIZE >= total"
-        @click="goTo(page + 1)"
+      <el-form
+        data-user-form
+        :model="form"
+        label-width="88px"
+        class="admin-users__form"
+        @submit.prevent="submit"
       >
-        下一页
-      </button>
-    </footer>
+        <el-form-item label="用户名">
+          <el-input
+            v-model="form.username"
+            data-username
+            placeholder="用户名"
+            :disabled="editingId !== null"
+          />
+        </el-form-item>
+        <el-form-item label="口令">
+          <el-input v-model="form.password" data-password type="password" placeholder="口令" />
+        </el-form-item>
+        <el-form-item label="确认口令">
+          <el-input
+            v-model="form.confirm_password"
+            data-confirm-password
+            type="password"
+            placeholder="确认口令"
+          />
+        </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="form.real_name" data-real-name placeholder="姓名" />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-select v-model="form.gender" data-gender :teleported="false">
+            <el-option :value="1" label="男" />
+            <el-option :value="2" label="女" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="年龄">
+          <el-input v-model="form.age" data-age type="number" placeholder="年龄" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="form.phone" data-phone placeholder="手机号" />
+        </el-form-item>
+        <el-form-item label="过敏史">
+          <el-input v-model="form.allergy_history" data-allergy-history placeholder="过敏史" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" data-submit native-type="submit">保存</el-button>
+          <el-button v-if="editingId !== null" data-cancel @click="resetForm">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+      <p v-if="formError" data-form-error class="admin-users__message admin-users__message--error">
+        {{ formError }}
+      </p>
+    </el-card>
+
+    <el-card class="admin-users__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span class="card-title">患者列表</span>
+          <el-tag size="small" type="info" effect="plain">{{ total }} 人</el-tag>
+        </div>
+      </template>
+
+      <el-form data-search class="admin-users__search" @submit.prevent="search">
+        <el-input v-model="keyword" data-keyword placeholder="按用户名或姓名搜索" clearable />
+        <el-button native-type="submit">搜索</el-button>
+      </el-form>
+
+      <p v-if="loadError" data-error class="admin-users__message admin-users__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="admin-users__table">
+        <template #empty>
+          <span data-empty>暂无患者</span>
+        </template>
+        <el-table-column prop="username" label="用户名" min-width="120">
+          <template #default="{ row }">
+            <span data-cell-username>{{ row.username }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="real_name" label="姓名" min-width="100">
+          <template #default="{ row }">
+            <span data-cell-name>{{ row.real_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="性别" min-width="80">
+          <template #default="{ row }">
+            <span data-cell-gender>{{ row.gender === 2 ? '女' : '男' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="age" label="年龄" min-width="80">
+          <template #default="{ row }">
+            <span data-cell-age>{{ row.age ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="90">
+          <template #default="{ row }">
+            <el-tag data-cell-status :type="accountStatusColor(row.status)" effect="light">
+              {{ accountStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="220">
+          <template #default="{ row }">
+            <el-button size="small" :data-edit="row.id" @click="startEdit(row)">编辑</el-button>
+            <el-button size="small" :data-status-toggle="row.id" @click="toggleStatus(row)">
+              {{ accountStatusAction(row.status) }}
+            </el-button>
+            <el-button size="small" type="danger" plain :data-delete="row.id" @click="remove(row.id)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="admin-users__pager">
+        <el-pagination
+          data-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="PAGE_SIZE"
+          :total="total"
+          @current-change="goTo"
+        />
+      </div>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.admin-users {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-users__form {
+  max-width: 560px;
+}
+
+/* Keep the non-teleported el-select dropdown from being clipped by el-card. */
+.admin-users__card--form,
+.admin-users__card--form :deep(.el-card__body) {
+  overflow: visible;
+}
+
+.admin-users__search {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-users__search :deep(.el-input) {
+  max-width: 320px;
+}
+
+.admin-users__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.admin-users__message--error {
+  color: var(--el-color-danger);
+}
+
+.admin-users__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>

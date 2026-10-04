@@ -103,7 +103,8 @@ describe('GraphView (TICKET-016)', () => {
     await wrapper.find('[data-search-result]').trigger('click')
     await flushPromises()
 
-    await wrapper.find('[data-depth]').setValue('3')
+    // TICKET-030: el-select is a component; drive its model.
+    await wrapper.findComponent('[data-depth]').setValue('3')
     await flushPromises()
 
     expect(client.graphNeighbors).toHaveBeenLastCalledWith('高血压', 3)

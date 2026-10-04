@@ -51,7 +51,8 @@ async function fillCreate(
   await wrapper.find('[data-password]').setValue(password)
   await wrapper.find('[data-confirm-password]').setValue(password)
   await wrapper.find('[data-real-name]').setValue(realName)
-  await wrapper.find('[data-department]').setValue(department)
+  // TICKET-030: el-select is a component; drive its model.
+  await wrapper.findComponent('[data-department]').setValue(department)
 }
 
 describe('AdminDoctorsView list (TICKET-020)', () => {
@@ -60,7 +61,8 @@ describe('AdminDoctorsView list (TICKET-020)', () => {
     const wrapper = mount(AdminDoctorsView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-doctor-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(2)
     expect(rows[0].text()).toContain('李医生')
     expect(rows[0].text()).toContain('内科')
@@ -76,7 +78,8 @@ describe('AdminDoctorsView list (TICKET-020)', () => {
     const options = wrapper.findAll('[data-department-option]')
     expect(options).toHaveLength(1)
     expect(options[0].text()).toContain('外科')
-    expect(options[0].attributes('value')).toBe('7')
+    // TICKET-030: el-option does not render its `value` prop as an attribute.
+    expect(wrapper.findComponent('[data-department-option]').props('value')).toBe(7)
   })
 })
 
@@ -158,5 +161,26 @@ describe('AdminDoctorsView create/edit/delete/status (TICKET-020)', () => {
 
     expect(client.updateDoctorStatus).toHaveBeenCalledWith(7, 0)
     expect(client.deleteDoctor).toHaveBeenCalledWith(7)
+  })
+
+  it('omits the department when the select is cleared instead of sending NaN', async () => {
+    const client = fakeClient({ doctors: [row({ id: 7 })] })
+    const wrapper = mount(AdminDoctorsView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-edit="7"]').trigger('click')
+    await flushPromises()
+    // el-select clear emits an undefined model (valueOnClear default).
+    await wrapper.findComponent('[data-department]').vm.$emit('update:modelValue', undefined)
+    await wrapper.find('[data-doctor-form]').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(client.updateDoctor).toHaveBeenCalledWith(7, {
+      real_name: '李医生',
+      title: '主任医师',
+      specialty: '心内科',
+      introduction: '从业二十年',
+      phone: '13900000000',
+    })
   })
 })

@@ -53,7 +53,9 @@ describe('AdminUsersView list (TICKET-020)', () => {
     const wrapper = mount(AdminUsersView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-user-row]')
+    // TICKET-030: ElTable cannot stamp attributes on <tr>, so rows are grouped
+    // by Element Plus' stable `.el-table__row`; cell anchors are unchanged.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(2)
     expect(rows[0].text()).toContain('爱丽丝')
     expect(rows[0].text()).toContain('正常')

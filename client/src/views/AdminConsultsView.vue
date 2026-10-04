@@ -1,15 +1,17 @@
 <!--
   管理端人工问诊（TICKET-019，SPEC.md 5.4「人工问诊」）。
+  TICKET-030 改用 element-plus：el-select 状态过滤，el-table 列工单，el-tag 状态，
+  el-button 删除，el-pagination 翻页。
 
   分页查看全部工单，可按状态过滤，并可删除工单及其全部回复。删除最后一页的最后
   一条时页码回退（AC-F-12）。主诉按第一个全角冒号拆回标题与正文（AC-F-15）。
   所有后端调用都经 F-1 的 `client`；列表加载失败呈现空态并上报。
 -->
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { decodeChiefComplaint } from '../consult/complaint.js'
-import { consultStatusLabel } from '../consult/status.js'
+import { consultStatusColor, consultStatusLabel } from '../consult/status.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -22,6 +24,9 @@ const total = ref(0)
 const page = ref(1)
 const status = ref('')
 const loadError = ref(null)
+const loading = ref(false)
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
 
 function parts(item) {
   return decodeChiefComplaint(item.chief_complaint)
@@ -34,6 +39,7 @@ function query() {
 }
 
 async function load() {
+  loading.value = true
   try {
     const data = await props.client.adminConsults(query())
     items.value = data.items
@@ -44,30 +50,30 @@ async function load() {
     total.value = 0
     loadError.value = '问诊工单加载失败'
     emit('error', failure)
+  } finally {
+    loading.value = false
   }
 }
 
-async function filter() {
+// el-select emits model updates, not a native change; a watcher keeps the
+// "changing the status filter returns to page 1 and reloads" behaviour.
+watch(status, () => {
   page.value = 1
-  await load()
-}
+  load()
+})
 
-async function next() {
-  if (page.value * PAGE_SIZE >= total.value) return
-  page.value += 1
-  await load()
-}
-
-async function previous() {
-  if (page.value <= 1) return
-  page.value -= 1
-  await load()
+function goTo(target) {
+  const next = Math.min(Math.max(1, target), totalPages.value)
+  if (next === page.value) return
+  page.value = next
+  load()
 }
 
 async function remove(consultId) {
   try {
     await props.client.deleteConsult(consultId)
     if (items.value.length === 1 && page.value > 1) page.value -= 1
+    ElMessage.success('工单已删除')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -79,47 +85,112 @@ onMounted(load)
 
 <template>
   <section class="admin-consults">
-    <select v-model="status" data-status-filter @change="filter">
-      <option value="">全部状态</option>
-      <option value="0">待回复</option>
-      <option value="1">已回复</option>
-    </select>
+    <el-card class="admin-consults__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span class="card-title">人工问诊工单</span>
+          <el-tag size="small" type="info" effect="plain">{{ total }} 条</el-tag>
+        </div>
+      </template>
 
-    <p v-if="loadError" data-error class="admin-consults__error">{{ loadError }}</p>
-    <p v-else-if="items.length === 0" data-empty class="admin-consults__empty">
-      暂无问诊工单
-    </p>
+      <el-select
+        v-model="status"
+        data-status-filter
+        placeholder="全部状态"
+        class="admin-consults__filter"
+        :teleported="false"
+      >
+        <el-option value="" label="全部状态" />
+        <el-option value="0" label="待回复" />
+        <el-option value="1" label="已回复" />
+      </el-select>
 
-    <table v-else class="admin-consults__table">
-      <thead>
-        <tr>
-          <th>患者</th>
-          <th>主诉</th>
-          <th>医生</th>
-          <th>状态</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-consult-row>
-          <td data-cell-patient>{{ item.user_name ?? '-' }}</td>
-          <td data-cell-complaint>
-            {{ parts(item).title }}：{{ parts(item).body }}
-          </td>
-          <td data-cell-doctor>{{ item.doctor_name ?? '待分配' }}</td>
-          <td data-cell-status>{{ consultStatusLabel(item.status) }}</td>
-          <td>
-            <button type="button" :data-delete="item.id" @click="remove(item.id)">
+      <p v-if="loadError" data-error class="admin-consults__message admin-consults__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="admin-consults__table">
+        <template #empty>
+          <span data-empty>暂无问诊工单</span>
+        </template>
+        <el-table-column prop="user_name" label="患者" min-width="100">
+          <template #default="{ row }">
+            <span data-cell-patient>{{ row.user_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="主诉" min-width="220">
+          <template #default="{ row }">
+            <span data-cell-complaint>{{ parts(row).title }}：{{ parts(row).body }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="doctor_name" label="医生" min-width="110">
+          <template #default="{ row }">
+            <span data-cell-doctor>{{ row.doctor_name ?? '待分配' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag data-cell-status :type="consultStatusColor(row.status)" effect="light">
+              {{ consultStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="110">
+          <template #default="{ row }">
+            <el-button size="small" type="danger" plain :data-delete="row.id" @click="remove(row.id)">
               删除
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
 
-    <div class="admin-consults__pager">
-      <button type="button" data-prev-page @click="previous">上一页</button>
-      <button type="button" data-next-page @click="next">下一页</button>
-    </div>
+      <div class="admin-consults__pager">
+        <el-pagination
+          data-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="PAGE_SIZE"
+          :total="total"
+          @current-change="goTo"
+        />
+      </div>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.admin-consults {
+  padding: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-consults__filter {
+  width: 180px;
+  margin-bottom: 12px;
+}
+
+.admin-consults__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.admin-consults__message--error {
+  color: var(--el-color-danger);
+}
+
+.admin-consults__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>

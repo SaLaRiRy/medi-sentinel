@@ -37,7 +37,8 @@ describe('AdminNoticesView list (TICKET-021)', () => {
     const wrapper = mount(AdminNoticesView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-notice-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(2)
     expect(rows[0].text()).toContain('已发布')
     expect(rows[1].text()).toContain('已下架')
@@ -53,7 +54,7 @@ describe('AdminNoticesView list (TICKET-021)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-notice-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 })
@@ -96,7 +97,7 @@ describe('AdminNoticesView create/edit/delete (TICKET-021)', () => {
 
     await wrapper.find('[data-edit="9"]').trigger('click')
     await flushPromises()
-    await wrapper.find('[data-status]').setValue('0')
+    await wrapper.findComponent('[data-status]').setValue('0')
     await wrapper.find('[data-notice-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -124,7 +125,7 @@ describe('AdminNoticesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminNoticesView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-next]').trigger('click')
+    await wrapper.find('.btn-next').trigger('click')
     await flushPromises()
 
     await wrapper.find('[data-delete="9"]').trigger('click')

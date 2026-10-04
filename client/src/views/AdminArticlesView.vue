@@ -1,5 +1,7 @@
 <!--
   管理端文章管理（TICKET-021，FUNCTIONAL_SPEC 2.8 / SPEC.md 5.4）。
+  TICKET-030 改用 element-plus：el-form/el-input/el-select 录入，el-table 列文章，
+  el-tag 状态，el-button 操作，el-pagination 翻页。
 
   分页查看全部状态的文章，新建、编辑（含发布/下架状态流转）与删除。标题必填由前端
   提示（FUNCTIONAL_SPEC 5.19），其余校验与 404 由后端承担。列表加载失败呈现空态；
@@ -8,7 +10,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 
-import { ARTICLE_CATEGORIES, contentStatusLabel } from '../content/status.js'
+import {
+  ARTICLE_CATEGORIES,
+  contentStatusColor,
+  contentStatusLabel,
+} from '../content/status.js'
 
 const props = defineProps({
   client: { type: Object, required: true },
@@ -23,6 +29,7 @@ const keyword = ref('')
 const loadError = ref(null)
 const formError = ref(null)
 const editingId = ref(null)
+const loading = ref(false)
 
 const emptyForm = () => ({
   title: '',
@@ -34,6 +41,7 @@ const emptyForm = () => ({
 const form = ref(emptyForm())
 
 async function load() {
+  loading.value = true
   try {
     const data = await props.client.adminArticles({
       page: page.value,
@@ -48,6 +56,8 @@ async function load() {
     total.value = 0
     loadError.value = '文章列表加载失败'
     emit('error', failure)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -83,7 +93,9 @@ function startEdit(item) {
 
 function payload() {
   const body = { title: form.value.title.trim(), status: Number(form.value.status) }
-  if (form.value.category.trim()) body.category = form.value.category.trim()
+  // el-select may clear to '' or undefined.
+  const category = form.value.category ?? ''
+  if (category.trim()) body.category = category.trim()
   if (form.value.summary.trim()) body.summary = form.value.summary.trim()
   if (form.value.content.trim()) body.content = form.value.content.trim()
   return body
@@ -97,6 +109,7 @@ async function submit() {
   try {
     if (editingId.value === null) await props.client.createArticle(payload())
     else await props.client.updateArticle(editingId.value, payload())
+    ElMessage.success(editingId.value === null ? '文章已创建' : '文章已更新')
     resetForm()
     await load()
   } catch (failure) {
@@ -108,6 +121,7 @@ async function remove(articleId) {
   try {
     await props.client.deleteArticle(articleId)
     if (items.value.length === 1 && page.value > 1) page.value -= 1
+    ElMessage.success('文章已删除')
     await load()
   } catch (failure) {
     emit('error', failure)
@@ -119,73 +133,174 @@ onMounted(load)
 
 <template>
   <section class="admin-articles">
-    <form data-article-form class="admin-articles__form" @submit.prevent="submit">
-      <input v-model="form.title" data-title placeholder="文章标题" />
-      <select v-model="form.category" data-category>
-        <option value="">不选分类</option>
-        <option v-for="name in ARTICLE_CATEGORIES" :key="name" :value="name">
-          {{ name }}
-        </option>
-      </select>
-      <input v-model="form.summary" data-summary placeholder="摘要" />
-      <textarea v-model="form.content" data-content placeholder="正文"></textarea>
-      <select v-model.number="form.status" data-status>
-        <option :value="1">已发布</option>
-        <option :value="0">已下架</option>
-      </select>
-      <button type="submit" data-submit>保存</button>
-      <button v-if="editingId !== null" type="button" data-cancel @click="resetForm">
-        取消
-      </button>
-    </form>
+    <el-card class="admin-articles__card admin-articles__card--form" shadow="never">
+      <template #header>
+        <span class="card-title">{{ editingId === null ? '新建文章' : '编辑文章' }}</span>
+      </template>
 
-    <form data-search class="admin-articles__search" @submit.prevent="search">
-      <input v-model="keyword" data-keyword placeholder="按标题搜索" />
-      <button type="submit">搜索</button>
-    </form>
-
-    <p v-if="formError" data-form-error class="admin-articles__error">{{ formError }}</p>
-    <p v-if="loadError" data-error class="admin-articles__error">{{ loadError }}</p>
-    <p v-else-if="items.length === 0" data-empty class="admin-articles__empty">
-      暂无文章
-    </p>
-
-    <table v-else class="admin-articles__table">
-      <thead>
-        <tr>
-          <th>标题</th>
-          <th>分类</th>
-          <th>状态</th>
-          <th>浏览量</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-article-row>
-          <td data-cell-title>{{ item.title }}</td>
-          <td data-cell-category>{{ item.category ?? '-' }}</td>
-          <td data-cell-status>{{ contentStatusLabel(item.status) }}</td>
-          <td data-cell-views>{{ item.view_count }}</td>
-          <td class="admin-articles__actions">
-            <button type="button" :data-edit="item.id" @click="startEdit(item)">编辑</button>
-            <button type="button" :data-delete="item.id" @click="remove(item.id)">删除</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <footer class="admin-articles__pager">
-      <button type="button" data-prev :disabled="page <= 1" @click="goTo(page - 1)">
-        上一页
-      </button>
-      <button
-        type="button"
-        data-next
-        :disabled="page * PAGE_SIZE >= total"
-        @click="goTo(page + 1)"
+      <el-form
+        data-article-form
+        :model="form"
+        label-width="88px"
+        class="admin-articles__form"
+        @submit.prevent="submit"
       >
-        下一页
-      </button>
-    </footer>
+        <el-form-item label="文章标题">
+          <el-input v-model="form.title" data-title placeholder="文章标题" />
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-select
+            v-model="form.category"
+            data-category
+            placeholder="不选分类"
+            clearable
+            value-on-clear=""
+            :teleported="false"
+          >
+            <el-option v-for="name in ARTICLE_CATEGORIES" :key="name" :value="name" :label="name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="摘要">
+          <el-input v-model="form.summary" data-summary placeholder="摘要" />
+        </el-form-item>
+        <el-form-item label="正文">
+          <el-input v-model="form.content" data-content type="textarea" :rows="3" placeholder="正文" />
+        </el-form-item>
+        <el-form-item label="状态">
+          <el-select v-model="form.status" data-status :teleported="false">
+            <el-option :value="1" label="已发布" />
+            <el-option :value="0" label="已下架" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" data-submit native-type="submit">保存</el-button>
+          <el-button v-if="editingId !== null" data-cancel @click="resetForm">取消</el-button>
+        </el-form-item>
+      </el-form>
+
+      <p v-if="formError" data-form-error class="admin-articles__message admin-articles__message--error">
+        {{ formError }}
+      </p>
+    </el-card>
+
+    <el-card class="admin-articles__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span class="card-title">文章列表</span>
+          <el-tag size="small" type="info" effect="plain">{{ total }} 篇</el-tag>
+        </div>
+      </template>
+
+      <el-form data-search class="admin-articles__search" @submit.prevent="search">
+        <el-input v-model="keyword" data-keyword placeholder="按标题搜索" clearable />
+        <el-button native-type="submit">搜索</el-button>
+      </el-form>
+
+      <p v-if="loadError" data-error class="admin-articles__message admin-articles__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="admin-articles__table">
+        <template #empty>
+          <span data-empty>暂无文章</span>
+        </template>
+        <el-table-column prop="title" label="标题" min-width="200">
+          <template #default="{ row }">
+            <span data-cell-title>{{ row.title }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="category" label="分类" min-width="120">
+          <template #default="{ row }">
+            <span data-cell-category>{{ row.category ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag data-cell-status :type="contentStatusColor(row.status)" effect="light">
+              {{ contentStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="view_count" label="浏览量" min-width="90">
+          <template #default="{ row }">
+            <span data-cell-views>{{ row.view_count }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" min-width="160">
+          <template #default="{ row }">
+            <el-button size="small" :data-edit="row.id" @click="startEdit(row)">编辑</el-button>
+            <el-button size="small" type="danger" plain :data-delete="row.id" @click="remove(row.id)">
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <div class="admin-articles__pager">
+        <el-pagination
+          data-pagination
+          background
+          layout="prev, pager, next"
+          :current-page="page"
+          :page-size="PAGE_SIZE"
+          :total="total"
+          @current-change="goTo"
+        />
+      </div>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.admin-articles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.admin-articles__form {
+  max-width: 640px;
+}
+
+/* Keep the non-teleported el-select dropdown from being clipped by el-card. */
+.admin-articles__card--form,
+.admin-articles__card--form :deep(.el-card__body) {
+  overflow: visible;
+}
+
+.admin-articles__search {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.admin-articles__search :deep(.el-input) {
+  max-width: 320px;
+}
+
+.admin-articles__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.admin-articles__message--error {
+  color: var(--el-color-danger);
+}
+
+.admin-articles__pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+</style>

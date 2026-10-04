@@ -49,7 +49,8 @@ describe('AdminArticlesView list (TICKET-021)', () => {
     const wrapper = mount(AdminArticlesView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-article-row]')
+    // TICKET-030: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(2)
     expect(rows[0].text()).toContain('已发布')
     expect(rows[1].text()).toContain('已下架')
@@ -65,7 +66,7 @@ describe('AdminArticlesView list (TICKET-021)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-article-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 })
@@ -89,7 +90,8 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
     await flushPromises()
 
     await wrapper.find('[data-title]').setValue('新文章')
-    await wrapper.find('[data-category]').setValue('用药指南')
+    // TICKET-030: el-select is a component; drive its model.
+    await wrapper.findComponent('[data-category]').setValue('用药指南')
     await wrapper.find('[data-article-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -121,7 +123,7 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
 
     await wrapper.find('[data-edit="7"]').trigger('click')
     await flushPromises()
-    await wrapper.find('[data-status]').setValue('1')
+    await wrapper.findComponent('[data-status]').setValue('1')
     await wrapper.find('[data-article-form]').trigger('submit.prevent')
     await flushPromises()
 
@@ -151,7 +153,7 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
     const wrapper = mount(AdminArticlesView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-next]').trigger('click')
+    await wrapper.find('.btn-next').trigger('click')
     await flushPromises()
     expect(client.adminArticles).toHaveBeenLastCalledWith({
       page: 2,
@@ -166,6 +168,26 @@ describe('AdminArticlesView create/edit/delete (TICKET-021)', () => {
       page: 1,
       page_size: 10,
       keyword: undefined,
+    })
+  })
+
+  it('omits the category when the select is cleared instead of crashing', async () => {
+    const client = fakeClient({ items: [row({ id: 7 })] })
+    const wrapper = mount(AdminArticlesView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-edit="7"]').trigger('click')
+    await flushPromises()
+    // el-select clear emits an undefined model (valueOnClear default).
+    await wrapper.findComponent('[data-category]').vm.$emit('update:modelValue', undefined)
+    await wrapper.find('[data-article-form]').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(client.updateArticle).toHaveBeenCalledWith(7, {
+      title: '高血压防治',
+      summary: '摘要',
+      content: '正文',
+      status: 1,
     })
   })
 })

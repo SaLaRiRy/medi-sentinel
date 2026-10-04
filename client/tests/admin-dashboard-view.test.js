@@ -61,7 +61,8 @@ describe('AdminDashboardView (TICKET-022)', () => {
     const wrapper = mount(AdminDashboardView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-days]').setValue('30')
+    // TICKET-030: el-select is a component; drive its model.
+    await wrapper.findComponent('[data-days]').setValue('30')
     await flushPromises()
 
     expect(client.consultTrend).toHaveBeenLastCalledWith(30)
