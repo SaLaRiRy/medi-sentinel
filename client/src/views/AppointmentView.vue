@@ -1,13 +1,11 @@
 <!--
-  患者侧预约挂号（TICKET-017，FUNCTIONAL_SPEC 2.7 / 5.19 / 5.20）。
+  患者侧预约挂号（TICKET-017，FUNCTIONAL_SPEC 2.7 / 5.19 / 5.20）。TICKET-029 改用
+  element-plus：el-form + el-select + el-date-picker 提交，el-table 列本人预约。
 
   提交预约（医生、科室、就诊日期、时段、备注）并查看本人预约。四项必填在提交时
   命令式判断（FUNCTIONAL_SPEC 5.19），后端 422 才是最终依据。状态展示走
   `appointmentStatusLabel`，未知值回退「待确认」（AC-F-11）。所有后端调用都经
   F-1 的 `client`，本组件不认识传输层。
-
-  医生与科室下拉来自公开主数据列表（GET /doctors、GET /departments），
-  TICKET-020 落地（承接 TICKET-017 挂账 b）。提交体仍是编号，行为与先前一致。
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
@@ -24,6 +22,7 @@ const TIME_SLOTS = ['上午', '下午', '晚上']
 const items = ref([])
 const doctors = ref([])
 const departments = ref([])
+const loading = ref(false)
 const loadError = ref(null)
 const formError = ref(null)
 const submitting = ref(false)
@@ -49,6 +48,7 @@ async function loadOptions() {
 }
 
 async function load() {
+  loading.value = true
   try {
     items.value = await props.client.myAppointments()
     loadError.value = null
@@ -56,6 +56,8 @@ async function load() {
     items.value = []
     loadError.value = '预约列表加载失败'
     emit('error', failure)
+  } finally {
+    loading.value = false
   }
 }
 
@@ -80,6 +82,7 @@ async function submit() {
       time_slot,
       remark: remark.trim() || undefined,
     })
+    ElMessage.success('预约已提交')
     form.value = emptyForm()
     await load()
   } catch (failure) {
@@ -97,64 +100,146 @@ onMounted(() => {
 
 <template>
   <section class="appointment">
-    <form data-appointment-form class="appointment__form" @submit.prevent="submit">
-      <select v-model="form.doctor_id" data-doctor-id>
-        <option value="">请选择医生</option>
-        <option
-          v-for="doctor in doctors"
-          :key="doctor.id"
-          data-doctor-option
-          :value="doctor.id"
-        >
-          {{ doctor.real_name }}{{ doctor.department_name ? `（${doctor.department_name}）` : '' }}
-        </option>
-      </select>
-      <select v-model="form.department_id" data-department-id>
-        <option value="">请选择科室</option>
-        <option
-          v-for="department in departments"
-          :key="department.id"
-          data-department-option
-          :value="department.id"
-        >
-          {{ department.name }}
-        </option>
-      </select>
-      <input v-model="form.visit_date" data-visit-date type="date" />
-      <select v-model="form.time_slot" data-time-slot>
-        <option v-for="slot in TIME_SLOTS" :key="slot" :value="slot">{{ slot }}</option>
-      </select>
-      <input v-model="form.remark" data-remark placeholder="备注（可选）" />
-      <button type="submit" data-submit :disabled="submitting">提交预约</button>
-    </form>
+    <el-card class="appointment__card" shadow="never">
+      <template #header>
+        <span class="card-title">预约挂号</span>
+      </template>
 
-    <p v-if="formError" data-form-error class="appointment__error">{{ formError }}</p>
-    <p v-if="loadError" data-error class="appointment__error">{{ loadError }}</p>
-    <p v-else-if="items.length === 0" data-empty class="appointment__empty">
-      暂无预约
-    </p>
+      <el-form
+        data-appointment-form
+        :model="form"
+        label-width="88px"
+        class="appointment__form"
+        @submit.prevent="submit"
+      >
+        <el-form-item label="医生">
+          <el-select v-model="form.doctor_id" data-doctor-id placeholder="请选择医生" :teleported="false">
+            <el-option
+              v-for="doctor in doctors"
+              :key="doctor.id"
+              data-doctor-option
+              :value="doctor.id"
+              :label="doctor.real_name"
+            >
+              {{ doctor.real_name }}{{ doctor.department_name ? `（${doctor.department_name}）` : '' }}
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="科室">
+          <el-select v-model="form.department_id" data-department-id placeholder="请选择科室" :teleported="false">
+            <el-option
+              v-for="department in departments"
+              :key="department.id"
+              data-department-option
+              :value="department.id"
+              :label="department.name"
+            >
+              {{ department.name }}
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="就诊日期">
+          <span data-visit-date class="appointment__date">
+            <el-date-picker
+              v-model="form.visit_date"
+              type="date"
+              value-format="YYYY-MM-DD"
+              placeholder="选择日期"
+            />
+          </span>
+        </el-form-item>
+        <el-form-item label="时段">
+          <el-select v-model="form.time_slot" data-time-slot :teleported="false">
+            <el-option v-for="slot in TIME_SLOTS" :key="slot" :value="slot" :label="slot" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input v-model="form.remark" data-remark placeholder="备注（可选）" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" data-submit native-type="submit" :loading="submitting">
+            提交预约
+          </el-button>
+        </el-form-item>
+      </el-form>
 
-    <table v-else class="appointment__table">
-      <thead>
-        <tr>
-          <th>医生</th>
-          <th>科室</th>
-          <th>就诊日期</th>
-          <th>时段</th>
-          <th>状态</th>
-          <th>备注</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id" data-appointment-row>
-          <td data-cell-doctor>{{ item.doctor_name ?? '-' }}</td>
-          <td data-cell-department>{{ item.department_id }}</td>
-          <td data-cell-date>{{ item.visit_date }}</td>
-          <td data-cell-slot>{{ item.time_slot }}</td>
-          <td data-cell-status>{{ appointmentStatusLabel(item.status) }}</td>
-          <td data-cell-remark>{{ item.remark ?? '-' }}</td>
-        </tr>
-      </tbody>
-    </table>
+      <p v-if="formError" data-form-error class="appointment__message appointment__message--error">
+        {{ formError }}
+      </p>
+      <p v-if="loadError" data-error class="appointment__message appointment__message--error">
+        {{ loadError }}
+      </p>
+      <el-table v-else v-loading="loading" :data="items" stripe class="appointment__table">
+        <template #empty>
+          <span data-empty>暂无预约</span>
+        </template>
+        <el-table-column prop="doctor_name" label="医生" min-width="110">
+          <template #default="{ row }">
+            <span data-cell-doctor>{{ row.doctor_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="department_id" label="科室" min-width="90">
+          <template #default="{ row }">
+            <span data-cell-department>{{ row.department_id }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="visit_date" label="就诊日期" min-width="120">
+          <template #default="{ row }">
+            <span data-cell-date>{{ row.visit_date }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="time_slot" label="时段" min-width="90">
+          <template #default="{ row }">
+            <span data-cell-slot>{{ row.time_slot }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="100">
+          <template #default="{ row }">
+            <el-tag data-cell-status type="info" effect="plain">
+              {{ appointmentStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="remark" label="备注" min-width="140">
+          <template #default="{ row }">
+            <span data-cell-remark>{{ row.remark ?? '-' }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.appointment {
+  padding: 16px;
+}
+
+/*
+  el-select uses :teleported="false" so its option anchors stay inside the
+  component tree for the DOM tests; el-card's default overflow:hidden /
+  .el-card__body overflow:auto would clip the dropdown, so this card opts out.
+*/
+.appointment__card,
+.appointment__card :deep(.el-card__body) {
+  overflow: visible;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.appointment__form {
+  max-width: 560px;
+}
+
+.appointment__message {
+  margin: 8px 0;
+  color: var(--el-text-color-secondary);
+}
+
+.appointment__message--error {
+  color: var(--el-color-danger);
+}
+</style>

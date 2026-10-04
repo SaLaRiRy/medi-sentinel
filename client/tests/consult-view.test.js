@@ -36,7 +36,8 @@ describe('ConsultView (TICKET-019)', () => {
     })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-consult-row]')
+    // TICKET-029: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('头痛')
     expect(rows[0].text()).toContain('三天，伴发热')
@@ -88,7 +89,7 @@ describe('ConsultView (TICKET-019)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-consult-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 })

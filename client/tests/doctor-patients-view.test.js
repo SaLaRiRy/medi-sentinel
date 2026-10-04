@@ -44,9 +44,10 @@ function fakeClient({
   }
 }
 
-async function fill(wrapper, { patient = '1', type = '门诊记录' } = {}) {
-  await wrapper.find('[data-patient-select]').setValue(patient)
-  await wrapper.find('[data-record-type]').setValue(type)
+async function fill(wrapper, { patient = 1, type = '门诊记录' } = {}) {
+  // TICKET-029: el-select is a component; drive its model.
+  await wrapper.findComponent('[data-patient-select]').setValue(patient)
+  await wrapper.findComponent('[data-record-type]').setValue(type)
 }
 
 describe('DoctorPatientsView list (TICKET-018)', () => {
@@ -56,7 +57,8 @@ describe('DoctorPatientsView list (TICKET-018)', () => {
     })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-record-row]')
+    // TICKET-029: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('张三')
     expect(rows[0].text()).toContain('门诊记录')
@@ -82,7 +84,8 @@ describe('DoctorPatientsView list (TICKET-018)', () => {
     const options = wrapper.findAll('[data-patient-option]')
     expect(options).toHaveLength(1)
     expect(options[0].text()).toContain('李四')
-    expect(options[0].attributes('value')).toBe('7')
+    // TICKET-029: el-option does not render its `value` prop as an attribute.
+    expect(wrapper.findComponent('[data-patient-option]').props('value')).toBe(7)
   })
 })
 
@@ -122,7 +125,7 @@ describe('DoctorPatientsView create/edit/delete (TICKET-018)', () => {
     const wrapper = mount(DoctorPatientsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-edit="7"]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-edit="7"]').trigger('click')
     await flushPromises()
     await wrapper.find('[data-diagnosis]').setValue('已好转')
     await wrapper.find('[data-record-form]').trigger('submit.prevent')
@@ -143,7 +146,7 @@ describe('DoctorPatientsView create/edit/delete (TICKET-018)', () => {
     const wrapper = mount(DoctorPatientsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-delete="7"]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-delete="7"]').trigger('click')
     await flushPromises()
 
     expect(client.deleteRecord).toHaveBeenCalledWith(7)
@@ -156,7 +159,7 @@ describe('DoctorPatientsView create/edit/delete (TICKET-018)', () => {
     const wrapper = mount(DoctorPatientsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-delete="7"]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-delete="7"]').trigger('click')
     await flushPromises()
 
     expect(wrapper.emitted('error')[0][0]).toBe(failure)

@@ -12,7 +12,8 @@ describe('LoginView (TICKET-012)', () => {
     }
     const wrapper = mount(LoginView, { props: { client } })
 
-    await wrapper.find('[data-role]').setValue('doctor')
+    // TICKET-029: role is now an el-select; drive its model.
+    await wrapper.findComponent('[data-role]').setValue('doctor')
     await wrapper.find('[data-username]').setValue('shared')
     await wrapper.find('[data-password]').setValue('doctor-pass')
     await wrapper.find('form').trigger('submit.prevent')

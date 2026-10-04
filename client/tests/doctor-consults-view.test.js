@@ -36,7 +36,8 @@ describe('DoctorConsultsView (TICKET-019)', () => {
     })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-consult-row]')
+    // TICKET-029: ElTable rows are grouped by the stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('李四')
     expect(rows[0].text()).toContain('咳嗽')
@@ -48,8 +49,9 @@ describe('DoctorConsultsView (TICKET-019)', () => {
     const wrapper = mount(DoctorConsultsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-reply-input]').setValue('请多休息，必要时就诊。')
-    await wrapper.find('[data-reply-submit]').trigger('click')
+    const tableRow = wrapper.find('.el-table__row')
+    await tableRow.find('[data-reply-input]').setValue('请多休息，必要时就诊。')
+    await tableRow.find('[data-reply-submit]').trigger('click')
     await flushPromises()
 
     expect(client.replyConsult).toHaveBeenCalledWith(3, {
@@ -64,7 +66,7 @@ describe('DoctorConsultsView (TICKET-019)', () => {
     const wrapper = mount(DoctorConsultsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-reply-submit]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-reply-submit]').trigger('click')
     await flushPromises()
 
     expect(client.replyConsult).not.toHaveBeenCalled()

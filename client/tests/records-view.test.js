@@ -37,7 +37,9 @@ describe('RecordsView (TICKET-018)', () => {
     })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-record-row]')
+    // TICKET-029: ElTable cannot stamp attributes on <tr>, so rows are grouped
+    // by Element Plus' stable `.el-table__row`; cell anchors are unchanged.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('门诊记录')
     expect(rows[0].text()).toContain('上呼吸道感染')
@@ -62,7 +64,7 @@ describe('RecordsView (TICKET-018)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-error]').text()).toContain('加载失败')
-    expect(wrapper.findAll('[data-record-row]')).toHaveLength(0)
+    expect(wrapper.findAll('.el-table__row')).toHaveLength(0)
     expect(wrapper.emitted('error')).toHaveLength(1)
   })
 })

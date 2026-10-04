@@ -1,3 +1,5 @@
+<!-- TICKET-029: 个人中心面板改用 element-plus（el-form/el-input/el-button），
+     所有 data-* 锚点保留，保存/改密逻辑不变。 -->
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 
@@ -78,20 +80,63 @@ async function changePassword() {
 
 <template>
   <section class="profile">
-    <h2 data-display-name>{{ profile.display_name }}</h2>
-    <button type="button" data-back @click="emit('back')">返回</button>
-    <form class="profile__form" @submit.prevent="save">
-      <label v-for="name in fields" :key="name">
-        {{ LABELS[name] }}
-        <input v-model="form[name]" :data-field="name" />
-      </label>
-      <button type="button" data-save @click="save">保存资料</button>
-    </form>
-    <form class="profile__password" @submit.prevent="changePassword">
-      <label>原口令 <input v-model="oldPassword" data-old-password type="password" /></label>
-      <label>新口令 <input v-model="newPassword" data-new-password type="password" /></label>
-      <button type="button" data-change-password @click="changePassword">修改口令</button>
-    </form>
-    <p v-if="message" data-message>{{ message }}</p>
+    <el-card class="profile__card" shadow="never">
+      <template #header>
+        <div class="card-head">
+          <span data-display-name class="card-title">{{ profile.display_name }}</span>
+          <el-button data-back size="small" @click="emit('back')">返回</el-button>
+        </div>
+      </template>
+
+      <el-form class="profile__form" label-width="88px" @submit.prevent="save">
+        <el-form-item v-for="name in fields" :key="name" :label="LABELS[name]">
+          <el-input v-model="form[name]" :data-field="name" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" data-save @click="save">保存资料</el-button>
+        </el-form-item>
+      </el-form>
+
+      <el-divider />
+
+      <el-form class="profile__password" label-width="88px" @submit.prevent="changePassword">
+        <el-form-item label="原口令">
+          <el-input v-model="oldPassword" data-old-password type="password" show-password />
+        </el-form-item>
+        <el-form-item label="新口令">
+          <el-input v-model="newPassword" data-new-password type="password" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button data-change-password @click="changePassword">修改口令</el-button>
+        </el-form-item>
+      </el-form>
+
+      <p v-if="message" data-message class="profile__message">{{ message }}</p>
+    </el-card>
   </section>
 </template>
+
+<style scoped>
+.profile {
+  padding: 16px;
+}
+
+.profile__card {
+  max-width: 640px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.profile__message {
+  color: var(--el-color-success);
+}
+</style>

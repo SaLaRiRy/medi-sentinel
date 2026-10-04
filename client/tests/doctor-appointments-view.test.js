@@ -38,7 +38,8 @@ describe('DoctorAppointmentsView (TICKET-017)', () => {
     const wrapper = mount(DoctorAppointmentsView, { props: { client } })
     await flushPromises()
 
-    const rows = wrapper.findAll('[data-appointment-row]')
+    // TICKET-029: rows are grouped by Element Plus' stable `.el-table__row`.
+    const rows = wrapper.findAll('.el-table__row')
     expect(rows).toHaveLength(1)
     expect(rows[0].text()).toContain('张三')
     expect(rows[0].text()).toContain('2026-10-20')
@@ -73,7 +74,9 @@ describe('DoctorAppointmentsView (TICKET-017)', () => {
     const wrapper = mount(DoctorAppointmentsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-set-status="1"]').trigger('click')
+    // TICKET-029: scope the action to the visible row (ElTable also renders a
+    // hidden measurement copy of every cell).
+    await wrapper.find('.el-table__row').find('[data-set-status="1"]').trigger('click')
     await flushPromises()
 
     expect(client.updateAppointmentStatus).toHaveBeenCalledWith(7, 1)
@@ -89,7 +92,7 @@ describe('DoctorAppointmentsView (TICKET-017)', () => {
     const wrapper = mount(DoctorAppointmentsView, { props: { client } })
     await flushPromises()
 
-    await wrapper.find('[data-set-status="2"]').trigger('click')
+    await wrapper.find('.el-table__row').find('[data-set-status="2"]').trigger('click')
     await flushPromises()
 
     expect(wrapper.emitted('error')[0][0]).toBe(failure)
