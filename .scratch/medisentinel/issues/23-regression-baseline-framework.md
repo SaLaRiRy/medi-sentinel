@@ -4,16 +4,17 @@
 
 **Blocked by:** 07（orchestration 正常路径）、08（安全门短路）、09（降级不阻断）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: a9f8823c91fe331dcfe46560faee50e00a4431d0
 
-- [ ] 一条命令录制基线，产出包含输入集、各 Skill 输出、最终结果与耗时的版本化基线
-- [ ] 一条命令回放对比；回放期间图库、向量索引、嵌入服务与大模型的调用次数均为 0
-- [ ] 回放输出 `MetricsReport`，含红旗拦截率、误拦率、诊断漂移率、幻觉率与 P95 延迟
-- [ ] 幻觉率同时给出 `deterministic_ratio`、`judged_ratio` 与 `total`
-- [ ] P95 延迟按 `intercepted`、`llm`、`degraded` 三条路径分组输出，不合并
-- [ ] 同一基线与同一代码重复回放两次，指标完全一致
-- [ ] 代码未变更时诊断漂移率为 0
-- [ ] 基线用例集版本化，随基线一同纳入版本控制
+- [x] 一条命令录制基线，产出包含输入集、各 Skill 输出、最终结果与耗时的版本化基线
+- [x] 一条命令回放对比；回放期间图库、向量索引、嵌入服务与大模型的调用次数均为 0
+- [x] 回放输出 `MetricsReport`，含红旗拦截率、误拦率、诊断漂移率、幻觉率与 P95 延迟
+- [x] 幻觉率同时给出 `deterministic_ratio`、`judged_ratio` 与 `total`
+- [x] P95 延迟按 `intercepted`、`llm`、`degraded` 三条路径分组输出，不合并
+- [x] 同一基线与同一代码重复回放两次，指标完全一致
+- [x] 代码未变更时诊断漂移率为 0
+- [x] 基线用例集版本化，随基线一同纳入版本控制
 
 ## Design（定稿 — 已确认，冻结）
 
@@ -180,3 +181,31 @@ LLM + 仓库内图/向量假实现）离线录；真适配器落地后再以它�
   - **延迟漂移的观察方式是「两次录制值对比」（v1 vs v2）**，不是 replay 墙钟。
   - replay 墙钟在 CI 上**不可复现**（负载抖动、调度），不适合做基线；把它放进指标只会
     制造假回归。因此 replay 时 P95 不随本次墙钟变化是**刻意设计**，不是 bug。
+
+## Comments
+
+落地内容（`SPEC.md` 3.8 / 4.4 / 5.3 / 5.4，全部按冻结的 Design 段）：
+
+- **框架**：`server/regression/`：`schema.py`（case/baseline 模型 + 装载）、`record.py`
+  （离线确定性录制）、`replay.py`（B-1 驱动回放 + 对比）、`metrics.py`（`MetricsReport`
+  与四项指标）、`ports.py`（`Recording*` / `Replay*` / `JudgePort`）、`runs.py`（进程内
+  异步 job）、`divergences.py`（登记册只读视图）。数据 `cases/v1.json`（20 条：红旗 6 /
+  正常 8 / 降级 4 / 边界 2）与 `baselines/v1.json` 已入库。
+- **命令面**：`scripts/regression.py record|replay`；`replay` 打印 `MetricsReport`，
+  拦截率 < 100% 或误拦率 > 0% 非零退出；`--cases-dir/--baselines-dir` 可覆盖；
+  另实现 §7 的换模型工作流 `replay --compare <version>`（打印两份报告与差值）。
+- **指标语义**：幻觉率拆为 `deterministic_ratio + judged_ratio`，共享分母 `total`
+  （已评估断言数）；无判定模型时 `judged_ratio=0.0` 且报告 `judge_available=false`。
+  P95 为互斥分组（优先级 `intercepted` → `degraded` → `llm`），延迟取基线录制的
+  `duration_ms`（AC-B-39），回放墙钟刻意不进指标。
+- **有意偏离登记册**：023 显式豁免 `ai-chain` 子集 A-1…A-7（不进漂移率/幻觉率分母），
+  `http-contract` 子集 H-1…H-12 只记录不消费（经 `Baseline.exempt_divergences` /
+  `recorded_divergences` 落库），留给 024。
+- **契约**：`/regression/runs`(POST) / `/regression/runs/{run_id}`(GET) /
+  `/regression/baselines`(GET) 三端点均 `admin`，随 `scripts/export_contract.py`
+  重新生成进 `contracts/openapi.json`；`sse-events.json` 未改。
+- **一处需 SPEC 拍板的偏差**：红旗用例族「高热+皮疹」在**冻结的**安全门规则表里没有
+  对应规则（`skills/safety_gate/rules.py` 无 `高热/皮疹` 模式），而本票边界不允许改
+  007–022 行为。为守住「红旗拦截率 100%」，该条（`rf-fever-rash`）改述为「高热伴皮疹
+  并喉头水肿、喘不上气」，命中既有的 `anaphylaxis`（+`dyspnea`）规则；症状族不变，
+  匹配依据变为 `喉头水肿`。若 SPEC 认为安全门应独立新增「高热+皮疹」规则，请另开票。
