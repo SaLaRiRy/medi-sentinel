@@ -42,3 +42,6 @@ logs/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Not published: internal functional spec (kept locally, untracked)
+/FUNCTIONAL_SPEC.md
