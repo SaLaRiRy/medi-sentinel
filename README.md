@@ -1,6 +1,40 @@
-# MediSentinel
+# MediSentinel · AI 智能医疗问诊平台
 
-AI 智能医疗问诊平台 —— 异步、Skill 化重建。
+> 一个把 AI 问诊链路**拆成五个可独立测试的 Skill** 的重构项目：安全门、症状归一化、向量检索、图谱推理、编排。后端全异步（FastAPI + SQLAlchemy 2.0 + Neo4j + Chroma），前端 Vue 3 三端（患者门户 / 医生工作台 / 管理后台）共用一套设计令牌。
+
+这里的重点不是「接一个大模型」，而是**确定性优先**的工程取舍：安全判断、症状归一化、图谱推理全部由确定性规则完成，大模型只负责最后的自然语言组织；每一次调用都留痕，可在不触达外部依赖的前提下回放整次问诊。
+
+## 核心特性
+
+- 🛡️ **安全先行** —— 红旗症状在**调用大模型之前**确定性拦截，命中即全链路短路（归一化 / 检索 / 图谱 / 生成都不执行），并经 trace 审计。
+- 🧩 **五 Skill 编排** —— 每个 Skill 有独立契约（输入输出 Schema / 触发条件 / 边界情况 / 测试用例），可脱离关系库、图库单独实例化测试。
+- 🔎 **双支路 RAG** —— 向量检索与图谱推理**并行且互不筛选**；任一支路不可用即降级（`degraded`），问答继续而不是整体失败。
+- 🧾 **可回放 trace** —— 每次 Skill 与大模型调用都留下结构化 span，足以在不访问外部依赖的前提下重放一次问诊并比对结果。
+- 🎨 **三端一致 UI** —— 患者 / 医生 / 管理端共用设计令牌（紫色渐变主色、深色侧边栏、卡片化内容区），Element Plus 按需引入。
+
+## 界面预览
+
+**患者端**：首页概览 · AI 问诊 · 个人中心
+
+<p align="center">
+  <img src="./docs/images/patient-home.png" width="32%" alt="患者首页" />
+  <img src="./docs/images/ai-chat.png" width="32%" alt="AI 问诊" />
+  <img src="./docs/images/profile.png" width="32%" alt="个人中心" />
+</p>
+
+**管理端**：数据概览 · 知识库管理 · 预约管理
+
+<p align="center">
+  <img src="./docs/images/admin-dashboard.png" width="32%" alt="管理端数据概览" />
+  <img src="./docs/images/knowledge.png" width="32%" alt="知识库管理" />
+  <img src="./docs/images/appointments.png" width="32%" alt="预约管理" />
+</p>
+
+**公开页**：登录（注册同款布局，登录时可选患者 / 医生 / 管理员）
+
+<p align="center">
+  <img src="./docs/images/login.png" width="62%" alt="登录页" />
+</p>
 
 > **当前状态：功能已完整落地。** TICKET-001…026 已实现五个 Skill 的编排链路、三角色认证与全部业务域（AI 问诊、知识库、图谱、预约与健康档案、人工问诊、文章公告、统计、可观测性与回归基线），并提供一份演示数据 `server/seeds/demo_v1.sql`。下文「架构」描述的是 `SPEC.md` 规定的目标形态，实现与其一致。
 
@@ -8,11 +42,10 @@ AI 智能医疗问诊平台 —— 异步、Skill 化重建。
 
 | 文档 | 内容 |
 |---|---|
-| [`FUNCTIONAL_SPEC.md`](./FUNCTIONAL_SPEC.md) | 参考实现的**现状行为**规格：14 个实体、73 个 HTTP 端点、RAG 与图谱链路的实际行为，含附录 A 术语表与附录 B 现状边界。它是功能对等的基线，不是改造建议。 |
 | [`SPEC.md`](./SPEC.md) | 目标架构规格：问题、目标、约束、seam、接口契约、验收标准、范围外事项。 |
 | [`docs/agents/`](./docs/agents/) | 本仓库的工程技能配置：issue tracker、triage 标签、领域文档约定。 |
 
-领域概念一律以 `FUNCTIONAL_SPEC.md` 附录 A 的术语表为准。
+> 功能层「现状行为」规格（`FUNCTIONAL_SPEC.md`）不随本仓库发布；对外行为以 `SPEC.md` 第 5 章的接口契约与 `contracts/` 为准。
 
 ## 架构
 
@@ -66,7 +99,7 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 | 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / httpx 异步调用兼容 OpenAI 的 LLM 与嵌入服务 |
 | 数据 | MySQL（14 个实体）/ Neo4j 异步驱动（医学知识图谱）/ Chroma 本地持久化（向量索引） |
 | AI | 兼容 OpenAI 接口的大模型与嵌入服务 |
-| 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus + ECharts + axios，仅通过 RESTful API（含 SSE）通信 |
+| 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus（按需引入），仅通过 RESTful API（含 SSE）通信；图表为自绘内联 SVG，无第三方图表依赖 |
 
 **配置**：连接串、口令与密钥一律经环境变量注入，由 `server/.env` 提供——`core.config.Settings` 读取，样例见 `server/.env.example`。`DATABASE_URL` 必填；缺失时后端启动即报错，不再退回源码里的默认值（TICKET-027）。
 
@@ -184,7 +217,7 @@ cd server
 
 - **仓库结构**：Monorepo，`client/` 与 `server/` 两个顶层目录。
 - **业务规则**：全部校验、状态语义、权限判定、级联规则都在后端；前端不得复制业务规则作为唯一依据。
-- **领域文档**：`GLOSSARY.md` 与 `docs/adr/`；ADR 的人类可读索引入口是根目录 `DECISIONS.md`，见 [`docs/agents/domain.md`](./docs/agents/domain.md)。
+- **领域文档**：`docs/adr/`（架构决策记录），人类可读索引入口是根目录 `DECISIONS.md`，见 [`docs/agents/domain.md`](./docs/agents/domain.md)。
 - **Issue tracker**：本地 markdown，`.scratch/<feature-slug>/`，见 [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md)。
 - **回归基线**：基线用例集与录制结果纳入版本控制，不忽略。
 
