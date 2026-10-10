@@ -46,3 +46,63 @@
   （`server/regression/schema.py:3-6` 的既有约定）。
 
 ## Comments
+
+**完成（2026-10-11）。** 检索第一次有了可复现的质量指标，回放自检也从「算了就丢」变成进报告。
+
+### 交付
+
+| 文件 | 变更 |
+|---|---|
+| `server/regression/retrieval_eval.py`（新增） | `recall_at` / `reciprocal_rank` 纯函数、`evaluate_retrieval` 端口评测、`load_case_set` |
+| `server/regression/cases/retrieval-v1.json`（新增） | **30 条**标注 query-文档对，`frozen_at: 2026-10-11` |
+| `server/scripts/regression.py` | 新子命令 `retrieval-eval --set retrieval-v1` |
+| `server/regression/metrics.py` | `CaseOutcome.evidence_matched`、`MetricsReport.evidence_match_rate`、`compare_reports` 加差值 |
+| `server/regression/replay.py` | 把 `evidence_matched` 真正接进 `CaseOutcome`（此前算完就丢） |
+| `SPEC.md` §3.8 / §5.3 | 说明 `evidence_match_rate` 是**回放自检**，不是第五项指标 |
+| `contracts/openapi.json` | 重导（永不手改） |
+
+### 标注口径（先定稿再跑指标）
+
+- **二值相关**：命中 `relevant` 里任一文件名即算相关；一条 query 可标多篇（q13 标了 2 篇）。
+- **30 条**，覆盖全部 17 篇种子文档。先写标签、再跑指标，`frozen_at` 写死在文件里；
+  冻结后不得回溯修改，口径变更只能出 `retrieval-v2`。
+- 完整性有测试兜底：条数落在 20–30、id 唯一、**每条标注都指向真实存在的种子文档**。
+
+### 实测结果
+
+```
+cd server; .venv\Scripts\python.exe scripts\regression.py retrieval-eval --set retrieval-v1
+
+{"case_set_version": "retrieval-v1", "case_count": 30,
+ "recall_at_1": 0.9833333333333333, "recall_at_5": 0.9833333333333333,
+ "mrr": 1.0, "top_k": 5}
+```
+
+- **MRR = 1.0**：每条有命中的用例，第一篇相关文档都在第 1 位。
+- **recall@1 = recall@5 = 29.5/30**：唯一缺口是多标签的 q13
+  （「过敏性鼻炎和感冒有什么区别」标了 2 篇），只召回了其中 1 篇。
+  按冻结纪律**不回溯改标签**。
+- 观察（留给票 04）：检索是**分块级**的，5 个名额可能被同一个文件的多块占满，
+  这是 q13 丢掉第二篇的原因之一；重排若按文档去重会顺带改善。
+
+### TDD
+
+`server/tests/test_retrieval_eval.py` 11 项：纯函数 4 / 端口评测 3 / 标注集完整性 3 / 参数校验 1。
+另更新 `test_regression_metrics.py` 的「字段名冻结」断言（加 `evidence_match_rate`）——
+这正是那类「加字段会撑破的硬编码断言」，必须同票改。
+
+### 套件
+
+- 后端 `pytest -q --basetemp=.tmp\pytest-user` → **883 passed**（873 + 10 新增，229 s）
+- 前端 `npm test` → **56 files / 322 passed**（契约加了字段后仍能解析）
+
+### 环境（与票无关，但会影响下一个人）
+
+`server\.tmp\pytest` 的属主是沙箱账号 `CodexSandboxOffline`，当前账号（87590，非管理员）
+**既列不出也删不掉**：`--basetemp=.tmp\pytest` 直接 `PermissionError`，
+从仓库根递归搜索会报 2 个错误。本票改用 `.tmp\pytest-user`。
+**需要用户用有权限的账号删掉 `server\.tmp\pytest`**（交接文档开头的同一件事又出现了）。
+
+### divergence
+
+无新条目：本票只加指标与报告字段，`S-1` 已在票 02 登记。

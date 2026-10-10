@@ -23,6 +23,8 @@ from regression.metrics import JudgePort  # noqa: E402
 from regression.metrics import compare_reports  # noqa: E402
 from regression.record import record_case_set  # noqa: E402
 from regression.replay import run_regression  # noqa: E402
+from regression.retrieval_eval import evaluate_retrieval, load_case_set  # noqa: E402
+from regression.retrieval_eval import RetrievalCaseSet, RetrievalReport  # noqa: E402
 from regression.schema import (  # noqa: E402
     BaselineMissing,
     CaseSetMissing,
@@ -84,6 +86,15 @@ def _parser() -> argparse.ArgumentParser:
         "--judge", action="store_true", help="启用判定层（无模型适配器时降级为不可用）"
     )
     _add_dirs(replay)
+
+    evaluate = sub.add_parser(
+        "retrieval-eval", help="跑检索质量评测（recall@k / MRR，TICKET-AC-03）"
+    )
+    evaluate.add_argument(
+        "--set", required=True, help="标注集版本名，如 retrieval-v1（默认在 regression/cases/）"
+    )
+    evaluate.add_argument("--report", default=None, help="把 RetrievalReport 另存为 JSON")
+    evaluate.add_argument("--cases-dir", default=None, help="标注集目录（默认 regression/cases）")
     return parser
 
 
@@ -93,6 +104,36 @@ def _record(args: argparse.Namespace) -> int:
     baseline = asyncio.run(record_case_set(case_set))
     path = store.write_baseline(baseline, version=args.baseline_version)
     print(f"已录制基线 {args.baseline_version}：{len(baseline.cases)} 条用例 → {path}")
+    return 0
+
+
+async def _evaluate_and_close(
+    retriever: object, case_set: RetrievalCaseSet
+) -> RetrievalReport:
+    """跑一次评测并释放端口持有的 HTTP 客户端。"""
+    try:
+        return await evaluate_retrieval(retriever, case_set)  # type: ignore[arg-type]
+    finally:
+        close = getattr(retriever, "close", None)
+        if callable(close):
+            await close()
+
+
+def _retrieval_eval(args: argparse.Namespace) -> int:
+    """检索质量评测：跑**真实**检索端口（需要嵌入服务），把标注集跑成三项指标。"""
+    from adapters import build_vector_store
+    from core.config import get_settings
+
+    case_set = load_case_set(
+        args.set, cases_dir=Path(args.cases_dir) if args.cases_dir else None
+    )
+    report = asyncio.run(
+        _evaluate_and_close(build_vector_store(get_settings()), case_set)
+    )
+    text = json.dumps(report.model_dump(mode="json"), ensure_ascii=False, indent=2)
+    print(text)
+    if args.report:
+        Path(args.report).write_text(text + "\n", encoding="utf-8", newline="\n")
     return 0
 
 
@@ -138,6 +179,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "record":
             return _record(args)
+        if args.command == "retrieval-eval":
+            return _retrieval_eval(args)
         return _replay(args)
     except (CaseSetMissing, BaselineMissing) as error:
         print(f"回放失败：{error}", file=sys.stderr)

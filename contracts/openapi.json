@@ -8671,6 +8671,10 @@
           "case_count": {
             "type": "integer",
             "title": "Case Count"
+          },
+          "evidence_match_rate": {
+            "type": "number",
+            "title": "Evidence Match Rate"
           }
         },
         "type": "object",
@@ -8680,7 +8684,8 @@
           "diagnosis_drift_rate",
           "hallucination",
           "latency",
-          "case_count"
+          "case_count",
+          "evidence_match_rate"
         ],
         "title": "MetricsReport"
       },

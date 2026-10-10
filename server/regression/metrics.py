@@ -67,6 +67,10 @@ class MetricsReport(BaseModel):
     hallucination: HallucinationReport
     latency: LatencyReport
     case_count: int
+    #: 回放自检：本次回放的帧 / 路由 / span 与录制**逐字一致**的用例比例。
+    #: 它**不是第五个指标**（SPEC.md 3.8 的四项定义不变、不参与换模型对比阈值），
+    #: 而是"这次回放本身有没有漂"的自检——票 03 修的就是它此前被丢掉、永远进不了报告。
+    evidence_match_rate: float
 
 
 @dataclass(frozen=True)
@@ -84,6 +88,9 @@ class CaseOutcome:
     duration_ms: int
     #: 有意偏离登记册里、本次对比须豁免的 id（如 ai-chain A-1…A-7）。
     exemptions: tuple[str, ...] = ()
+    #: 该用例的回放证据是否与录制一致（票 03 起进报告）。手工构造的用例默认视为一致；
+    #: 真实回放（`regression/replay.py`）一定显式传入。
+    evidence_matched: bool = True
 
 
 def percentile(values: Sequence[int], quantile: float) -> int:
@@ -247,6 +254,9 @@ async def build_report(
         ),
         latency=latency_of([(outcome.path, outcome.duration_ms) for outcome in outcomes]),
         case_count=len(outcomes),
+        evidence_match_rate=_rate(
+            sum(1 for outcome in outcomes if outcome.evidence_matched), len(outcomes)
+        ),
     )
 
 
@@ -284,6 +294,9 @@ def compare_reports(primary: MetricsReport, baseline: MetricsReport) -> dict[str
             }
             for path in ("intercepted", "llm", "degraded")
         },
+        "evidence_match_rate": (
+            primary.evidence_match_rate - baseline.evidence_match_rate
+        ),
     }
 
 

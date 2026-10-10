@@ -98,19 +98,6 @@ async def replay_case(case: BaselineCase) -> CaseRun:
         frame["content"] for frame in frames if frame.get("type") == "content"
     )
 
-    outcome = CaseOutcome(
-        case_id=case.id,
-        red_flag=case.red_flag,
-        intercepted=intercepted,
-        candidates=candidates,
-        baseline_candidates=baseline_candidates,
-        answer=answer,
-        context=_context_of(case),
-        path=path_of(intercepted=intercepted, degraded=degraded),
-        duration_ms=case.duration_ms,
-        exemptions=tuple(case.exemptions),
-    )
-
     route = sink.routes[0] if sink.routes else None
     route_matched = route is not None and (
         list(route.skills_run) == case.route.skills_run
@@ -123,11 +110,26 @@ async def replay_case(case: BaselineCase) -> CaseRun:
     degraded_matched = degraded == done_degraded
     frames_matched = _normalize_frames(frames) == _normalize_frames(case.frames)
 
+    evidence = bool(
+        route_matched and spans_matched and degraded_matched and frames_matched
+    )
+    outcome = CaseOutcome(
+        case_id=case.id,
+        red_flag=case.red_flag,
+        intercepted=intercepted,
+        candidates=candidates,
+        baseline_candidates=baseline_candidates,
+        answer=answer,
+        context=_context_of(case),
+        path=path_of(intercepted=intercepted, degraded=degraded),
+        duration_ms=case.duration_ms,
+        exemptions=tuple(case.exemptions),
+        evidence_matched=evidence,
+    )
+
     return CaseRun(
         outcome=outcome,
-        evidence_matched=bool(
-            route_matched and spans_matched and degraded_matched and frames_matched
-        ),
+        evidence_matched=evidence,
     )
 
 

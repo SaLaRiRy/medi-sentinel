@@ -236,6 +236,10 @@
 | 幻觉率 | 答案中的**断言**无法在本次检索上下文找到依据的比例。断言抽取分两层：**确定性层**对数值、药品名、疾病名、检查名（依据图谱词表）做字面匹配；**判定层**对剩余自由文本由判定模型给出有据/无据。报告须同时给出 `deterministic_ratio`、`judged_ratio` 与 `total` | 无硬性目标，趋势不得无故上升 |
 | P95 延迟 | 端到端耗时 95 分位，按路径分组统计：`intercepted`（被拦截）、`llm`（走完大模型）、`degraded`（含降级支路） | 分组报告，不合并 |
 
+> `MetricsReport` 另带一个 `evidence_match_rate`（回放自检：帧 / 路由 / span 与录制**逐字一致**
+> 的用例比例）。它是**自检**，不是第五项指标：上表四项指标的唯一定义不变，
+> 也不得用它充当换模型对比的通过阈值。
+
 ### 3.9 接口契约约束
 
 所有前后端交互必须显式定义六项：**请求方法、路径、请求体 Schema、响应体 Schema、错误码、SSE 流式协议格式**。契约作为**独立 seam** 存在，两侧实现均以其为唯一依据。
@@ -423,7 +427,7 @@
 | `PageQuery` | 分页查询 | `page: int≥1`, `page_size: int(1..100)`, `keyword?: str` |
 | `TraceQuery` | 追踪检索 | `trace_id?: str`, `skill?: str`, `from?: datetime`, `to?: datetime`, `degraded?: bool`, `page`, `page_size` |
 | `RegressionRunRequest` | 触发回放 | `case_set_version: str`, `baseline_version: str`, `label?: str` |
-| `MetricsReport` | 四项指标 | `redflag_intercept_rate: float`, `redflag_false_positive_rate: float`, `diagnosis_drift_rate: float`, `hallucination: {deterministic_ratio: float, judged_ratio: float, total: float}`, `latency: {intercepted: {p50: int, p95: int}, llm: {...}, degraded: {...}}`, `case_count: int` |
+| `MetricsReport` | 四项指标 + 回放自检 | `redflag_intercept_rate: float`, `redflag_false_positive_rate: float`, `diagnosis_drift_rate: float`, `hallucination: {deterministic_ratio: float, judged_ratio: float, total: float}`, `latency: {intercepted: {p50: int, p95: int}, llm: {...}, degraded: {...}}`, `case_count: int`, `evidence_match_rate: float`（回放自检，不是第五项指标） |
 
 ### 5.4 REST 端点契约
 

@@ -149,6 +149,8 @@ async def test_report_has_the_frozen_shape():
         "hallucination",
         "latency",
         "case_count",
+        # TICKET-AC-03：回放自检，不是第五个指标（SPEC.md 3.8 的四项定义不变）。
+        "evidence_match_rate",
     }
     assert set(body["latency"]) == {"intercepted", "llm", "degraded"}
     assert set(body["latency"]["llm"]) == {"p50", "p95"}
