@@ -226,6 +226,20 @@ async def test_a_cancelled_stream_ends_with_neither_done_nor_error():
     assert "error" not in types
 
 
+async def test_a_cancelled_stream_still_records_the_orchestration_span():
+    """The main seam's own span must not vanish when the client hangs up
+    (SPEC.md 6.1 AC-B-26, TICKET-AC-02 顺带修)."""
+    llm = BlockingLlmPort()
+    orchestrator, sink = orchestrator_with(llm)
+
+    frames = await _cancel_mid_generation(orchestrator, llm)
+
+    spans = await sink.spans_for(trace_id_of(frames))
+    assert [span.status for span in spans if span.name == "orchestration"] == [
+        "cancelled"
+    ]
+
+
 async def test_closing_the_stream_between_frames_still_marks_the_model_cancelled():
     """The other cancellation timing: the client goes away while the generator is
     parked on a `yield`, so it is closed with GeneratorExit rather than

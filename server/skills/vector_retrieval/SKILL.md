@@ -119,16 +119,21 @@
 检索查询向量的嵌入发生在端口之内（旧 `AlibabaEmbeddings`，`FUNCTIONAL_SPEC.md` 5.5），
 **不构成**本 Skill 的大模型调用：本 Skill 不接收、不调用 `LlmPort`。
 
+端口返回**至多** `top_k` 条，也可能少于 `top_k`（包括空序列）。默认适配器
+`rag/hybrid.py`（TICKET-AC-02）在实现层内部做「向量 + BM25 双路 RRF 融合」并按
+阈值过滤，因此端口签名与调用次数都不变；**融合与阈值都属于端口实现，不是本 Skill 的规则**。
+
 ### 1.4 截断规则与阈值（显式化）
 
 | 规则 | 值 | 常量 |
 |---|---|---|
-| 最低命中阈值 | 无 —— 不按距离过滤 | — |
 | 检索返回条数上限 | 5 | `RETRIEVAL_TOP_K` |
 | 引用项正文长度 | 前 200 字符 | `SNIPPET_LENGTH` |
 
-- **无最低命中阈值**（`SPEC.md` 附：Skill 清单）：端口返回的前 `top_k` 条命中**全部保留**，
-  距离再大也不丢弃、不重排。
+- **本 Skill 不设阈值、不重排**：端口返回的前 `top_k` 条命中**全部保留**，距离再大也不丢弃。
+  命中阈值是**端口实现层**的选择：默认适配器 `rag/hybrid.py` 用两道门决定交回哪些命中——
+  向量命中的余弦距离上限 `MAX_VECTOR_DISTANCE`，以及 RRF 融合分下限 `RETRIEVAL_MIN_SCORE`
+  （等价于「至少在某一路排进前 `RRF_MIN_RANK` 名」）。实测量级见该模块注释。
 - **条数截断显式化**：Skill 自己执行 `hits[:RETRIEVAL_TOP_K]`，序号从 1 连续编造；即使端口
   返回条数超过上限，也只保留最前面的若干条。该规则不依赖端口是否自觉遵守 `top_k`。
 - **正文截断显式化**：`snippet` 取分块正文前 `SNIPPET_LENGTH` 个字符，**不追加省略号**。
@@ -168,7 +173,7 @@ class VectorRetrievalSkill(Skill):
 | 何时被跳过 | 安全门拦截导致全链路短路时（TICKET-008）本 Skill 不被调用；该跳过由编排在 `skills_skipped` 注入，本 Skill 自身不产出该记录 |
 | 大模型调用 | 无。本 Skill 不声明、不接收 `LlmPort` |
 | 外部依赖不可用 | 向量索引不可用时返回 `degraded`（`status == "ok"`），不抛错、不阻断问答 |
-| 与图谱的关系 | 与 `graph-inference` 各自独立产出结果，互不筛选、互不重排；仅由编排在上下文组装时并列拼接 |
+| 与图谱的关系 | 与 `graph-inference` 各自独立产出结果，本 Skill 不筛选、不重排图谱支路；仅由编排在上下文组装时并列拼接。（检索**内部**的向量 + BM25 融合属端口实现，见 1.3 / 1.4。） |
 
 ### trace 与审计
 
@@ -201,7 +206,7 @@ class VectorRetrievalSkill(Skill):
 | 向量索引不可用（端口抛异常） | 捕获异常，返回 `degraded == true`、`references == []`、`degraded_reason` 非空；`status == "ok"`，不抛错，问答继续 |
 | 端口返回结构非法（缺 `content` / `metadata.file_name` / `distance`） | 与「索引不可用」走同一条降级路径：`degraded == true`，不阻断问答 |
 | 端口返回条数超过上限 | 显式截断到前 `RETRIEVAL_TOP_K` 条；`index` 从 1 连续重编，不沿用端口原始序号 |
-| 距离很大 / 无命中阈值 | 照常返回，不按距离过滤、不重排（无最低命中阈值） |
+| 距离很大（端口仍返回该命中） | 本 Skill 照常返回、不按距离过滤、不重排；过滤只可能发生在端口实现层（`rag/hybrid.py`） |
 | 分块正文超过 200 字符 | `snippet` 取前 `SNIPPET_LENGTH` 个字符，不追加省略号 |
 | 分块正文短于 200 字符 | `snippet` 原样返回 |
 | 嵌入模型调用 | 发生在 `RetrievalPort` 之内，**不算**大模型生成调用；`LlmPort` 为抛异常假实现时本 Skill 全部测试仍通过 |

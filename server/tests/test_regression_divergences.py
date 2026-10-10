@@ -1,15 +1,21 @@
-"""Intentional-divergence registry: 023 exempts `ai-chain`, records `http-contract`.
+"""Intentional-divergence registry: 023 exempts `ai-chain`, records the other two.
 
 The registry (`.scratch/medisentinel/intentional-divergences.md`) is the single
 source of truth. 023 reads it read-only: the `ai-chain` subset (A-1…A-7) is
 exempted from the drift / hallucination denominators, and the `http-contract`
 subset (H-1…H-12) is recorded but never consumed here (024's input).
+
+`stack` (S-*) carries the framework-level refactors that are neither a legacy
+behaviour fix nor an HTTP-contract change. It is **only** recorded: reading it
+into the exemption list would widen the drift / hallucination denominator and
+blind the gate to the very change it is supposed to watch.
 """
 
 from regression.divergences import (
     ai_chain_ids,
     http_contract_ids,
     load_registry,
+    stack_ids,
 )
 from regression.metrics import CaseOutcome, build_report
 from regression.schema import default_store
@@ -20,6 +26,15 @@ def test_registry_parses_the_two_scoped_subsets():
 
     assert ai_chain_ids(registry) == [f"A-{index}" for index in range(1, 8)]
     assert http_contract_ids(registry) == [f"H-{index}" for index in range(1, 13)]
+
+
+def test_registry_parses_the_stack_subset_without_exempting_it():
+    """`stack` 只登记：既不进豁免集，也不进 024 的消费集。"""
+    registry = load_registry()
+
+    assert stack_ids(registry) == [f"S-{index}" for index in range(1, 2)]
+    assert set(stack_ids(registry)).isdisjoint(ai_chain_ids(registry))
+    assert set(stack_ids(registry)).isdisjoint(http_contract_ids(registry))
 
 
 def test_committed_baseline_embeds_both_divergence_lists():

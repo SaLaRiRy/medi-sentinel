@@ -127,6 +127,23 @@ class ChromaVectorStore:
         )
         return len(result.get("ids", []))
 
+    async def all_documents(self) -> list[Mapping[str, Any]]:
+        """全量分块（不带 embedding）——混合检索的 BM25 语料来源。
+
+        与向量写在同一个集合里，因此与 `t_knowledge_chunk` 的内容天然一致，
+        也**不需要**再往 `rag/` 里引入关系库依赖；`get` 是本地 SQLite 读取，
+        不触发嵌入服务。
+        """
+        result = await asyncio.to_thread(
+            self._collection().get, include=["documents", "metadatas"]
+        )
+        documents = result.get("documents") or []
+        metadatas = result.get("metadatas") or []
+        return [
+            {"content": content, "metadata": dict(metadata or {})}
+            for content, metadata in zip(documents, metadatas)
+        ]
+
     async def search(
         self, query: str, top_k: int = 5
     ) -> Sequence[Mapping[str, Any]]:

@@ -1,5 +1,7 @@
 """B-2 (unified invoke protocol with schema validation) and B-4 (one span per call)."""
 
+import asyncio
+
 import pytest
 from pydantic import BaseModel
 
@@ -31,6 +33,22 @@ class ExplodingSkill(Skill):
 
     async def run(self, data: EchoInput) -> EchoOutput:
         raise RuntimeError("dependency unavailable")
+
+
+class BlockingSkill(Skill):
+    """Signals when it is running, then parks until the caller is cancelled."""
+
+    name = "blocking"
+    input_schema = EchoInput
+    output_schema = EchoOutput
+
+    def __init__(self) -> None:
+        self.running = asyncio.Event()
+
+    async def run(self, data: EchoInput) -> EchoOutput:
+        self.running.set()
+        await asyncio.sleep(60)
+        return EchoOutput(reply=data.text)  # pragma: no cover - never resumed
 
 
 @pytest.fixture
@@ -66,6 +84,20 @@ async def test_every_invocation_records_exactly_one_span(context):
     assert span.duration_ms >= 0
     assert span.input_digest
     assert span.output_digest
+
+
+async def test_a_cancelled_invocation_still_records_a_span(context):
+    """`except Exception` cannot see `CancelledError`: a cancelled call must not
+    vanish from the trace (SPEC.md 6.1 AC-B-26)."""
+    skill = BlockingSkill()
+    task = asyncio.create_task(skill.invoke({"text": "hi"}, context))
+    await skill.running.wait()
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert [span.status for span in context.sink.spans] == ["cancelled"]
 
 
 async def test_invalid_input_still_records_a_span(context):

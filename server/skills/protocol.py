@@ -68,6 +68,16 @@ class Skill:
             return SkillOutcome(
                 status="failed", error=f"{type(error).__name__}: {error}"
             )
+        except BaseException:
+            # A cancelled caller (client hang-up, task cancellation) lands here:
+            # `CancelledError` and `GeneratorExit` are `BaseException`s, so the
+            # `except Exception` arm above can never see them. Without this arm a
+            # cancelled call leaves no span at all and the trace silently loses
+            # the fact that the Skill ever ran (SPEC.md 6.1 AC-B-26).
+            await self._record(
+                context, started, started_at, "cancelled", payload_digest, ""
+            )
+            raise
 
         await self._record(
             context,

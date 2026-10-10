@@ -42,6 +42,10 @@ def to_references(hits: Sequence[Mapping[str, Any]]) -> list[RetrievalReference]
     这里**显式**截断到前 `RETRIEVAL_TOP_K` 条（SPEC.md 3.6「截断规则显式化」）：
     即便端口返回更多，也只保留最前面的若干条，序号连续从 1 重编。无最低命中阈值 ——
     距离再大的命中也照常保留（SPEC.md 附：Skill 清单）。
+
+    **本层不按距离过滤**：命中阈值是检索端口的实现选择。默认适配器
+    （`rag/hybrid.py`，TICKET-AC-02）用「向量余弦距离上限 + RRF 融合分下限」两道门
+    决定交回哪些命中；`to_references` 对拿到的命中一律保留、不重排。
     """
     return [
         RetrievalReference(

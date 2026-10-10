@@ -88,3 +88,72 @@
 - BM25 索引是进程内状态：知识库增删后必须失效重建，否则索引陈旧（票内给出失效时机）。
 
 ## Comments
+
+**完成（2026-10-11）。** 检索从「纯向量单路、无阈值」改成「向量 + BM25 → RRF 融合 → 两道门」。
+
+### 交付
+
+| 文件 | 变更 |
+|---|---|
+| `server/rag/hybrid.py`（新增） | `HybridRetriever`（同时满足 `RetrievalPort` 与 `VectorStore`）、`tokenize`（中文二字组切分）、`rrf_fuse`（纯函数） |
+| `server/rag/chroma_adapter.py` | 新增 `all_documents()`（BM25 语料来源） |
+| `server/adapters.py` | `build_vector_store` 装配 `HybridRetriever`（唯一装配点） |
+| `server/regression/divergences.py` | 正则 `^(A|H|S)-\d+$`、`STACK_SCOPE`、`stack_ids()` |
+| `.scratch/medisentinel/intentional-divergences.md` | 新增 `stack` 子集 + `S-1` |
+| `server/requirements.txt` | `rank_bm25>=0.2`（实测 `rank_bm25-0.2.2` 已装） |
+| `vector_retrieval/{SKILL.md,retrieval.py}`、`orchestration/skill.py` | 注释与文档跟实现对齐（「互不重排」的旧说法已改） |
+| 顺带修 | `skills/protocol.py` 补 `BaseException` 分支写 `cancelled` span；`orchestration/skill.py` 取消时也写 orchestration span |
+
+### 票内决策（用户授权「选推荐值」）
+
+1. **融合写在端口实现层内部**——端口签名与调用序列不变，`regression/ports.py`、
+   `tests/doubles.py`、`baseline` 全部零改动，回放不破（spec.md 4.4 的首选做法）。
+2. **BM25 语料来源改为 Chroma 集合的全量分块**（`all_documents()`），而非票面写的
+   `t_knowledge_chunk` 表：两者由同一次 `split_text` 写入、内容天然一致，且这样
+   `rag/` 不必引入关系库依赖、`build_vector_store(settings)` 的签名也不用动。
+   `collection.get()` 是本地 SQLite 读取，**不触发嵌入服务**。
+3. **两道门**：`MAX_VECTOR_DISTANCE`（向量距离上限，超过者不进融合，仍可由 BM25 带入）
+   + `RETRIEVAL_MIN_SCORE = 1/(60+10)`（RRF 分下限＝「至少在某一路排进前 10 名」）。
+   候选深度 `CANDIDATE_K = 20` 比输出 `top_k = 5` 深，阈值才有意义。
+
+### 实测标定（活库 42 chunk；`server/.tmp/` 一次性脚本，跑完即删）
+
+```
+相关问句最佳距离: 0.252 / 0.286 / 0.286 / 0.288 / 0.311 / 0.315 / 0.343
+相关问句 top20 尾部: 到 0.685
+离题问句「今天天气怎么样」: 0.699 起
+离题问句「股票怎么开户」:   0.769 起
+```
+
+→ 取 `MAX_VECTOR_DISTANCE = 0.60`：把离题命中全部挡在门外。相关侧 0.61–0.685 的尾部
+也一并丢弃，但它们不在融合后的前 10 名里，对 top-5 输出无影响。
+**离题问句现在返回空结果**（原来是恒 5 条垃圾、且全部进提示词）：
+`今天天气怎么样 → []`、`股票怎么开户 → []`；7 条医学问句仍各返回 5 条、来源 ≥2 篇。
+
+### 已知局限（留给票 04，不在此票硬修）
+
+BM25 会被公共二字词带进噪声：`高血压吃什么药` 的第 5 条是 `中暑的识别与急救.md`
+（只因共享「什么」），BM25 分 2.40。**IDF 卡不掉**——42 篇语料里 `什么` 的 IDF 反而是
+2.42（在这个小语料里算"稀有词"）。字面巧合与真命中靠阈值分不开，
+这正是票 04 本地重排要解决的事。
+
+### TDD
+
+`server/tests/test_hybrid_retrieval.py` 13 项（分词 3 / RRF 3 / 两道门 4 / 降级与写路径 3），
+全部用假 store，不碰 Chroma、嵌入与网络。另有 `test_regression_divergences.py` 的
+`stack` 子集断言、`test_skill_protocol.py` 与 `test_stream_lifecycle.py` 的取消 span 断言。
+
+实现过程中踩到并修掉的两个真问题：
+
+1. BM25 小语料下 IDF 可能整体为负，用「分数 > 0」当门会把整库滤空 → 改成
+   「与问句有词面重叠才算命中」。
+2. `_bm25_rank` 先切片后过滤会让名次越界 → 先筛候选再取前 `depth`。
+
+### 套件
+
+后端 `pytest -q --basetemp=.tmp\pytest` → **873 passed**（857 + 16 新增，225 s）。
+前端未改动，未重跑。
+
+### divergence
+
+`S-1`（scope `stack`）已登记；`ai_chain_ids()` / `http_contract_ids()` 输出不变。

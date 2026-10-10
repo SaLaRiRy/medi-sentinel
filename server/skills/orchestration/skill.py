@@ -157,6 +157,14 @@ class Orchestrator:
                 "trace_id": trace_id,
             }
             return
+        except BaseException:
+            # The client hung up. The `llm` span carries `cancelled` already (see
+            # `_run`); the orchestration span must not vanish for the same reason
+            # a Skill's must not (SPEC.md 6.1 AC-B-26, TICKET-AC-02 顺带修).
+            await self._record_orchestration_span(
+                trace_id, started, started_at, "cancelled", request, session_id, summary
+            )
+            raise
         finally:
             # A consumer that stops early (a hung-up client) closes this
             # generator, which would otherwise leave the inner generator parked on
@@ -239,7 +247,10 @@ class Orchestrator:
 
         # ③ the two branches, in parallel and independent: the retrieval branch
         # asks the raw question, the graph branch the standardized symptoms,
-        # and neither one filters or re-ranks the other.
+        # and neither one filters the other. Retrieval's own hybrid fusion
+        # (vector + BM25 → RRF, TICKET-AC-02) happens *inside* the retrieval
+        # port, so the graph branch still contributes nothing to it and the
+        # `gather` below keeps exactly its two positional outcomes.
         calls = [
             VectorRetrievalSkill(self._ports.retrieval).invoke(
                 {"query": request.message}, context

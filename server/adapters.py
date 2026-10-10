@@ -11,6 +11,7 @@ from core.config import Settings
 from graph.neo4j_adapter import Neo4jGraphAdapter
 from graph.store import GraphStore
 from rag.chroma_adapter import ChromaVectorStore, OpenAiCompatibleEmbedder
+from rag.hybrid import HybridRetriever
 from rag.store import VectorStore
 from skills.llm_http import HttpLlmAdapter
 from skills.ports import LlmPort, UnavailableLlmPort
@@ -30,10 +31,14 @@ def build_vector_store(settings: Settings) -> VectorStore:
         dimensions=settings.embedding_dimensions,
         batch_size=settings.embedding_batch_size,
     )
-    return ChromaVectorStore(
-        persist_dir=settings.chroma_persist_dir,
-        collection_name=settings.chroma_collection,
-        embedder=embedder,
+    # 混合检索（向量 + BM25 → RRF）写在检索端口的实现层里：编排层仍然只调一次
+    # `search`，端口签名与调用序列不变，回归回放因此不受影响（TICKET-AC-02）。
+    return HybridRetriever(
+        ChromaVectorStore(
+            persist_dir=settings.chroma_persist_dir,
+            collection_name=settings.chroma_collection,
+            embedder=embedder,
+        )
     )
 
 

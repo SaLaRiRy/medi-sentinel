@@ -67,6 +67,22 @@
   （`404` / `409`）与存在性收紧。024 对每个端点先按 H-11 接受「失败不再走 200」，
   再按对应 H-* 接受该端点的 `404` / `409`。
 
+## stack 子集（**只登记，不豁免**）
+
+**用途**：承载 `agentic-consult` 的**框架级重构**。这些变更既不是「相对 legacy 的
+有意修复」（A-*），也不改变 HTTP 端点的行为或契约形状（H-*），因此单开一族 `S-*`、
+单开一个 scope `stack`。
+
+**消费规则**：`stack` 条目**不进 023 的豁免集，也不进 024 的消费集**——只有
+`server/regression/divergences.py::stack_ids()` 读它。把它们塞进 `ai-chain`
+会让 023 的漂移率与幻觉率把本次改动整体豁免掉，门禁随之对本次改动失明，**禁止**。
+
+| ID | 票号 | 行为描述 | legacy 出处 | 现行为出处 | scope |
+|---|---|---|---|---|---|
+| S-1 | AC-02 | 检索从「纯向量单路」→ **向量 + BM25 双路 RRF 融合**，并引入最低命中阈值（原实现显式声明「无最低命中阈值，距离再大的命中也照常保留」） | `FUNCTIONAL_SPEC.md` 无融合概念（只有向量检索一条路） | `server/rag/hybrid.py`（新增）；`server/adapters.py::build_vector_store`；对照 `server/skills/vector_retrieval/retrieval.py:43-44` | stack |
+
+---
+
 ## URL scheme 的整体权威（说明性条目，不逐行登记）
 
 | ID | 事项 | 权威 | 说明 |
@@ -93,3 +109,6 @@
 - 2026-10-04：按决策处理——H-11 改述为「SPEC 强制修复」并声明其与 H-1…H-10 的分层与
   024 的应用顺序；H-12 保留；D-1 改为「URL scheme 整体权威」说明性条目（不逐行登记、
   不计入条目数）；D-2 不登记。
+- 2026-10-11：新增 `stack` 子集（scope `stack`）与 S-1（AC-02 混合检索 RRF 融合 +
+  阈值）。该子集**不豁免、不消费**，只由 `stack_ids()` 读取；
+  `regression/divergences.py` 的正则同步扩成 `^(A|H|S)-\d+$`。
