@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     embedding_dimensions: int = 2048
     embedding_batch_size: int = 10
 
+    # Local ONNX cross-encoder for reranking (TICKET-AC-04). Blank means "no
+    # rerank" so the repo works without the 1.1 GB model file; set it to the
+    # directory holding `onnx/model.onnx` + `tokenizer.json` to switch it on.
+    rerank_model_dir: str = ""
+
     # Chunking and retrieval parameters (FUNCTIONAL_SPEC 5.5 / 6.6).
     chunk_size: int = 500
     chunk_overlap: int = 80

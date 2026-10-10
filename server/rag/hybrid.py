@@ -20,16 +20,22 @@ baseline 与回放会整体错位。
 
 **降级**：向量支路不可用时 `search` 照常抛出，由 `vector-retrieval` Skill 记
 `degraded`（SPEC.md 3.6）。本模块不吞异常，也不把 BM25 单路当作替代品。
+
+**重排（TICKET-AC-04）**：融合并过滤后，前 `RERANK_CANDIDATES` 条交给交叉编码器
+重排（`rag/rerank.py`，默认关闭）。重排跑在 `asyncio.to_thread` 里，不阻塞事件循环；
+重排器缺失或抛错时**保持原序**——它是增强支路，不是失败路径。
 """
 
 from __future__ import annotations
 
 import re
+import asyncio
 from collections.abc import Mapping, Sequence
 from typing import Any
 
 from rank_bm25 import BM25Okapi
 
+from rag.rerank import Reranker
 from rag.store import VectorStore
 
 RRF_K = 60
@@ -43,6 +49,12 @@ RETRIEVAL_MIN_SCORE = 1.0 / (RRF_K + RRF_MIN_RANK)
 
 #: 余弦距离上限。初值 0.60，由票 03 的标注集校准后回写实测值。
 MAX_VECTOR_DISTANCE = 0.6
+
+#: 只有融合后的前若干条进重排。实测（retrieval-v1 的 30 条，CPU）：
+#: N=8/512 是唯一能把 recall@5 从 0.9833 抬到 1.0000 的配置，中位增量 +1.24 s；
+#: N=5 或 3（或 max_length 降到 256）都会把这点收益吃回去。重排**默认关闭**，
+#: 打开与否是「+1.7pp recall@5」换「每次问诊多 1.2 秒」的取舍，实测表见票 AC-04。
+RERANK_CANDIDATES = 8
 
 #: BM25 单路命中没有embedding证据，用余弦距离的「无关」水平占位（同向为 0、
 #: 正交为 1）；它只进 Skill 输出与 trace，不进 wire 契约。
@@ -107,11 +119,15 @@ class HybridRetriever:
         candidate_k: int = CANDIDATE_K,
         min_score: float = RETRIEVAL_MIN_SCORE,
         max_distance: float = MAX_VECTOR_DISTANCE,
+        reranker: Reranker | None = None,
+        rerank_candidates: int = RERANK_CANDIDATES,
     ) -> None:
         self._store = store
         self._candidate_k = max(1, candidate_k)
         self._min_score = min_score
         self._max_distance = max_distance
+        self._reranker = reranker
+        self._rerank_candidates = max(1, rerank_candidates)
         self._index: (
             tuple[list[Mapping[str, Any]], list[set[str]], BM25Okapi | None] | None
         ) = None
@@ -155,7 +171,31 @@ class HybridRetriever:
             if float(hit.get("distance", 0.0)) <= self._max_distance
         ]
         fused = rrf_fuse([vector_hits, await self._bm25_rank(query, depth)])
-        return [hit for hit, score in fused if score >= self._min_score][:top_k]
+        kept = [hit for hit, score in fused if score >= self._min_score]
+        return (await self._rerank(query, kept))[:top_k]
+
+    async def _rerank(
+        self, query: str, hits: list[Mapping[str, Any]]
+    ) -> list[Mapping[str, Any]]:
+        """只重排融合后的前 `RERANK_CANDIDATES` 条；异常一律退回原序。"""
+        if self._reranker is None or len(hits) < 2:
+            return hits
+        head = hits[: self._rerank_candidates]
+        tail = hits[self._rerank_candidates :]
+        try:
+            scores = await asyncio.to_thread(
+                self._reranker.score,
+                query,
+                [str(hit.get("content", "")) for hit in head],
+            )
+            ordered = sorted(
+                range(len(head)), key=lambda position: (-float(scores[position]), position)
+            )
+        except Exception:  # noqa: BLE001 - 重排是增强，失败不阻断检索
+            return hits
+        if len(scores) != len(head):
+            return hits
+        return [head[position] for position in ordered] + tail
 
     async def _corpus(
         self,

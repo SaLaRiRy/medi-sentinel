@@ -80,6 +80,7 @@
 | ID | 票号 | 行为描述 | legacy 出处 | 现行为出处 | scope |
 |---|---|---|---|---|---|
 | S-1 | AC-02 | 检索从「纯向量单路」→ **向量 + BM25 双路 RRF 融合**，并引入最低命中阈值（原实现显式声明「无最低命中阈值，距离再大的命中也照常保留」） | `FUNCTIONAL_SPEC.md` 无融合概念（只有向量检索一条路） | `server/rag/hybrid.py`（新增）；`server/adapters.py::build_vector_store`；对照 `server/skills/vector_retrieval/retrieval.py:43-44` | stack |
+| S-2 | AC-04 | 融合后的前若干条命中再经**本地交叉编码器重排**（`bge-reranker-base`，onnxruntime，默认关闭、不可用时保持原序） | `FUNCTIONAL_SPEC.md` 无重排概念 | `server/rag/rerank.py`（新增）；`server/rag/hybrid.py::_rerank`；`server/adapters.py::build_vector_store` | stack |
 
 ---
 
