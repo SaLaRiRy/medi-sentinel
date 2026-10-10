@@ -5,6 +5,9 @@
   提交工单时把「标题 + 正文」编码成一个主诉字段（全角冒号，AC-F-15），可指定
   医生，也可留空成为「待分配」；下方按时间倒序列出本人全部工单及医生回复。所有
   后端调用都经 F-1 的 `client`。列表加载失败呈现空态并上报（AC-F-12）。
+
+  TICKET-AC-05：可以顺带把「本次转人工」挂到某条自己的 AI 会话上，医生端就能看到
+  AI 已经问出来的候选疾病与引用。会话列表读不到时不影响提交工单（可选字段）。
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
@@ -18,11 +21,12 @@ const props = defineProps({
 const emit = defineEmits(['error'])
 
 const items = ref([])
+const sessions = ref([])
 const loading = ref(false)
 const loadError = ref(null)
 const formError = ref(null)
 const submitting = ref(false)
-const emptyForm = () => ({ title: '', body: '', doctor_id: '' })
+const emptyForm = () => ({ title: '', body: '', doctor_id: '', session_id: '' })
 const form = ref(emptyForm())
 
 function parts(item) {
@@ -41,6 +45,12 @@ async function load() {
   } finally {
     loading.value = false
   }
+  // 会话只是可选关联：读不到就退化成「无会话」，绝不因此拦下转人工。
+  try {
+    sessions.value = (await props.client.chatSessions?.()) ?? []
+  } catch {
+    sessions.value = []
+  }
 }
 
 async function submit() {
@@ -56,6 +66,7 @@ async function submit() {
       chief_complaint: encodeChiefComplaint(title, form.value.body.trim()),
     }
     if (form.value.doctor_id !== '') payload.doctor_id = Number(form.value.doctor_id)
+    if (form.value.session_id !== '') payload.session_id = Number(form.value.session_id)
     await props.client.createConsult(payload)
     ElMessage.success('问诊已提交')
     form.value = emptyForm()
@@ -102,6 +113,23 @@ onMounted(load)
             data-doctor-id
             placeholder="指定医生编号（留空则待分配）"
           />
+        </el-form-item>
+        <el-form-item label="关联问诊">
+          <el-select
+            v-model="form.session_id"
+            data-session-id
+            clearable
+            placeholder="选择本次 AI 问诊（可选）"
+            class="consult__select"
+          >
+            <el-option
+              v-for="session in sessions"
+              :key="session.id"
+              :label="session.title"
+              :value="session.id"
+            />
+          </el-select>
+          <span class="consult__hint">带上后医生能看到 AI 的候选疾病与引用</span>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" data-submit native-type="submit" :loading="submitting">
@@ -185,6 +213,16 @@ onMounted(load)
 
 .consult__form {
   max-width: 640px;
+}
+
+.consult__select {
+  width: 260px;
+}
+
+.consult__hint {
+  margin-left: 12px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 
 .consult__message {

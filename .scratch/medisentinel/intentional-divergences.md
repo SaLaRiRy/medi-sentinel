@@ -53,6 +53,7 @@
 | H-10 | 020 | `users` / `doctors` / `departments` PUT/DELETE 不存在 → `404`；科室仍有关联医生时删除 → **`409`** | `FUNCTIONAL_SPEC.md:1220-1225`（科室删除保护存在，仅语义收紧）；2.5 表格未声明存在性 | `server/api/v1/users.py:175,194,210`；`server/api/v1/doctors.py:210,230,246`；`server/api/v1/departments.py:136,158,160` | http-contract |
 | H-11 | §3.6 架构性变更 | **业务失败表达（SPEC 强制修复，非「有意偏离 legacy」）**：legacy 的 `HTTP 200 + body.code=400` 是错误设计，`SPEC.md` §3.6「业务失败的表达」/ §5.1「错误承载」明文禁止、AC-B-43 断言；现行为 = 真实 HTTP 状态码 + 与之一致的 `code`。H-11 是 H-1…H-10 的**共享上层** | `FUNCTIONAL_SPEC.md:198-200,1488`（错误设计，非应保留行为） | `server/core/errors.py:10-27`；`server/core/response.py` | http-contract |
 | H-12 | 020 | `PUT /users/{id}/status` 请求形态：**query 参数 → JSON body**（`{status:int}`） | `FUNCTIONAL_SPEC.md:336`（明确标注「`status` 走查询参数」） | `server/api/v1/users.py:61-62`（路由 PUT `/users/{user_id}/status`） | http-contract |
+| H-13 | AC-05 | 新增医生端端点 `GET /consults/{id}/ai-context`（工单关联 AI 会话的候选疾病 / 引用 / 主诉），并给 `POST /consults` 增加可选 `session_id` 与对应的 404 分支 | —（legacy 无对应端点；`FUNCTIONAL_SPEC.md` 2.6 的人工问诊只有提交与回复） | `server/api/v1/consults.py`（`consult_ai_context` / `create_consult`）；`SPEC.md` §5.4「人工问诊」 | http-contract |
 
 > **H-11 / H-12 为本册新增**（你给的清单未列），已按决策保留：H-11 是 H-1…H-10 的共同上层，
 > 见下节；H-12 是同类里唯一的请求形状变更。
@@ -113,3 +114,5 @@
 - 2026-10-11：新增 `stack` 子集（scope `stack`）与 S-1（AC-02 混合检索 RRF 融合 +
   阈值）。该子集**不豁免、不消费**，只由 `stack_ids()` 读取；
   `regression/divergences.py` 的正则同步扩成 `^(A|H|S)-\d+$`。
+- 2026-10-11：新增 H-13（AC-05 医生端 AI 上下文端点 + `POST /consults` 的
+  `session_id` 与 404 分支）与 S-2（AC-04 本地 ONNX 重排）。

@@ -25,6 +25,7 @@ function fakeClient({ tickets = [], loadError } = {}) {
       if (loadError) throw loadError
       return tickets
     }),
+    chatSessions: vi.fn(async () => [{ id: 7, title: '头痛三天' }]),
     createConsult: vi.fn(async () => ({ id: 9 })),
   }
 }
@@ -72,6 +73,40 @@ describe('ConsultView (TICKET-019)', () => {
 
     expect(wrapper.find('[data-form-error]').exists()).toBe(true)
     expect(client.createConsult).not.toHaveBeenCalled()
+  })
+
+  it('links the ticket to one of my AI sessions when picked (TICKET-AC-05)', async () => {
+    const client = fakeClient()
+    const wrapper = mount(ConsultView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-complaint-title]').setValue('咳嗽')
+    wrapper.findComponent({ name: 'ElSelect' }).vm.$emit('update:modelValue', 7)
+    await flushPromises()
+    await wrapper.find('[data-consult-form]').trigger('submit')
+    await flushPromises()
+
+    expect(client.createConsult).toHaveBeenCalledWith({
+      chief_complaint: '咳嗽：',
+      session_id: 7,
+    })
+  })
+
+  it('still submits when the AI session list cannot be read (optional field)', async () => {
+    const client = fakeClient()
+    client.chatSessions = vi.fn(async () => {
+      throw new Error('会话列表不可用')
+    })
+    const wrapper = mount(ConsultView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-complaint-title]').setValue('咳嗽')
+    await wrapper.find('[data-consult-form]').trigger('submit')
+    await flushPromises()
+
+    expect(client.createConsult).toHaveBeenCalledWith({
+      chief_complaint: '咳嗽：',
+    })
   })
 
   it('shows the empty state when the patient has no tickets', async () => {

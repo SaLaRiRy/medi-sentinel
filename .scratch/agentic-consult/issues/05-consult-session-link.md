@@ -71,3 +71,67 @@
 - 工单与会话的归属不一致（工单 patient A、会话 patient B）要拒绝——**越权面在数据层也要挡**。
 
 ## Comments
+
+**完成（2026-10-11）。** 闭环第一段打通：工单能指回 AI 会话，医生能看到 AI 的候选疾病与引用。
+
+### 交付
+
+**后端**
+
+- 迁移 `0012_consult_session_link.py`：`t_doctor_consult.session_id`（可空 + 索引）。
+  活库已 `alembic upgrade head` → `0012 (head)`。
+- `models/doctor_consult.py`：新增 `session_id`（含「为什么可空」的 docstring）。
+- `repositories/doctor_consults.py`：`create(..., session_id=...)`、`find(consult_id)`。
+- `api/v1/consults.py`：
+  - `ConsultCreateRequest.session_id`（可空），且**只能关联本人会话**——否则 404；
+  - 新端点 `GET /consults/{id}/ai-context`（doctor）。
+- `SPEC.md` §5.3/§5.4、`test_declared_error_branches.py`、`test_acceptance_024.py`（78→79）、
+  `contracts/openapi.json`（重导，永不手改）。
+
+**前端**（element-plus，沿用现有卡片/表格风格，无新依赖）
+
+- F-1 出口 `client.consultAiContext(id)`；契约测试 67 → 68。
+- 患者 `ConsultView.vue`：新增「关联问诊」下拉（本人的 AI 会话，可清空）；
+  **会话列表读不到时不影响提交**（可选字段，失败退化成"无会话"）。
+- 医生 `DoctorConsultsView.vue`：每行「AI 上下文」→ `el-dialog` 展示
+  主诉 / 关联会话 / AI 建议 / 候选疾病表 / 引用来源；失败时弹窗内呈现错误并 `emit('error')`。
+
+### 归属校验（用户 2026-10-11 拍板的口径）
+
+与既有 `GET /chat/sessions/{id}/messages`（§7.2 原样保留、**不**校验归属）**故意不同**：
+
+| 场景 | 行为 |
+|---|---|
+| 未认领工单（`doctor_id IS NULL`） | 对全体医生可见（抢单语义，`FUNCTIONAL_SPEC.md` 5.14） |
+| 已被他人认领 | 404 —— 不泄露「工单存在但不是你的」 |
+| 工单与会话归属不一致 | 404 —— 数据层防线，宁拒绝也不把别人的 AI 对话交出去 |
+| 会话被删 / 工单没带会话 | 200 + 空上下文（不是 500） |
+| 会话无归属（老数据） | 可读——它不属于任何别的患者 |
+
+理由：患者读的是**自己的**会话，没有越权面；医生读的是**被指派/待认领工单**指向的会话，
+工单本身就是授权凭证。不这样做，任何医生都能凭工单号遍历全部患者的 AI 对话。
+
+### 连带面（同票全部同步）
+
+- `len(SPEC_5_4)` 78 → **79**
+- `POST /consults` 错误码 `401,403,422` → `401,403,404,422`（新增「会话不存在」）
+- `client/tests/contract.test.js` 67 → **68**
+- `H-13` 登记（scope `http-contract`）；`test_acceptance_024.py:155` 与
+  `test_regression_divergences.py:22` 的 `range(1, 13)` → `range(1, 14)`
+- **迁移 head 断言**：`test_migrations.py` 两处 + `test_migrations_{consults,appointments,articles,departments,knowledge,records}.py` 各一处，`0011` → `0012`
+
+### TDD
+
+- 后端 `server/tests/test_consult_ai_context.py` **14 项**：关联 3 / 医生读 3（含无会话、
+  无 AI 回答）/ 角色与 404 4 / 数据层防线 4。
+- 前端 `consult-view.test.js` +2（选中会话后提交带上 `session_id`；会话列表失败仍能提交）、
+  `doctor-consults-view.test.js` +2（弹窗内容；失败分支）。
+
+### 套件
+
+- 后端 `pytest -q --basetemp=.tmp\pytest-user` → **907 passed**
+- 前端 `npm test` → **56 files / 326 passed**
+
+### divergence
+
+`H-13`（scope `http-contract`）已登记。

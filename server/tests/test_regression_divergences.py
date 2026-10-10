@@ -25,7 +25,7 @@ def test_registry_parses_the_two_scoped_subsets():
     registry = load_registry()
 
     assert ai_chain_ids(registry) == [f"A-{index}" for index in range(1, 8)]
-    assert http_contract_ids(registry) == [f"H-{index}" for index in range(1, 13)]
+    assert http_contract_ids(registry) == [f"H-{index}" for index in range(1, 14)]
 
 
 def test_registry_parses_the_stack_subset_without_exempting_it():

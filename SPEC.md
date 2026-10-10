@@ -417,7 +417,7 @@
 | `DepartmentRequest` | 建/改科室 | `name: str(1..50)`, `description?: str(≤255)`, `sort_order: int=0` |
 | `ChatRequest` | 发起问诊 | `session_id: int\|null`, `message: str(≥1)`, `explicit_symptoms?: string[]` |
 | `GraphQueryRequest` | 症状推理 | `symptoms: string[]`（至少 1 项） |
-| `ConsultCreateRequest` | 发起人工问诊 | `doctor_id: int\|null`, `chief_complaint: str(≥1)` |
+| `ConsultCreateRequest` | 发起人工问诊 | `doctor_id: int\|null`, `chief_complaint: str(≥1)`, `session_id?: int\|null`（关联 AI 会话，须为本人会话） |
 | `ConsultReplyRequest` | 医生回复 | `consult_id: int`, `content: str(≥1)` |
 | `AppointmentCreateRequest` | 新建预约 | `doctor_id: int`, `department_id: int`, `visit_date: date`, `time_slot: str`, `remark?: str(≤255)` |
 | `HealthRecordCreateRequest` | 建档案 | `user_id: int`, `record_type: str(1..50)`, `diagnosis?`, `treatment?`, `prescription?`, `visit_date?: date` |
@@ -495,9 +495,10 @@
 
 | 方法 | 路径 | 角色 | 请求体 | 响应体 | 错误码 |
 |---|---|---|---|---|---|
-| POST | `/consults` | `user` | `ConsultCreateRequest` | `{id: int}` | 401, 403, 422 |
+| POST | `/consults` | `user` | `ConsultCreateRequest` | `{id: int}` | 401, 403, 404, 422 |
 | GET | `/consults/my` | `user` | — | `ConsultView[]` | 401, 403 |
 | GET | `/consults/pending` | `doctor` | — | `ConsultView[]` | 401, 403 |
+| GET | `/consults/{id}/ai-context` | `doctor` | — | `ConsultAiContextView` | 401, 403, 404 |
 | POST | `/consults/{id}/replies` | `doctor` | `ConsultReplyRequest` | `null` | 401, 403, 404, 409, 422 |
 | GET | `/consults/admin` | `admin` | `PageQuery` + `status?` | 分页 `ConsultView[]` | 401, 403, 422 |
 | DELETE | `/consults/admin/{id}` | `admin` | — | `null` | 401, 403, 404 |

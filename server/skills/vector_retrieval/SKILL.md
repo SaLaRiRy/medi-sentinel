@@ -207,6 +207,7 @@ class VectorRetrievalSkill(Skill):
 | 端口返回结构非法（缺 `content` / `metadata.file_name` / `distance`） | 与「索引不可用」走同一条降级路径：`degraded == true`，不阻断问答 |
 | 端口返回条数超过上限 | 显式截断到前 `RETRIEVAL_TOP_K` 条；`index` 从 1 连续重编，不沿用端口原始序号 |
 | 距离很大（端口仍返回该命中） | 本 Skill 照常返回、不按距离过滤、不重排；过滤只可能发生在端口实现层（`rag/hybrid.py`） |
+| 端口实现层启用了重排、但重排不可用 | 端口保持融合顺序返回（模型缺失 / 加载失败 / 推理异常都退回原序）；本 Skill 无感知，照常输出引用。重排是增强支路，**不是**失败路径（SPEC.md 3.6） |
 | 分块正文超过 200 字符 | `snippet` 取前 `SNIPPET_LENGTH` 个字符，不追加省略号 |
 | 分块正文短于 200 字符 | `snippet` 原样返回 |
 | 嵌入模型调用 | 发生在 `RetrievalPort` 之内，**不算**大模型生成调用；`LlmPort` 为抛异常假实现时本 Skill 全部测试仍通过 |

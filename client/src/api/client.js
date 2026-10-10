@@ -223,6 +223,11 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ path: '/consults/pending', authed: true })
     },
 
+    // TICKET-AC-05: the doctor reads the AI context behind a claimable ticket.
+    async consultAiContext(consultId) {
+      return call({ path: `/consults/${consultId}/ai-context`, authed: true })
+    },
+
     async replyConsult(consultId, payload) {
       return call({
         method: 'POST',

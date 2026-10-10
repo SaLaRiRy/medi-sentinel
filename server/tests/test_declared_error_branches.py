@@ -43,12 +43,14 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/appointments/admin", "get"): {401, 403, 422},
     ("/api/v1/appointments/{appointment_id}/status", "put"): {401, 403, 404, 422},
     ("/api/v1/appointments/admin/{appointment_id}", "delete"): {401, 403, 404},
-    ("/api/v1/consults", "post"): {401, 403, 422},
+    ("/api/v1/consults", "post"): {401, 403, 404, 422},
     ("/api/v1/consults/my", "get"): {401, 403},
     ("/api/v1/consults/pending", "get"): {401, 403},
     ("/api/v1/consults/{consult_id}/replies", "post"): {401, 403, 404, 409, 422},
     ("/api/v1/consults/admin", "get"): {401, 403, 422},
     ("/api/v1/consults/admin/{consult_id}", "delete"): {401, 403, 404},
+    # TICKET-AC-05：医生读取工单关联的 AI 上下文（归属校验见该端点 docstring）
+    ("/api/v1/consults/{consult_id}/ai-context", "get"): {401, 403, 404},
     # TICKET-016 图谱端点（TICKET-019 遗漏，本票补齐）
     ("/api/v1/graph", "get"): {503},
     ("/api/v1/graph/entities/{name}/neighbors", "get"): {404, 422, 503},

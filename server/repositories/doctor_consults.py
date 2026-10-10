@@ -89,17 +89,27 @@ class DoctorConsultRepository(Repository):
         ]
 
     async def create(
-        self, *, user_id: int, doctor_id: int | None, chief_complaint: str
+        self,
+        *,
+        user_id: int,
+        doctor_id: int | None,
+        chief_complaint: str,
+        session_id: int | None = None,
     ) -> DoctorConsultRow:
         """落库一张工单，状态取默认 0「待回复」（FUNCTIONAL_SPEC.md 4.3.9）。"""
         row = DoctorConsultRow(
             user_id=user_id,
             doctor_id=doctor_id,
             chief_complaint=chief_complaint,
+            session_id=session_id,
         )
         self._session.add(row)
         await self._session.flush()
         return row
+
+    async def find(self, consult_id: int) -> DoctorConsultRow | None:
+        """按工单号取行（不做归属判断，归属由调用方按角色决定）。"""
+        return await self._session.get(DoctorConsultRow, consult_id)
 
     async def list_for_user(self, user_id: int) -> list[ConsultRecord]:
         """患者本人的全部工单及其全部回复，新提交的在前（FUNCTIONAL_SPEC 5.14）。"""

@@ -25,6 +25,22 @@ function fakeClient({ tickets = [], loadError } = {}) {
       if (loadError) throw loadError
       return tickets
     }),
+    consultAiContext: vi.fn(async () => ({
+      consult_id: 3,
+      session_id: 12,
+      chief_complaint: '咳嗽：一周，夜间加重',
+      summary: '建议先休息，必要时就诊。',
+      graph: [
+        {
+          disease: '急性支气管炎',
+          match_count: 2,
+          coverage: 0.5,
+          department: '呼吸内科',
+          matched_symptoms: ['咳嗽', '夜间加重'],
+        },
+      ],
+      references: [{ index: 1, file_name: '感冒与流感指南.md', snippet: '咳嗽……' }],
+    })),
     replyConsult: vi.fn(async () => null),
   }
 }
@@ -90,5 +106,36 @@ describe('DoctorConsultsView (TICKET-019)', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-empty]').text()).toContain('暂无')
+  })
+
+  it('opens the AI context of a ticket (TICKET-AC-05)', async () => {
+    const client = fakeClient({ tickets: [row()] })
+    const wrapper = mount(DoctorConsultsView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-ai-context]').trigger('click')
+    await flushPromises()
+
+    expect(client.consultAiContext).toHaveBeenCalledWith(3)
+    const dialog = wrapper.text()
+    expect(dialog).toContain('AI 问诊上下文')
+    expect(dialog).toContain('急性支气管炎')
+    expect(dialog).toContain('感冒与流感指南.md')
+    expect(dialog).toContain('建议先休息')
+  })
+
+  it('reports a failure and shows no context when the call fails', async () => {
+    const client = fakeClient({ tickets: [row()] })
+    client.consultAiContext = vi.fn(async () => {
+      throw Object.assign(new Error('403'), { status: 403 })
+    })
+    const wrapper = mount(DoctorConsultsView, { props: { client } })
+    await flushPromises()
+
+    await wrapper.find('[data-ai-context]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('[data-context-error]').text()).toContain('加载失败')
+    expect(wrapper.emitted('error')).toHaveLength(1)
   })
 })

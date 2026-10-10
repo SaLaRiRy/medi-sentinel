@@ -7,6 +7,10 @@
   写入为负责医生，状态无条件置 1。已被其他医生认领时后端返回 409，本组件只呈现
   结果并上报（SPEC.md 3.3：前端不复制业务规则作为唯一依据）。主诉按第一个全角
   冒号拆回标题与正文（AC-F-15）。所有后端调用都经 F-1 的 `client`。
+
+  TICKET-AC-05：每行可以打开「AI 上下文」——工单关联的 AI 会话的候选疾病、引用
+  与原始主诉。归属校验在后端（未认领工单对全体医生可见，已被他人认领的不可见），
+  这里只呈现结果。
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
@@ -22,6 +26,11 @@ const items = ref([])
 const loading = ref(false)
 const loadError = ref(null)
 const drafts = ref({})
+
+const contextVisible = ref(false)
+const contextLoading = ref(false)
+const context = ref(null)
+const contextError = ref(null)
 
 function parts(item) {
   return decodeChiefComplaint(item.chief_complaint)
@@ -52,6 +61,25 @@ async function reply(item) {
   } catch (failure) {
     emit('error', failure)
   }
+}
+
+async function openContext(item) {
+  contextVisible.value = true
+  contextLoading.value = true
+  context.value = null
+  contextError.value = null
+  try {
+    context.value = await props.client.consultAiContext(item.id)
+  } catch (failure) {
+    contextError.value = 'AI 上下文加载失败'
+    emit('error', failure)
+  } finally {
+    contextLoading.value = false
+  }
+}
+
+function hasContext(value) {
+  return Boolean(value && (value.summary || value.graph.length || value.references.length))
 }
 
 onMounted(load)
@@ -100,13 +128,73 @@ onMounted(load)
         </el-table-column>
         <el-table-column label="操作" min-width="130">
           <template #default="{ row }">
-            <el-button type="primary" data-reply-submit size="small" @click="reply(row)">
-              回复并认领
-            </el-button>
+            <div class="doctor-consults__actions">
+              <el-button type="primary" data-reply-submit size="small" @click="reply(row)">
+                回复并认领
+              </el-button>
+              <el-button data-ai-context size="small" plain @click="openContext(row)">
+                AI 上下文
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+
+    <el-dialog v-model="contextVisible" title="AI 问诊上下文" width="680px">
+      <p v-if="contextError" data-context-error class="doctor-consults__message doctor-consults__message--error">
+        {{ contextError }}
+      </p>
+      <div v-else-if="context" class="doctor-consults__context">
+        <el-descriptions :column="1" border size="small">
+          <el-descriptions-item label="主诉">
+            {{ context.chief_complaint }}
+          </el-descriptions-item>
+          <el-descriptions-item label="关联会话">
+            {{ context.session_id ?? '未关联 AI 会话' }}
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <template v-if="context.summary">
+          <p class="doctor-consults__label">AI 建议</p>
+          <p data-context-summary class="doctor-consults__summary">{{ context.summary }}</p>
+        </template>
+
+        <template v-if="context.graph.length">
+          <p class="doctor-consults__label">候选疾病</p>
+          <el-table :data="context.graph" size="small" stripe>
+            <el-table-column prop="disease" label="疾病" min-width="120" />
+            <el-table-column label="覆盖率" min-width="90">
+              <template #default="{ row }">
+                {{ Number(row.coverage ?? 0).toFixed(2) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="科室" min-width="100">
+              <template #default="{ row }">{{ row.department ?? '-' }}</template>
+            </el-table-column>
+            <el-table-column label="依据症状" min-width="160">
+              <template #default="{ row }">
+                {{ (row.matched_symptoms ?? []).join('、') }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </template>
+
+        <template v-if="context.references.length">
+          <p class="doctor-consults__label">引用来源</p>
+          <ul class="doctor-consults__references">
+            <li v-for="reference in context.references" :key="reference.index" data-context-reference>
+              [{{ reference.index }}] {{ reference.file_name }}
+            </li>
+          </ul>
+        </template>
+
+        <p v-if="!hasContext(context)" data-context-empty class="doctor-consults__message">
+          这次工单没有关联 AI 问诊内容。
+        </p>
+      </div>
+      <div v-else v-loading="contextLoading" class="doctor-consults__loading" />
+    </el-dialog>
   </section>
 </template>
 
@@ -133,5 +221,38 @@ onMounted(load)
 
 .doctor-consults__message--error {
   color: var(--el-color-danger);
+}
+
+.doctor-consults__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.doctor-consults__context {
+  display: flex;
+  flex-direction: column;
+}
+
+.doctor-consults__label {
+  margin: 16px 0 8px;
+  font-weight: 600;
+}
+
+.doctor-consults__summary {
+  margin: 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: var(--el-fill-color-light);
+  white-space: pre-wrap;
+}
+
+.doctor-consults__references {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--el-text-color-regular);
+}
+
+.doctor-consults__loading {
+  min-height: 96px;
 }
 </style>

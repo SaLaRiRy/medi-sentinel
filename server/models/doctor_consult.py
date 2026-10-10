@@ -5,6 +5,10 @@
 `doctor_id` 只建索引不建外键，沿用 `models/appointment.py` 对账号类引用的做法；
 `t_doctor_reply.consult_id` 相反，它是同一业务域内的子记录，建真正的外键以便
 级联删除按「先回复后工单」的顺序执行（`FUNCTIONAL_SPEC.md` 5.11）。
+
+`session_id`（TICKET-AC-05）把工单指回 AI 会话：患者转人工时带上会话，医生就能在
+工单里看到 AI 已经问出来的候选疾病与引用，不必让患者重打一遍主诉。可空——历史工单
+与「不带会话转人工」都落在 NULL 上，此时医生端返回空上下文而不是报错。
 """
 
 from datetime import UTC, datetime
@@ -29,6 +33,8 @@ class DoctorConsultRow(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
     doctor_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    #: 关联的 AI 会话号（TICKET-AC-05）；NULL = 未关联/历史工单。
+    session_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     chief_complaint: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[int] = mapped_column(
         Integer, default=CONSULT_STATUS_PENDING, nullable=False

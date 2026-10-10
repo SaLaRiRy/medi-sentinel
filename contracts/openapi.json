@@ -2631,8 +2631,91 @@
               }
             }
           },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
           "422": {
             "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consults/{consult_id}/ai-context": {
+      "get": {
+        "tags": [
+          "consults"
+        ],
+        "summary": "Consult Ai Context",
+        "description": "医生读取工单关联的 AI 上下文。\n\n**归属校验（与既有约定故意不同）**：`GET /chat/sessions/{id}/messages` 按\n`SPEC.md` §7.2「原样保留」只校验会话存在、不校验归属（患者读的是自己的会话，\n没有越权面）。本端点面向医生，读的是**被指派 / 待认领工单**指向的会话——\n工单本身就是授权凭证：未认领工单对全体医生可见（`FUNCTIONAL_SPEC.md` 5.14），\n已被他人认领的工单只对负责医生可见。不这样做，任何医生都能凭工单号遍历\n全部患者的 AI 对话。",
+        "operationId": "consult_ai_context_api_v1_consults__consult_id__ai_context_get",
+        "parameters": [
+          {
+            "name": "consult_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Consult Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ConsultAiContextView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json; charset=utf-8": {
                 "schema": {
@@ -5896,6 +5979,65 @@
         ],
         "title": "ChatRequest"
       },
+      "ConsultAiContextView": {
+        "properties": {
+          "consult_id": {
+            "type": "integer",
+            "title": "Consult Id"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
+          },
+          "chief_complaint": {
+            "type": "string",
+            "title": "Chief Complaint"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          },
+          "graph": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Graph",
+            "default": []
+          },
+          "references": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "References",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "consult_id",
+          "chief_complaint"
+        ],
+        "title": "ConsultAiContextView",
+        "description": "工单关联的 AI 上下文（`SPEC.md` 5.4「人工问诊」）。\n\n`graph` / `references` 用 `list[dict]`：它们就是 SSE `done` 帧里原样落库的那两段\n（`t_consult_message.graph_json` / `references_json`），与 `MessageView` 同形状。"
+      },
       "ConsultCreateRequest": {
         "properties": {
           "doctor_id": {
@@ -5913,6 +6055,17 @@
             "type": "string",
             "minLength": 1,
             "title": "Chief Complaint"
+          },
+          "session_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Id"
           }
         },
         "type": "object",
@@ -6753,6 +6906,32 @@
         },
         "type": "object",
         "title": "Envelope[AvatarView]"
+      },
+      "Envelope_ConsultAiContextView_": {
+        "properties": {
+          "code": {
+            "type": "integer",
+            "title": "Code",
+            "default": 200
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "操作成功"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ConsultAiContextView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "Envelope[ConsultAiContextView]"
       },
       "Envelope_ConsultCreatedView_": {
         "properties": {

@@ -31,7 +31,7 @@ def test_upgrade_head_creates_the_health_record_table(tmp_path):
     finally:
         engine.dispose()
 
-    assert revision == "0011"
+    assert revision == "0012"
     assert {
         "id",
         "user_id",

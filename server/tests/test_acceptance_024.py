@@ -92,8 +92,11 @@ SPEC_5_4 = spec_5_4()
 
 
 def test_spec_5_4_parses_its_endpoint_table():
-    """Guard the parser: §5.4 lists 78 endpoints across its eight tables."""
-    assert len(SPEC_5_4) == 78
+    """Guard the parser: §5.4 lists 79 endpoints across its eight tables.
+
+    TICKET-AC-05 加了 `GET /consults/{id}/ai-context`，78 → 79。
+    """
+    assert len(SPEC_5_4) == 79
 
 
 def test_every_spec_endpoint_is_published_in_the_contract():
@@ -151,5 +154,8 @@ def test_the_contract_declares_every_spec_error_code():
 
 
 def test_024_consumes_the_http_contract_divergence_subset():
-    """The registry hands H-1…H-12 to 024; this ticket answers for that set."""
-    assert http_contract_ids(load_registry()) == [f"H-{n}" for n in range(1, 13)]
+    """The registry hands H-1…H-13 to 024; this ticket answers for that set.
+
+    TICKET-AC-05 追加了 H-13（医生端 AI 上下文端点）。
+    """
+    assert http_contract_ids(load_registry()) == [f"H-{n}" for n in range(1, 14)]
