@@ -65,6 +65,9 @@ SPEC_ERROR_BRANCHES = {
     ("/api/v1/records/doctor", "post"): {401, 403, 404, 422},
     ("/api/v1/records/doctor/{record_id}", "put"): {401, 403, 404, 422},
     ("/api/v1/records/doctor/{record_id}", "delete"): {401, 403, 404},
+    # TICKET-AC-06：工单沉淀为档案 + 撤回（软删）
+    ("/api/v1/records/doctor/from-consult", "post"): {401, 403, 404, 422},
+    ("/api/v1/records/doctor/{record_id}/withdraw", "post"): {401, 403, 404},
     # TICKET-020 患者与医生主数据
     ("/api/v1/users", "get"): {401, 403, 422},
     ("/api/v1/users", "post"): {401, 403, 409, 422},

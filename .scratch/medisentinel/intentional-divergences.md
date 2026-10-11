@@ -54,6 +54,7 @@
 | H-11 | §3.6 架构性变更 | **业务失败表达（SPEC 强制修复，非「有意偏离 legacy」）**：legacy 的 `HTTP 200 + body.code=400` 是错误设计，`SPEC.md` §3.6「业务失败的表达」/ §5.1「错误承载」明文禁止、AC-B-43 断言；现行为 = 真实 HTTP 状态码 + 与之一致的 `code`。H-11 是 H-1…H-10 的**共享上层** | `FUNCTIONAL_SPEC.md:198-200,1488`（错误设计，非应保留行为） | `server/core/errors.py:10-27`；`server/core/response.py` | http-contract |
 | H-12 | 020 | `PUT /users/{id}/status` 请求形态：**query 参数 → JSON body**（`{status:int}`） | `FUNCTIONAL_SPEC.md:336`（明确标注「`status` 走查询参数」） | `server/api/v1/users.py:61-62`（路由 PUT `/users/{user_id}/status`） | http-contract |
 | H-13 | AC-05 | 新增医生端端点 `GET /consults/{id}/ai-context`（工单关联 AI 会话的候选疾病 / 引用 / 主诉），并给 `POST /consults` 增加可选 `session_id` 与对应的 404 分支 | —（legacy 无对应端点；`FUNCTIONAL_SPEC.md` 2.6 的人工问诊只有提交与回复） | `server/api/v1/consults.py`（`consult_ai_context` / `create_consult`）；`SPEC.md` §5.4「人工问诊」 | http-contract |
+| H-14 | AC-06 | 新增 `POST /records/doctor/from-consult`（医生确认把工单结论沉淀为档案，幂等）与 `POST /records/doctor/{id}/withdraw`（撤回，软删）；`HealthRecordView` 增加 `source` / `consult_id`；`GET /records/*` 不再返回已撤回档案 | —（legacy 无来源标注、无撤回、无工单关联） | `server/api/v1/records.py`；`server/repositories/health_records.py`；`server/models/health_record.py`；`SPEC.md` §5.3/§5.4 | http-contract |
 
 > **H-11 / H-12 为本册新增**（你给的清单未列），已按决策保留：H-11 是 H-1…H-10 的共同上层，
 > 见下节；H-12 是同类里唯一的请求形状变更。
@@ -116,3 +117,4 @@
   `regression/divergences.py` 的正则同步扩成 `^(A|H|S)-\d+$`。
 - 2026-10-11：新增 H-13（AC-05 医生端 AI 上下文端点 + `POST /consults` 的
   `session_id` 与 404 分支）与 S-2（AC-04 本地 ONNX 重排）。
+- 2026-10-11：新增 H-14（AC-06 工单沉淀为档案 + 撤回软删 + `source`/`consult_id`）。

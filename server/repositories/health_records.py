@@ -13,7 +13,7 @@ from sqlalchemy import Select, func, select, union
 from models.accounts import DoctorRow, UserRow
 from models.appointment import AppointmentRow
 from models.doctor_consult import DoctorConsultRow
-from models.health_record import HealthRecordRow
+from models.health_record import RECORD_SOURCES, SOURCE_DOCTOR, HealthRecordRow
 from repositories.base import Repository
 
 
@@ -75,13 +75,19 @@ class HealthRecordRepository(Repository):
         treatment: str | None = None,
         prescription: str | None = None,
         visit_date: date | None = None,
+        source: str = SOURCE_DOCTOR,
+        consult_id: int | None = None,
     ) -> HealthRecordRecord | None:
         """为患者建档；患者不存在返回 `None`（→ 404，SPEC.md 5.4「POST 404」）。"""
+        if source not in RECORD_SOURCES:
+            raise ValueError(f"未知的档案来源：{source}")
         if await self._session.get(UserRow, user_id) is None:
             return None
         row = HealthRecordRow(
             user_id=user_id,
             doctor_id=doctor_id,
+            source=source,
+            consult_id=consult_id,
             record_type=record_type,
             diagnosis=diagnosis,
             treatment=treatment,
@@ -92,11 +98,42 @@ class HealthRecordRepository(Repository):
         await self._session.flush()
         return await self._detail(row.id)
 
+    async def find_by_consult(
+        self, consult_id: int, doctor_id: int
+    ) -> HealthRecordRecord | None:
+        """该医生为这张工单沉淀过的**未撤回**档案（幂等键，TICKET-AC-06）。"""
+        result = await self._session.execute(
+            self._detail_query().where(
+                HealthRecordRow.consult_id == consult_id,
+                HealthRecordRow.doctor_id == doctor_id,
+                HealthRecordRow.withdrawn == 0,
+            )
+        )
+        records = _records(result)
+        return records[0] if records else None
+
+    async def withdraw(self, record_id: int, doctor_id: int) -> bool:
+        """撤回本医生名下的档案（软删）；不匹配返回 `False`（→ 404）。"""
+        row = (
+            await self._session.execute(
+                select(HealthRecordRow).where(
+                    HealthRecordRow.id == record_id,
+                    HealthRecordRow.doctor_id == doctor_id,
+                    HealthRecordRow.withdrawn == 0,
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            return False
+        row.withdrawn = 1
+        await self._session.flush()
+        return True
+
     async def list_for_user(self, user_id: int) -> list[HealthRecordRecord]:
         """患者本人的档案，新建立的在前（`GET /records/my`）。"""
         result = await self._session.execute(
             self._detail_query()
-            .where(HealthRecordRow.user_id == user_id)
+            .where(HealthRecordRow.user_id == user_id, HealthRecordRow.withdrawn == 0)
             .order_by(HealthRecordRow.id.desc())
         )
         return _records(result)
@@ -105,7 +142,10 @@ class HealthRecordRepository(Repository):
         """医生名下的档案，新建立的在前（`GET /records/doctor`）。"""
         result = await self._session.execute(
             self._detail_query()
-            .where(HealthRecordRow.doctor_id == doctor_id)
+            .where(
+                HealthRecordRow.doctor_id == doctor_id,
+                HealthRecordRow.withdrawn == 0,
+            )
             .order_by(HealthRecordRow.id.desc())
         )
         return _records(result)

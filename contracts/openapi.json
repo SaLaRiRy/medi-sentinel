@@ -2431,6 +2431,151 @@
         }
       }
     },
+    "/api/v1/records/doctor/from-consult": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Create Record From Consult",
+        "description": "把一张**已认领工单**的结论沉淀为档案（幂等）。\n\n未认领或属于其他医生的工单一律 404：沉淀的前提是这位医生确实负责这张工单。\n同一工单重复确认返回已有的那条，不产生第二条档案。",
+        "operationId": "create_record_from_consult_api_v1_records_doctor_from_consult_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordFromConsultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_HealthRecordView_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "参数校验失败",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/records/doctor/{record_id}/withdraw": {
+      "post": {
+        "tags": [
+          "records"
+        ],
+        "summary": "Withdraw Record",
+        "description": "撤回本医生名下的档案（软删，`withdrawn = 1`）：行保留，只是不再出现在列表里。",
+        "operationId": "withdraw_record_api_v1_records_doctor__record_id__withdraw_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证或认证失效",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "已认证但无权限",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "资源不存在",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json; charset=utf-8": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/records/doctor/{record_id}": {
       "put": {
         "tags": [
@@ -8506,6 +8651,22 @@
             ],
             "title": "Doctor Name"
           },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "doctor"
+          },
+          "consult_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consult Id"
+          },
           "record_type": {
             "anyOf": [
               {
@@ -9629,6 +9790,82 @@
           "display_name"
         ],
         "title": "ProfileView"
+      },
+      "RecordFromConsultRequest": {
+        "properties": {
+          "consult_id": {
+            "type": "integer",
+            "title": "Consult Id"
+          },
+          "record_type": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Record Type"
+          },
+          "diagnosis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnosis"
+          },
+          "treatment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Treatment"
+          },
+          "prescription": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prescription"
+          },
+          "visit_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Date"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "ai",
+              "doctor"
+            ],
+            "title": "Source",
+            "default": "doctor"
+          }
+        },
+        "type": "object",
+        "required": [
+          "consult_id",
+          "record_type"
+        ],
+        "title": "RecordFromConsultRequest",
+        "description": "医生确认把工单结论沉淀为档案（TICKET-AC-06）。\n\n`source` 只接受 `ai`（医生确认了 AI 建议）与 `doctor`（医生自己的结论）：\n两个值都必须经过本端点的**医生确认动作**才会落库，不存在别的写入口。"
       },
       "RegisterRequest": {
         "properties": {

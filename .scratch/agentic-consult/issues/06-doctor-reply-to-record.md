@@ -51,3 +51,56 @@
   ——新端点沿用请求层必填。
 
 ## Comments
+
+**完成（2026-10-11）。** 闭环第二段打通：医生把工单结论**确认**为档案，且可撤回。
+
+### 交付
+
+**后端**
+
+- 迁移 `0013_record_source_and_withdraw.py`：`t_health_record` 加
+  `source`（`String(10)`，默认 `doctor`，索引）/ `consult_id`（可空，索引）/
+  `withdrawn`（0/1 软删）。活库已 `alembic upgrade head` → `0013 (head)`。
+- `models/health_record.py`：三列 + `RECORD_SOURCES` 常量。
+- `repositories/health_records.py`：`create(source=, consult_id=)`、
+  `find_by_consult`（幂等键）、`withdraw`（软删）、两个列表查询都过滤 `withdrawn == 0`。
+- `api/v1/records.py`：
+  - `HealthRecordView` 加 `source` / `consult_id`（患者能看到来源）；
+  - `POST /records/doctor/from-consult`：要求工单**已被当前医生认领**（否则 404）；
+    同一工单重复确认返回已有那条（**幂等**，不产生第二条档案）；
+  - `POST /records/doctor/{id}/withdraw`：软删；他人档案 404。
+
+**AI 建议不得直接进病历**：`source='ai'` 只有 `from-consult` 这一个写入口，
+且必须携带医生身份；`source="patient"` 由请求 Schema 直接 422 拒绝。
+撤回走软删——`FUNCTIONAL_SPEC.md` 5.11 的硬删会把审计痕迹一起丢掉。
+
+**前端**（element-plus，沿用现有卡片/表格/标签风格）
+
+- F-1 出口 `createRecordFromConsult` / `withdrawRecord`；契约计数 68 → 70。
+- 医生端 AI 上下文弹窗内新增「沉淀为档案」表单（档案类型 / 诊断 / 处理 + 来源选择）：
+  空表单给必填提示、成功后显示「已沉淀为档案 #id（来自 AI 建议）」。
+- 患者端档案表新增「来源」列：`来自 AI 建议` 用 warning 标签，`医生结论` 用 info 标签。
+
+### 连带面（同票全部同步）
+
+- `SPEC.md` §5.3/§5.4：新增 `RecordFromConsultRequest` 与两个端点行，
+  `len(SPEC_5_4)` 79 → **81**；`contracts/openapi.json` 重导
+- `test_declared_error_branches.py` 新增两键；`client/tests/contract.test.js` 68 → **70**
+- `H-14` 登记（scope `http-contract`）；`test_acceptance_024.py:155` 与
+  `test_regression_divergences.py:22` 的 `range(1, 14)` → `range(1, 15)`
+- 迁移 head 断言 `0012` → `0013`（`test_migrations.py` × 2 与六个 `test_migrations_*.py`）
+
+### TDD
+
+`server/tests/test_record_from_consult.py` **14 项**：沉淀与来源 3 / 归属与越权 5 /
+Schema 拒绝 1 / 撤回与可见性 4 / 未知档案 1。
+前端 `doctor-consults-view.test.js` +1（空表单不落库 → 填好后带着 `source='ai'` 落库）。
+
+### 套件
+
+- 后端 `pytest -q --basetemp=.tmp\pytest-user` → **925 passed**
+- 前端 `npm test` → **56 files / 327 passed**
+
+### divergence
+
+`H-14`（scope `http-contract`）已登记。

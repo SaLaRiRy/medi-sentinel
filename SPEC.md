@@ -422,6 +422,7 @@
 | `AppointmentCreateRequest` | 新建预约 | `doctor_id: int`, `department_id: int`, `visit_date: date`, `time_slot: str`, `remark?: str(≤255)` |
 | `HealthRecordCreateRequest` | 建档案 | `user_id: int`, `record_type: str(1..50)`, `diagnosis?`, `treatment?`, `prescription?`, `visit_date?: date` |
 | `HealthRecordUpdateRequest` | 改档案 | 上表除 `user_id` 外全部可选 |
+| `RecordFromConsultRequest` | 工单沉淀为档案 | `consult_id: int`, `record_type: str(1..50)`, `diagnosis?`, `treatment?`, `prescription?`, `visit_date?: date`, `source: "ai"\|"doctor"=doctor`（须经医生确认动作；同一工单幂等） |
 | `ArticleRequest` | 建/改文章 | `title: str(1..200)`, `category?: str(≤50)`, `summary?: str(≤500)`, `content?: str`, `status: int=1` |
 | `NoticeRequest` | 建/改公告 | `title: str(1..200)`, `content: str=""`, `status: int=1` |
 | `PageQuery` | 分页查询 | `page: int≥1`, `page_size: int(1..100)`, `keyword?: str` |
@@ -521,6 +522,8 @@
 | POST | `/records/doctor` | `doctor` | `HealthRecordCreateRequest` | `HealthRecordView` | 401, 403, 404, 422 |
 | PUT | `/records/doctor/{id}` | `doctor` | `HealthRecordUpdateRequest` | `HealthRecordView` | 401, 403, 404, 422 |
 | DELETE | `/records/doctor/{id}` | `doctor` | — | `null` | 401, 403, 404 |
+| POST | `/records/doctor/from-consult` | `doctor` | `RecordFromConsultRequest` | `HealthRecordView` | 401, 403, 404, 422 |
+| POST | `/records/doctor/{id}/withdraw` | `doctor` | — | `null` | 401, 403, 404 |
 
 **内容与统计**
 

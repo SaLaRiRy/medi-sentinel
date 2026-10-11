@@ -139,6 +139,8 @@ describe('C-1 from the consuming side', () => {
     await client.replyConsult(1, { consult_id: 1, content: '请及时就医。' })
     await client.adminConsults({ page: 1, page_size: 10 })
     await client.deleteConsult(1)
+    await client.createRecordFromConsult({ consult_id: 1, record_type: '门诊记录' })
+    await client.withdrawRecord(1)
     await client.adminChatSessions({ page: 1, page_size: 10 })
     await client.adminUsers({ page: 1, page_size: 10 })
     await client.createUser({ username: 'a', password: 'b', confirm_password: 'b' })
@@ -175,7 +177,7 @@ describe('C-1 from the consuming side', () => {
     await client.userGrowth(7)
     await client.knowledgeTypes()
 
-    expect(requested).toHaveLength(68)
+    expect(requested).toHaveLength(70)
     for (const { method, path } of requested) {
       expect(matchesDeclaredPath(method, path), `${method} ${path}`).toBe(true)
     }
@@ -210,6 +212,8 @@ describe('C-1 from the consuming side', () => {
     expect(matchesDeclaredPath('POST', '/consults/1/replies')).toBe(true)
     expect(matchesDeclaredPath('GET', '/consults/admin')).toBe(true)
     expect(matchesDeclaredPath('DELETE', '/consults/admin/1')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/records/doctor/from-consult')).toBe(true)
+    expect(matchesDeclaredPath('POST', '/records/doctor/1/withdraw')).toBe(true)
     expect(matchesDeclaredPath('GET', '/chat/admin/sessions')).toBe(true)
     expect(matchesDeclaredPath('GET', '/users')).toBe(true)
     expect(matchesDeclaredPath('POST', '/users')).toBe(true)

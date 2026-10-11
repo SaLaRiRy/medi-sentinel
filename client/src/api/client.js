@@ -228,6 +228,24 @@ export function createApiClient({ transport = createHttpTransport(), session = n
       return call({ path: `/consults/${consultId}/ai-context`, authed: true })
     },
 
+    // TICKET-AC-06: settle a claimed ticket into a health record, or withdraw one.
+    async createRecordFromConsult(payload) {
+      return call({
+        method: 'POST',
+        path: '/records/doctor/from-consult',
+        body: payload,
+        authed: true,
+      })
+    },
+
+    async withdrawRecord(recordId) {
+      return call({
+        method: 'POST',
+        path: `/records/doctor/${recordId}/withdraw`,
+        authed: true,
+      })
+    },
+
     async replyConsult(consultId, payload) {
       return call({
         method: 'POST',

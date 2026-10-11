@@ -33,7 +33,7 @@ def test_upgrade_head_creates_the_doctor_consult_tables(tmp_path):
     finally:
         engine.dispose()
 
-    assert revision == "0012"
+    assert revision == "0013"
     assert {
         "id",
         "user_id",

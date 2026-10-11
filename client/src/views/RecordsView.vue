@@ -5,6 +5,9 @@
 
   患者端没有写入口（建档/修改/删除只对医生开放，SPEC.md 5.4）。所有后端调用都经 F-1
   的 `client`，本组件不认识传输层；列表加载失败呈现空态并上报（AC-F-12）。
+
+  TICKET-AC-06：多一列「来源」，把「这条是医生确认的 AI 建议，还是医生自己的结论」
+  显式呈现给患者。
 -->
 <script setup>
 import { onMounted, ref } from 'vue'
@@ -17,6 +20,16 @@ const emit = defineEmits(['error'])
 const items = ref([])
 const loading = ref(false)
 const loadError = ref(null)
+
+const SOURCE_LABELS = { ai: '来自 AI 建议', doctor: '医生结论', patient: '患者自述' }
+
+function sourceLabel(source) {
+  return SOURCE_LABELS[source] ?? '医生结论'
+}
+
+function sourceType(source) {
+  return source === 'ai' ? 'warning' : 'info'
+}
 
 async function load() {
   loading.value = true
@@ -86,6 +99,13 @@ onMounted(load)
         <el-table-column prop="doctor_name" label="医生" min-width="110">
           <template #default="{ row }">
             <span data-cell-doctor>{{ row.doctor_name ?? '-' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="来源" min-width="120">
+          <template #default="{ row }">
+            <el-tag data-cell-source size="small" effect="plain" :type="sourceType(row.source)">
+              {{ sourceLabel(row.source) }}
+            </el-tag>
           </template>
         </el-table-column>
       </el-table>

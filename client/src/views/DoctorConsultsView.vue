@@ -32,6 +32,17 @@ const contextLoading = ref(false)
 const context = ref(null)
 const contextError = ref(null)
 
+// TICKET-AC-06：把工单结论沉淀为档案。AI 建议必须经这一动作才可能落库，
+// 因此这里同时承载「确认」与「来源标注」。
+const settle = ref(settleForm())
+const settling = ref(false)
+const settleError = ref(null)
+const settled = ref(null)
+
+function settleForm() {
+  return { record_type: '', diagnosis: '', treatment: '', prescription: '', source: 'ai' }
+}
+
 function parts(item) {
   return decodeChiefComplaint(item.chief_complaint)
 }
@@ -68,6 +79,9 @@ async function openContext(item) {
   contextLoading.value = true
   context.value = null
   contextError.value = null
+  settle.value = settleForm()
+  settleError.value = null
+  settled.value = null
   try {
     context.value = await props.client.consultAiContext(item.id)
   } catch (failure) {
@@ -75,6 +89,30 @@ async function openContext(item) {
     emit('error', failure)
   } finally {
     contextLoading.value = false
+  }
+}
+
+async function settleRecord() {
+  const recordType = settle.value.record_type.trim()
+  if (!recordType) {
+    settleError.value = '档案类型为必填'
+    return
+  }
+  settling.value = true
+  settleError.value = null
+  const payload = { consult_id: context.value.consult_id, record_type: recordType, source: settle.value.source }
+  for (const key of ['diagnosis', 'treatment', 'prescription']) {
+    const value = settle.value[key].trim()
+    if (value) payload[key] = value
+  }
+  try {
+    settled.value = await props.client.createRecordFromConsult(payload)
+    ElMessage.success('已沉淀为档案')
+  } catch (failure) {
+    settleError.value = '沉淀失败'
+    emit('error', failure)
+  } finally {
+    settling.value = false
   }
 }
 
@@ -192,6 +230,54 @@ onMounted(load)
         <p v-if="!hasContext(context)" data-context-empty class="doctor-consults__message">
           这次工单没有关联 AI 问诊内容。
         </p>
+
+        <p class="doctor-consults__label">沉淀为档案</p>
+        <el-form
+          data-settle-form
+          size="small"
+          label-width="80px"
+          class="doctor-consults__settle"
+          @submit.prevent="settleRecord"
+        >
+          <el-form-item label="档案类型">
+            <el-input v-model="settle.record_type" data-settle-type placeholder="如：门诊记录" />
+          </el-form-item>
+          <el-form-item label="诊断">
+            <el-input v-model="settle.diagnosis" data-settle-diagnosis placeholder="可选" />
+          </el-form-item>
+          <el-form-item label="处理">
+            <el-input
+              v-model="settle.treatment"
+              data-settle-treatment
+              type="textarea"
+              :rows="2"
+              placeholder="可选"
+            />
+          </el-form-item>
+          <el-form-item label="来源">
+            <el-select v-model="settle.source" data-settle-source class="doctor-consults__source">
+              <el-option label="医生确认 AI 建议" value="ai" />
+              <el-option label="医生自己的结论" value="doctor" />
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-button
+              type="primary"
+              data-settle-submit
+              native-type="submit"
+              :loading="settling"
+              :disabled="Boolean(settled)"
+            >
+              沉淀为档案
+            </el-button>
+            <span v-if="settled" data-settled class="doctor-consults__hint">
+              已沉淀为档案 #{{ settled.id }}（{{ settled.source === 'ai' ? '来自 AI 建议' : '医生结论' }}）
+            </span>
+          </el-form-item>
+          <p v-if="settleError" data-settle-error class="doctor-consults__message doctor-consults__message--error">
+            {{ settleError }}
+          </p>
+        </el-form>
       </div>
       <div v-else v-loading="contextLoading" class="doctor-consults__loading" />
     </el-dialog>
@@ -254,5 +340,19 @@ onMounted(load)
 
 .doctor-consults__loading {
   min-height: 96px;
+}
+
+.doctor-consults__settle {
+  margin-top: 4px;
+}
+
+.doctor-consults__source {
+  width: 200px;
+}
+
+.doctor-consults__hint {
+  margin-left: 12px;
+  color: var(--el-color-success);
+  font-size: 12px;
 }
 </style>

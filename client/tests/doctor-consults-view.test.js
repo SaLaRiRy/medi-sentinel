@@ -41,6 +41,7 @@ function fakeClient({ tickets = [], loadError } = {}) {
       ],
       references: [{ index: 1, file_name: '感冒与流感指南.md', snippet: '咳嗽……' }],
     })),
+    createRecordFromConsult: vi.fn(async () => ({ id: 5, source: 'ai' })),
     replyConsult: vi.fn(async () => null),
   }
 }
@@ -137,5 +138,32 @@ describe('DoctorConsultsView (TICKET-019)', () => {
 
     expect(wrapper.find('[data-context-error]').text()).toContain('加载失败')
     expect(wrapper.emitted('error')).toHaveLength(1)
+  })
+
+  it('settles the ticket into a record only after the doctor confirms (TICKET-AC-06)', async () => {
+    const client = fakeClient({ tickets: [row()] })
+    const wrapper = mount(DoctorConsultsView, { props: { client } })
+    await flushPromises()
+    await wrapper.find('[data-ai-context]').trigger('click')
+    await flushPromises()
+
+    // 只提交空表单：不落档案，给出必填提示。
+    await wrapper.find('[data-settle-form]').trigger('submit')
+    await flushPromises()
+    expect(client.createRecordFromConsult).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-settle-error]').exists()).toBe(true)
+
+    await wrapper.find('[data-settle-type]').setValue('门诊记录')
+    await wrapper.find('[data-settle-diagnosis]').setValue('急性支气管炎')
+    await wrapper.find('[data-settle-form]').trigger('submit')
+    await flushPromises()
+
+    expect(client.createRecordFromConsult).toHaveBeenCalledWith({
+      consult_id: 3,
+      record_type: '门诊记录',
+      diagnosis: '急性支气管炎',
+      source: 'ai',
+    })
+    expect(wrapper.find('[data-settled]').text()).toContain('已沉淀为档案')
   })
 })
