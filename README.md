@@ -8,9 +8,29 @@
 
 - 🛡️ **安全先行** —— 红旗症状在**调用大模型之前**确定性拦截，命中即全链路短路（归一化 / 检索 / 图谱 / 生成都不执行），并经 trace 审计。
 - 🧩 **五 Skill 编排** —— 每个 Skill 有独立契约（输入输出 Schema / 触发条件 / 边界情况 / 测试用例），可脱离关系库、图库单独实例化测试。
-- 🔎 **双支路 RAG** —— 向量检索与图谱推理**并行且互不筛选**；任一支路不可用即降级（`degraded`），问答继续而不是整体失败。
+- 🔎 **双支路 RAG，检索侧做混合** —— 向量检索与图谱推理**并行且互不筛选**；检索端口内部再融合 **BM25 + 向量（RRF）** 并按阈值过滤，离题问句直接返回空结果而不是硬塞 5 条。本地 ONNX 交叉编码器重排已实现、**默认关闭**（见「量化结果」里的取舍）。任一支路不可用即降级（`degraded`），问答继续而不是整体失败。
+- 📏 **检索质量可量** —— 30 条人工标注 query-文档对（`retrieval-v1`，冻结后不回溯改标签），一条命令给出 `recall@1` / `recall@5` / `MRR`；有对照才让"要不要上重排"这类问题有答案。
+- 🔁 **业务闭环** —— 患者转人工可**带上 AI 会话**，医生在工单里直接看到 AI 的候选疾病与引用；确认后可把结论**沉淀为档案**（标注来源 `ai` / `doctor`、可撤回）；档案再**反哺下一次问诊的提示词**（限长 + 围栏 + 注入声明）。
+- 🧯 **降级容错** —— 生成侧只在**首字节之前**重试（指数退避；已吐字绝不重试，否则前端会看到拼接内容），主模型不可用且未吐字时**故障转移**到备用模型（同一 key 换模型名）；两者都不改既有的 503 / 504 契约。
 - 🧾 **可回放 trace** —— 每次 Skill 与大模型调用都留下结构化 span，足以在不访问外部依赖的前提下重放一次问诊并比对结果。
 - 🎨 **三端一致 UI** —— 患者 / 医生 / 管理端共用设计令牌（紫色渐变主色、深色侧边栏、卡片化内容区），Element Plus 按需引入。
+
+## 量化结果（可引用）
+
+每个数字都带**口径**（分母是什么、样本多少）。完整清单与「不可引用」项见
+[`.scratch/agentic-consult/METRICS.md`](./.scratch/agentic-consult/METRICS.md)——
+**对外引用以那一页为准**。
+
+| 指标 | 值 | 口径 |
+|---|---|---|
+| 知识库规模 | 17 篇 / 42 chunk（全部已索引） | 活库 MySQL 实计数 |
+| `recall@5` | **0.9833**（默认）/ **1.0000**（开重排 N=8/512） | 30 条标注，真实检索端口 + 活库嵌入 |
+| `recall@1` / `MRR` | 0.9833 / **1.0000** | 同上 |
+| 离题问句 | **返回空结果** | 余弦距离阈值 0.60，按活库实测标定 |
+| 红旗拦截率 / 误拦率 | **1.0 / 0.0** | 活库基线 v3：6 条红旗用例**真实跑、真实拦截** |
+| 字面判定层覆盖率 | **32%**（1267 条断言中 400 条可判定） | 活库基线 v3 的 20 条真实回答 |
+
+两条必须连着说的取舍：**重排对 `recall@1` 与 `MRR` 零提升**（RRF 融合已把首条命中文档排在第 1 位），只把多标签用例的第二篇拉回 top-5，代价 +1.24 s/次，故默认关闭；**字面判定层只能评估 32% 的断言**，未评估的 867 条里大量是"就医 / 急诊 / 警惕"类安全提示——该层的局限是**覆盖率**而不是准确率，所以它的比率**不作为「幻觉率」对外引用**。
 
 ## 界面预览
 
@@ -36,13 +56,15 @@
   <img src="./docs/images/login.png" width="62%" alt="登录页" />
 </p>
 
-> **当前状态：功能已完整落地。** TICKET-001…026 已实现五个 Skill 的编排链路、三角色认证与全部业务域（AI 问诊、知识库、图谱、预约与健康档案、人工问诊、文章公告、统计、可观测性与回归基线），并提供一份演示数据 `server/seeds/demo_v1.sql`。下文「架构」描述的是 `SPEC.md` 规定的目标形态，实现与其一致。
+> **当前状态：功能已完整落地，并完成一轮检索 / 闭环 / 容错的改造。** TICKET-001…030 实现了五个 Skill 的编排链路、三角色认证与全部业务域（AI 问诊、知识库、图谱、预约与健康档案、人工问诊、文章公告、统计、可观测性与回归基线）；随后的 `agentic-consult` 一票一提交（AC-01…AC-12）补上了**混合检索 + 阈值、检索质量评测、可选本地重排、业务闭环三段、生成侧重试与故障转移、LangChain 生成适配器**，并新增**活库回归基线 v3** 与[指标权威清单](./.scratch/agentic-consult/METRICS.md)。演示数据见 `server/seeds/demo_v1.sql`。下文「架构」描述的是 `SPEC.md` 规定的目标形态，实现与其一致。
 
 ## 文档
 
 | 文档 | 内容 |
 |---|---|
 | [`SPEC.md`](./SPEC.md) | 目标架构规格：问题、目标、约束、seam、接口契约、验收标准、范围外事项。 |
+| [`.scratch/agentic-consult/METRICS.md`](./.scratch/agentic-consult/METRICS.md) | **指标的唯一权威清单**：可引用 / 不可引用，每条附口径与出处。引用数字前先看这里。 |
+| [`.scratch/agentic-consult/`](./.scratch/agentic-consult/) | 最近一轮改造（AC-01…AC-13）的规格、票据与实测记录，一票一文件。 |
 | [`docs/agents/`](./docs/agents/) | 本仓库的工程技能配置：issue tracker、triage 标签、领域文档约定。 |
 
 > 功能层「现状行为」规格（`FUNCTIONAL_SPEC.md`）不随本仓库发布；对外行为以 `SPEC.md` 第 5 章的接口契约与 `contracts/` 为准。
@@ -98,7 +120,7 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 |---|---|
 | 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / LangChain（`ChatOpenAI.astream()`）流式调用兼容 OpenAI 的 LLM，嵌入走 httpx 异步调用 |
 | 数据 | MySQL（14 个实体）/ Neo4j 异步驱动（医学知识图谱）/ Chroma 本地持久化（向量索引） |
-| AI | 兼容 OpenAI 接口的大模型与嵌入服务 |
+| AI | 兼容 OpenAI 接口的大模型与嵌入服务；检索为 **BM25 + 向量 → RRF 融合 + 距离阈值**，可选**本地 ONNX 交叉编码器重排**（`RERANK_MODEL_DIR`，默认关闭） |
 | 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus（按需引入），仅通过 RESTful API（含 SSE）通信；图表为自绘内联 SVG，无第三方图表依赖 |
 
 **配置**：连接串、口令与密钥一律经环境变量注入，由 `server/.env` 提供——`core.config.Settings` 读取，样例见 `server/.env.example`。`DATABASE_URL` 必填；缺失时后端启动即报错，不再退回源码里的默认值（TICKET-027）。
@@ -180,7 +202,7 @@ cd ../client
 npm test                                  # 前端
 ```
 
-后端默认连 MySQL，测试则用 SQLite，不需要启动任何外部服务。
+后端默认连 MySQL，测试则用 SQLite，不需要启动任何外部服务；需要 MySQL 的集成用例在连不上时自动 `skip`。本轮改造完成时的基线：**后端 988 passed + 1 skipped；前端 56 files / 327 passed**。
 
 ## 契约
 
@@ -200,20 +222,34 @@ cd server
 
 ## 回归基线
 
-行为回归框架（TICKET-023，`SPEC.md` 3.8）由两条命令驱动；用例集与基线是版本控制
-的数据（`server/regression/cases/`、`server/regression/baselines/`），随代码一同入库：
+行为回归框架（TICKET-023，`SPEC.md` 3.8）的用例集与基线是**版本控制的数据**
+（`server/regression/cases/`、`server/regression/baselines/`），随代码一同入库：
 
 ```bash
 cd server
-.venv\Scripts\python.exe scripts\regression.py record --case-set v1 --baseline-version v1
-.venv\Scripts\python.exe scripts\regression.py replay --case-set v1 --baseline-version v1
+# 离线录制 / 回放（确定性替身端口，不触碰任何外部依赖）
+.venv/Scripts/python.exe scripts/regression.py record --case-set v1 --baseline-version v1
+.venv/Scripts/python.exe scripts/regression.py replay --case-set v1 --baseline-version v1
+
+# 活库录制（真实 Neo4j + 活库向量检索 + 真实模型；v3 就是这么来的）
+.venv/Scripts/python.exe scripts/regression.py record --case-set v3 --baseline-version v3 --live
+
+# 检索质量：recall@1 / recall@5 / MRR（跑真实检索端口，需要联网）
+.venv/Scripts/python.exe scripts/regression.py retrieval-eval --set retrieval-v1
+
+# 字面判定层的四个口径：覆盖率与格式伪影分解（只读，不改判定）
+.venv/Scripts/python.exe scripts/regression.py hallucination-calibers --baseline-version v3
 ```
 
-`record` 用确定性端口离线录制基线（不触碰图库、向量索引、嵌入服务与大模型）；
-`replay` 只读基线重建一次问诊并打印 `MetricsReport`（红旗拦截率、误拦率、诊断漂移率、
-幻觉率与按 `intercepted`/`llm`/`degraded` 分组的 P95 延迟），回放期间外部调用次数为 0。
+`replay` 只读基线重建一次问诊并打印 `MetricsReport`，回放期间外部调用次数为 0；
 拦截率 < 100% 或误拦率 > 0% 时以非零码退出。同一版本也可经 `POST /regression/runs`
 提交、`GET /regression/runs/{run_id}` 轮询。
+
+**三份基线的语义不同，别混用**：`v1` / `v2` 录在**确定性替身端口**上（拦截率等指标是替身
+自证）；`v3` 是**真实调用快照**（拦截率 1.0 / 误拦率 0.0 由 6 条红旗用例真实跑出来），
+但它不可复现——回放逐字稳定。两个必须知道的读数边界：`diagnosis_drift_rate` 在
+**回放路径上是恒真式**（恒 0，代码改坏也报 0），回放也不测量延迟（取基线录制值）。
+细节见 [`METRICS.md`](./.scratch/agentic-consult/METRICS.md)。
 
 ## 工程约定
 
