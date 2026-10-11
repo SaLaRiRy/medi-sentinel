@@ -8,6 +8,7 @@ B-1，全程零外部 I/O。比对时丢弃随机 `trace_id` 与墙钟字段（t
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -52,13 +53,75 @@ def _frame_of(frames: list[dict[str, Any]], frame_type: str) -> dict[str, Any] |
     return next((frame for frame in frames if frame.get("type") == frame_type), None)
 
 
+#: 判定上下文里**不得出现**的模板框架词（TICKET-AC-11）。
+#:
+#: 确定性层做的是字面匹配，模板词一旦进上下文，任何含这些词的断言都会白送
+#: （"科室建议"撞"科室"、"覆盖率约 0.8"撞"覆盖率"…）——那是把幻觉率人为**调松**。
+#: 检索侧只拼 `content` 原文、不含任何模板词；图谱侧保持同样的干净度。
+_GRAPH_TEMPLATE_WORDS = ("知识图谱", "推理结果", "覆盖率", "科室", "依据症状")
+
+
+def _graph_records(case: BaselineCase) -> list[Mapping[str, Any]]:
+    """本次问诊**实际拿到**的图谱候选（不是整张图谱）。
+
+    优先用录制下来的 `graph-inference` 结构化输出：它带 `coverage`，而那正是
+    提示词喂给模型的字段（`ports["graph"]` 的原始端口返回只有
+    `disease` / `department` / `matched_symptoms`，`coverage` 与 `match_count`
+    是 Skill 算出来的）。两者都取不到时回空表。
+    """
+    detail = case.skills.get("graph-inference") or {}
+    candidates = detail.get("candidates")
+    if isinstance(candidates, list) and candidates:
+        return [item for item in candidates if isinstance(item, Mapping)]
+    records: list[Mapping[str, Any]] = []
+    for response in case.ports.get("graph", []):
+        for record in response:
+            if isinstance(record, Mapping):
+                records.append(record)
+    return records
+
+
+def _graph_values(case: BaselineCase) -> list[str]:
+    """图谱候选的**数据值**：疾病名 / 科室 / 依据症状 / 覆盖率数值。
+
+    只拼数据值，**不拼模板框架词**——暴露词面才是修复的目的，
+    拼进模板词就变成把指标调松（见 `_GRAPH_TEMPLATE_WORDS`）。
+    """
+    values: list[str] = []
+    for record in _graph_records(case):
+        disease = record.get("disease")
+        if isinstance(disease, str) and disease:
+            values.append(disease)
+        department = record.get("department")
+        if isinstance(department, str) and department:
+            values.append(department)
+        symptoms = record.get("matched_symptoms")
+        if isinstance(symptoms, Sequence) and not isinstance(symptoms, str):
+            values.extend(
+                symptom
+                for symptom in symptoms
+                if isinstance(symptom, str) and symptom
+            )
+        coverage = record.get("coverage")
+        if isinstance(coverage, (int, float)) and not isinstance(coverage, bool):
+            values.append(f"{coverage:.2f}")
+    return values
+
+
 def _context_of(case: BaselineCase) -> str:
+    """确定性层与判定层**共用**的上下文：检索分块原文 + 图谱候选数据值。
+
+    只含"这次问诊实际取到的事实"——检索侧是取到的分块、图谱侧是取到的候选，
+    既不是整库也不是整图，且都不带模板词。TICKET-AC-11 补上了后半句
+    （此前只有检索侧，于是依据图谱结论说出的疾病名会被判无据）。
+    """
     parts: list[str] = []
     for response in case.ports.get("retrieval", []):
         for hit in response:
             content = hit.get("content")
             if isinstance(content, str):
                 parts.append(content)
+    parts.extend(_graph_values(case))
     return "\n".join(parts)
 
 
