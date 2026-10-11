@@ -151,6 +151,13 @@ async def test_report_has_the_frozen_shape():
         "case_count",
         # TICKET-AC-03：回放自检，不是第五个指标（SPEC.md 3.8 的四项定义不变）。
         "evidence_match_rate",
+        # TICKET-AC-12 第一步：覆盖率与字面标记（中性命名，不是幻觉率）。
+        "assertion_count",
+        "evaluable_count",
+        "token_free_count",
+        "evaluable_ratio",
+        "literal_marked_count",
+        "literal_marked_ratio",
     }
     assert set(body["latency"]) == {"intercepted", "llm", "degraded"}
     assert set(body["latency"]["llm"]) == {"p50", "p95"}

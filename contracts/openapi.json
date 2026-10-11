@@ -8451,7 +8451,8 @@
           "total",
           "judge_available"
         ],
-        "title": "HallucinationReport"
+        "title": "HallucinationReport",
+        "description": "幻觉率的两层分解。\n\n⚠️ **AC-12 起注意分母的含义**：`total` 是**含可判定 token 的断言数**\n（即 `evaluable`），**不是**答案的全部非空断言。v3 实测全部断言 1267 条，\n其中只有 400 条（32%）可被这层判定；未评估的 867 条里大量是\n「就医 / 急诊 / 警惕」类安全提示。所以本报告的比率**不具备\"幻觉率\"的解释力**，\n只能读作「可判定断言中被字面层标记无据的占比」。\n覆盖率与全分母口径见 `MetricsReport.literal_marked_ratio` / `evaluable_ratio`。"
       },
       "HealthData": {
         "properties": {
@@ -9015,6 +9016,30 @@
           "evidence_match_rate": {
             "type": "number",
             "title": "Evidence Match Rate"
+          },
+          "assertion_count": {
+            "type": "integer",
+            "title": "Assertion Count"
+          },
+          "evaluable_count": {
+            "type": "integer",
+            "title": "Evaluable Count"
+          },
+          "token_free_count": {
+            "type": "integer",
+            "title": "Token Free Count"
+          },
+          "evaluable_ratio": {
+            "type": "number",
+            "title": "Evaluable Ratio"
+          },
+          "literal_marked_count": {
+            "type": "integer",
+            "title": "Literal Marked Count"
+          },
+          "literal_marked_ratio": {
+            "type": "number",
+            "title": "Literal Marked Ratio"
           }
         },
         "type": "object",
@@ -9025,7 +9050,13 @@
           "hallucination",
           "latency",
           "case_count",
-          "evidence_match_rate"
+          "evidence_match_rate",
+          "assertion_count",
+          "evaluable_count",
+          "token_free_count",
+          "evaluable_ratio",
+          "literal_marked_count",
+          "literal_marked_ratio"
         ],
         "title": "MetricsReport"
       },

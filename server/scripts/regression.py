@@ -23,6 +23,7 @@ from regression.metrics import JudgePort  # noqa: E402
 from regression.metrics import compare_reports  # noqa: E402
 from regression.record import PortsFactory, record_case_set  # noqa: E402
 from regression.replay import run_regression  # noqa: E402
+from regression.calibers import measure_calibers  # noqa: E402
 from regression.retrieval_eval import evaluate_retrieval, load_case_set  # noqa: E402
 from regression.retrieval_eval import RetrievalCaseSet, RetrievalReport  # noqa: E402
 from regression.schema import (  # noqa: E402
@@ -106,6 +107,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     evaluate.add_argument("--report", default=None, help="把 RetrievalReport 另存为 JSON")
     evaluate.add_argument("--cases-dir", default=None, help="标注集目录（默认 regression/cases）")
+
+    calibers = sub.add_parser(
+        "hallucination-calibers",
+        help="量四个断言口径（只读，不改判定；TICKET-AC-12 第一步）",
+    )
+    calibers.add_argument("--baseline-version", required=True)
+    calibers.add_argument("--report", default=None, help="把四口径读数另存为 JSON")
+    _add_dirs(calibers)
     return parser
 
 
@@ -147,6 +156,34 @@ async def _record_baseline(
             close = getattr(port, "close", None)
             if callable(close):
                 await close()
+
+
+def _calibers(args: argparse.Namespace) -> int:
+    """四口径读数：**只读**，不碰 `_assertions` / `_deterministic_tokens`。
+
+    分母固定为「全部非空断言」，所以口径之间可直接比较（见 `regression/calibers.py`）。
+    """
+    store = _store(args.cases_dir, args.baselines_dir)
+    baseline = store.load_baseline(args.baseline_version)
+    payload = [
+        {
+            "caliber": report.name,
+            "description": report.description,
+            "assertion_count": report.assertion_count,
+            "evaluable": report.evaluable,
+            "token_free": report.token_free,
+            "evaluable_ratio": round(report.evaluable_ratio, 4),
+            "marked_unsupported": report.marked_unsupported,
+            "marked_over_evaluable": round(report.marked_over_evaluable, 4),
+            "marked_over_all": round(report.marked_over_all, 4),
+        }
+        for report in measure_calibers(baseline)
+    ]
+    text = json.dumps(payload, ensure_ascii=False, indent=2)
+    print(text)
+    if args.report:
+        Path(args.report).write_text(text + "\n", encoding="utf-8", newline="\n")
+    return 0
 
 
 def _record(args: argparse.Namespace) -> int:
@@ -240,6 +277,8 @@ def main(argv: list[str] | None = None) -> int:
             return _record(args)
         if args.command == "retrieval-eval":
             return _retrieval_eval(args)
+        if args.command == "hallucination-calibers":
+            return _calibers(args)
         return _replay(args)
     except (CaseSetMissing, BaselineMissing) as error:
         print(f"回放失败：{error}", file=sys.stderr)

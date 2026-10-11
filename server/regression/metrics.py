@@ -54,6 +54,16 @@ class LatencyReport(BaseModel):
 
 
 class HallucinationReport(BaseModel):
+    """幻觉率的两层分解。
+
+    ⚠️ **AC-12 起注意分母的含义**：`total` 是**含可判定 token 的断言数**
+    （即 `evaluable`），**不是**答案的全部非空断言。v3 实测全部断言 1267 条，
+    其中只有 400 条（32%）可被这层判定；未评估的 867 条里大量是
+    「就医 / 急诊 / 警惕」类安全提示。所以本报告的比率**不具备"幻觉率"的解释力**，
+    只能读作「可判定断言中被字面层标记无据的占比」。
+    覆盖率与全分母口径见 `MetricsReport.literal_marked_ratio` / `evaluable_ratio`。
+    """
+
     deterministic_ratio: float
     judged_ratio: float
     total: int
@@ -71,6 +81,20 @@ class MetricsReport(BaseModel):
     #: 它**不是第五个指标**（SPEC.md 3.8 的四项定义不变、不参与换模型对比阈值），
     #: 而是"这次回放本身有没有漂"的自检——票 03 修的就是它此前被丢掉、永远进不了报告。
     evidence_match_rate: float
+    # —— TICKET-AC-12 第一步：把「覆盖率」当一等公民报出来（中性命名，不叫 hallucination）——
+    #: 全部**非空断言**数（口径之间可比的那个分母）。
+    assertion_count: int
+    #: 其中含可判定 token、因而能被字面层评估的条数（= `hallucination.total`）。
+    evaluable_count: int
+    #: 不含任何可判定 token、因此**无法评估**的条数——v3 上大量是安全提示句。
+    token_free_count: int
+    #: `evaluable_count / assertion_count`（v3：≈0.32）。这条比任何比率都重要。
+    evaluable_ratio: float
+    #: 被字面层标记为无据的条数（不含判定层）。
+    literal_marked_count: int
+    #: `literal_marked_count / assertion_count` —— 分母固定为全部断言，
+    #: **口径之间可直接比较**，是唯一建议对外报的单一数字（仍须标注"字面标记率，不是幻觉率"）。
+    literal_marked_ratio: float
 
 
 @dataclass(frozen=True)
@@ -151,6 +175,8 @@ class _Evaluation:
     judged_total: int = 0
     judged_unsupported: int = 0
     judge_available: bool = False
+    #: 不含任何可判定 token、两层都评估不了的断言数（TICKET-AC-12）。
+    token_free: int = 0
 
     @property
     def total(self) -> int:
@@ -169,6 +195,9 @@ async def _evaluate(answer: str, context: str, judge: JudgePort | None) -> _Eval
                 result.deterministic_unsupported += 1
             continue
         if not result.judge_available or judge is None:
+            # 字面层没有 token、判定层又不可用 → 这条断言**无法评估**。
+            # 过去它被 `continue` 静默吞掉；现在记进 token_free，让覆盖率可见。
+            result.token_free += 1
             continue
         try:
             supported = await judge.judge(assertion, context)
@@ -230,8 +259,10 @@ async def build_report(
         evaluation.deterministic_unsupported += case_eval.deterministic_unsupported
         evaluation.judged_total += case_eval.judged_total
         evaluation.judged_unsupported += case_eval.judged_unsupported
+        evaluation.token_free += case_eval.token_free
         evaluation.judge_available = evaluation.judge_available and case_eval.judge_available
     total = evaluation.total
+    assertion_count = total + evaluation.token_free
 
     return MetricsReport(
         # 无红旗用例时没有可能被漏拦的红旗：按 100% 报（空集真值），否则 CLI 会把
@@ -256,6 +287,14 @@ async def build_report(
         case_count=len(outcomes),
         evidence_match_rate=_rate(
             sum(1 for outcome in outcomes if outcome.evidence_matched), len(outcomes)
+        ),
+        assertion_count=assertion_count,
+        evaluable_count=total,
+        token_free_count=evaluation.token_free,
+        evaluable_ratio=_rate(total, assertion_count),
+        literal_marked_count=evaluation.deterministic_unsupported,
+        literal_marked_ratio=_rate(
+            evaluation.deterministic_unsupported, assertion_count
         ),
     )
 
@@ -297,6 +336,11 @@ def compare_reports(primary: MetricsReport, baseline: MetricsReport) -> dict[str
         "evidence_match_rate": (
             primary.evidence_match_rate - baseline.evidence_match_rate
         ),
+        # AC-12：口径之间可比的单一数字，以及覆盖率。
+        "literal_marked_ratio": (
+            primary.literal_marked_ratio - baseline.literal_marked_ratio
+        ),
+        "evaluable_ratio": primary.evaluable_ratio - baseline.evaluable_ratio,
     }
 
 
