@@ -32,7 +32,7 @@
 | [08](issues/08-llm-retry-fallback.md) | 降级容错：超时重试 + 备用模型故障转移 | — | ready-for-agent |
 | [09](issues/09-langchain-llm-adapter.md) | （可选、最后）LangChain 换 `LlmPort` adapter | 08 | ready-for-agent |
 | [10](issues/10-live-baseline-recording.md) | 活库重录回归基线（只录数据，分两阶段） | — | done（`e370da9`） |
-| [11](issues/11-hallucination-context-fix.md) | 修确定性幻觉层的判定上下文（并入图谱片段） | 10 | done |
+| [11](issues/11-hallucination-context-fix.md) | 修确定性幻觉层的判定上下文（并入图谱片段） | 10 | done（`37a1c22`） |
 | — | （建议）收窄确定性层的断言抽取：排除列表编号、过滤提问 | 11 | 待用户决定，见 `map.md` 待办占位 |
 
 > 票 10 是 01–09 落地之后另开的：它修的是**基线真实性**（v1/v2 录在替身上），

@@ -8,7 +8,7 @@
 **Blocked by:** 10（v3 活库基线与可复现靶子）
 
 **Status:** done
-Completed: (见下一次提交)
+Completed: 37a1c22
 
 ---
 
