@@ -32,6 +32,7 @@
 | [08](issues/08-llm-retry-fallback.md) | 降级容错：超时重试 + 备用模型故障转移 | — | ready-for-agent |
 | [09](issues/09-langchain-llm-adapter.md) | （可选、最后）LangChain 换 `LlmPort` adapter | 08 | ready-for-agent |
 | [10](issues/10-live-baseline-recording.md) | 活库重录回归基线（只录数据，分两阶段） | — | done（`e370da9`） |
+| [11](issues/11-hallucination-context-fix.md) | 修确定性幻觉层的判定上下文（并入图谱片段） | 10 | needs-triage（待用户复核后开工） |
 
 > 票 10 是 01–09 落地之后另开的：它修的是**基线真实性**（v1/v2 录在替身上），
 > 不属原计划四段改造。**AC-11**（修确定性幻觉层的上下文缺陷）只留占位，
@@ -247,6 +248,27 @@ q13 的第二篇文档拉回 top-5。这条比"有提升"更值钱，别在汇�
 但它的 `diagnosis_drift_rate` **不具备** v1/v2 那种「代码改动监测」含义
 （同一份基线自回放恒为 0；两次录制之间会把瞬时降级与代码改动混在一起）——
 要监测代码改动仍用 v1/v2。
+
+### 8.5 回归指标的引用边界（**引用前必读**）
+
+`diagnosis_drift_rate` 在**回放路径上是恒真式**：`regression/replay.py:94-100` 的
+`baseline_candidates` 从同一份基线的 `frames` 读出，而回放喂回的就是同一批录制数据，
+两者必然相等（`regression/metrics.py:218-222`）→ `drifted` 恒为 0。
+**它在代码改坏时也报 0**，因此回放产出的漂移率**不能作为任何稳定性 / 回归证据引用**；
+该指标只在 **record 路径**上才有意义（`server/tests/test_regression_metrics.py:137`
+那条 1/3 是对它的有效单元验证）。v1 / v2 / v3 三份基线的回放漂移率**全部是构造性零**。
+
+**AC-10 之后可引用的只有两条**：
+
+1. **红旗拦截率 1.0 / 误拦率 0.0**（v3：6 条真实跑、真实拦截）；
+2. **幻觉率分母 400**（v1 为 5）——分母第一次真实，但带 §8.3 的条件标注。
+
+**不可引用**：`diagnosis_drift_rate`（恒真式）、`latency` 的 v1→v3 差值
+（两种录制产物之差，不是优化前后；v3 的 60 s 只能表述为「v3 录制的单次生成耗时
+P95 ≈ 60 s（真实模型、600 chunk）」）、`evidence_match_rate`（自我回放的一致性自检）。
+
+要让 drift 真正可测，回放必须**重新执行**而非喂回录制数据——那会动摇
+AC-B-35「回放零外部依赖」的地基，属另一个范围（见 `map.md` 的已知局限）。
 
 ## 变更记录
 
