@@ -9,7 +9,7 @@ B-3 适配器**（`adapters.build_graph_store` / `build_vector_store` / `build_l
 
 **Blocked by:** 无（依赖 MySQL / Neo4j / 真实 API key 三样在线）
 
-**Status:** needs-triage —— 用户复核票面后置 `ready-for-agent`
+**Status:** ready-for-agent（票面已复核通过）—— 阶段一**已完成**，等用户确认后进阶段二
 
 ---
 
@@ -64,14 +64,30 @@ B-3 适配器**（`adapters.build_graph_store` / `build_vector_store` / `build_l
       `rf-severe-bleeding` / `rf-altered-consciousness` / `rf-severe-headache` /
       `rf-fever-rash` / `rf-seizure`）。
 - [ ] `record --case-set v3 --baseline-version v3 --live` 跑通，产出 `baselines/v3.json`。
+- [ ] 回放这段基线：`redflag_intercept_rate == 1.0`、`redflag_false_positive_rate == 0.0`、
+      `evidence_match_rate == 1.0`。
+- [ ] 记录 `baselines/v3.json` 这一阶段的实际体积（应与 v1 的 6 条同量级）。
+
+**反替身护栏**（防的是「录出来看着像真的、其实还是替身」）
+
 - [ ] 6 条全部走 `intercept` 路径：`route.skills_run == ["safety-gate"]`、
       有 `safety` 帧、无 `content` 帧、`done.references == []`、`done.graph == []`。
-- [ ] 回放这段基线：`redflag_intercept_rate == 1.0`、`redflag_false_positive_rate == 0.0`、
-      `evidence_match_rate == 1.0`，且数字来自**真实录制**（帧带真实 `trace_id`、
-      span 时间戳非零）。
-- [ ] 记录 `baselines/v3.json` 这一阶段的实际体积（应与 v1 的 6 条同量级）。
-- [ ] 票面 Comments 写明：这一阶段**没有 LLM chunk、没有检索/图谱调用**
-      （红旗短路本来就是 0 次），所以体积与耗时都不构成问题。
+- [ ] `trace_id` 是**本次运行生成的 32 位十六进制**（不是替身里可预期的固定串）。
+- [ ] span 带非空 `started_at`，且 6 条各只有 1 条 span（安全门那条）。
+- [ ] 阶段二的正常用例必须出现 **>0 次检索调用、>0 次图谱调用、≥1 个 LLM chunk**
+      —— 那才是「真实链路确实被驱动」的证据。
+
+⚠️ **红旗用例本来就是 0 次检索 / 0 次图谱 / 0 个 LLM chunk**（安全门命中即全链路短路），
+所以「零 chunk」在阶段一是**预期**、不是录制失败——别读成"录坏了"。
+
+**阶段一的能力边界（写进结论，不要含糊）**
+
+- ✅ 证明：`--live` 注入路径打通、真实 adapter 能被构造并传入、CLI 守卫与 `--force` 生效、
+  拦截率 / 误拦率确实由**本次真实录制**产出。
+- ❌ **不能证明**：真实 Neo4j / 活库向量检索 / 真实模型三条链路在录制路径下可用——
+  红旗用例在安全门就短路了。**已实测坐实**：同一套用例用替身录一遍，
+  帧与真实录制**逐字一致**（归一化掉 `trace_id` 与 `cost_time` 后比较）。
+  那三条链路只能由阶段二的正常用例证明。
 
 **阶段一通过后再动阶段二。**
 
@@ -156,4 +172,46 @@ replay --compare 不受影响。drift_rate 也仍然有意义：候选疾病来�
 
 ## Comments
 
-（待开工后记录：阶段一实测、阶段二实测、体积决定、三处条件标注的落点。）
+### 阶段一（2026-10-11）—— 已完成，等用户确认后进阶段二
+
+**结果**
+
+```
+record --case-set v3 --baseline-version v3 --live
+→ 已录制基线 v3（真实适配器）：6 条用例，耗时 1.0 s
+→ baselines/v3.json：30,287 字节
+
+replay --case-set v3 --baseline-version v3
+→ redflag_intercept_rate 1.0 / redflag_false_positive_rate 0.0
+→ evidence_match_rate 1.0 / case_count 6
+→ hallucination.total 0（红旗用例无断言可评，预期）
+```
+
+**反替身护栏逐条断言**（取证脚本 `.tmp/verify_v3_phase1.py`，gitignore）：
+
+| 护栏 | 实测 |
+|---|---|
+| 路由只有安全门 | 6/6 `skills_run == ["safety-gate"]` |
+| 有 `safety` 帧、无 `content` 帧 | 6/6 帧序 `session → trace → route → safety → done`（各 5 帧）|
+| `done.references == []` 且 `done.graph == []` | 6/6 |
+| `trace_id` 是本次生成的 32 位十六进制 | 6/6（如 `28a7fa25…`）|
+| span 带非空 `started_at`，各 1 条 | 6/6 |
+| 0 LLM chunk / 0 检索 / 0 图谱调用 | 6/6（**红旗短路本来就是 0 次**：预期，不是失败）|
+
+**能力边界（已实证坐实）**：把同一套 `cases/v3.json` 用**替身**再录一遍，逐条比较
+归一化后的帧——**完全一致**。所以阶段一证明的是**注入路径打通**，不是"活库链路可用"；
+真实 Neo4j / 检索 / 模型三条链路由阶段二证明。
+
+**体积（§4.1 阶段一部分）**：红旗基线 30,287 字节 / 6 条 ≈ 5 KB/条，且这一档
+**不含任何 LLM chunk**。真正要决定存储方式的是阶段二那条正常用例——按探查值
+（单条 600 个 chunk）外推后再定，结论写进本 Comments。
+
+**实现落点**（与 §1 / §4.3 一致）
+
+- 注入点：`regression/record.py` 的 `PortsFactory` + `record_case` /
+  `record_case_set` 的 `ports_factory`（带默认值：8 处测试 + 1 处 CLI 零改动）。
+- 写守卫：`regression/schema.py` 的 `target_path` / `ensure_writable` /
+  `write_baseline(force=)` —— **路径与判定只有一份**，CLI 不自己 `Path.exists()`；
+  `_record` 在录制**之前**先问一次（避免白录十几分钟），`write_baseline` 内部再判一次。
+- CLI：`--live` / `--force`；`BaselineExists` 转非零退出 + 明确提示。
+- 测试：`server/tests/test_live_record.py` 10 项（注入 4 / 守卫 3 / CLI 2 / 零依赖 1）。

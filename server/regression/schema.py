@@ -119,6 +119,19 @@ class BaselineMissing(FileNotFoundError):
         self.version = version
 
 
+class BaselineExists(FileExistsError):
+    """目标基线文件已存在，且没有显式要求覆盖（TICKET-AC-10 §4.3）。
+
+    存在的意义是**保护已提交的基线**：`--live` 录一次要十几分钟，
+    一次手滑（`--live --baseline-version v1`）就能把 v1 覆盖掉。
+    覆盖必须显式加 `--force`。
+    """
+
+    def __init__(self, version: str) -> None:
+        super().__init__(f"baseline already exists: {version}")
+        self.version = version
+
+
 class RegressionStore:
     """按版本读取/写入 `cases/` 与 `baselines/`（目录可覆盖，便于测试）。"""
 
@@ -149,8 +162,25 @@ class RegressionStore:
                 continue
         return baselines
 
-    def write_baseline(self, baseline: Baseline, *, version: str | None = None) -> Path:
-        path = self.baselines_dir / f"{version or baseline.version}.json"
+    def target_path(self, version: str) -> Path:
+        """某一版基线的落点。路径规则只有这一处，CLI 不重复实现。"""
+        return self.baselines_dir / f"{version}.json"
+
+    def ensure_writable(self, version: str, *, force: bool = False) -> Path:
+        """写之前先问一次：这个版本能不能写。
+
+        录制前调用一次（避免白录十几分钟），`write_baseline` 内部再调用一次
+        （真正的守卫）——两处共用同一份路径规则与同一个判定。
+        """
+        path = self.target_path(version)
+        if path.exists() and not force:
+            raise BaselineExists(version)
+        return path
+
+    def write_baseline(
+        self, baseline: Baseline, *, version: str | None = None, force: bool = False
+    ) -> Path:
+        path = self.ensure_writable(version or baseline.version, force=force)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(baseline.model_dump(mode="json"), ensure_ascii=False, indent=2) + "\n",

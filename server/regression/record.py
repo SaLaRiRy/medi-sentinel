@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import math
 import time
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
 from datetime import UTC, datetime
 from typing import Any
 
@@ -142,6 +142,14 @@ def fixture_ports(case: RegressionCase) -> tuple[Any, Any, Any]:
     return graph, retrieval, ScriptedLlmPort(case.answer)
 
 
+#: 录制时如何为一条用例提供三个 B-3 端口。
+#:
+#: 默认是**离线替身**（`fixture_ports`）；`--live` 时由 `scripts/regression.py`
+#: 注入真实适配器的闭包（TICKET-AC-10）。真实适配器昂贵且有状态，所以工厂应当
+#: **返回同一批实例**，不要逐条用例重连。
+PortsFactory = Callable[[RegressionCase], tuple[Any, Any, Any]]
+
+
 def _skills_of(spans: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {
         span["name"]: span["detail"]
@@ -150,8 +158,10 @@ def _skills_of(spans: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     }
 
 
-async def record_case(case: RegressionCase) -> BaselineCase:
-    graph, retrieval, llm = fixture_ports(case)
+async def record_case(
+    case: RegressionCase, *, ports_factory: PortsFactory = fixture_ports
+) -> BaselineCase:
+    graph, retrieval, llm = ports_factory(case)
     recording_graph = RecordingGraphPort(graph)
     recording_retrieval = RecordingRetrievalPort(retrieval)
     recording_llm = RecordingLlmPort(llm)
@@ -213,9 +223,13 @@ async def record_case(case: RegressionCase) -> BaselineCase:
     )
 
 
-async def record_case_set(case_set: CaseSet) -> Baseline:
+async def record_case_set(
+    case_set: CaseSet, *, ports_factory: PortsFactory = fixture_ports
+) -> Baseline:
     """录制整套用例，产出可回放的版本化基线。"""
-    cases = [await record_case(case) for case in case_set.cases]
+    cases = [
+        await record_case(case, ports_factory=ports_factory) for case in case_set.cases
+    ]
     registry = load_registry()
     return Baseline(
         version=case_set.version,

@@ -21,11 +21,12 @@ sys.path.insert(0, str(SERVER_ROOT))
 
 from regression.metrics import JudgePort  # noqa: E402
 from regression.metrics import compare_reports  # noqa: E402
-from regression.record import record_case_set  # noqa: E402
+from regression.record import PortsFactory, record_case_set  # noqa: E402
 from regression.replay import run_regression  # noqa: E402
 from regression.retrieval_eval import evaluate_retrieval, load_case_set  # noqa: E402
 from regression.retrieval_eval import RetrievalCaseSet, RetrievalReport  # noqa: E402
 from regression.schema import (  # noqa: E402
+    BaselineExists,
     BaselineMissing,
     CaseSetMissing,
     RegressionStore,
@@ -71,6 +72,16 @@ def _parser() -> argparse.ArgumentParser:
     record = sub.add_parser("record", help="离线录制一份版本化基线")
     record.add_argument("--case-set", required=True)
     record.add_argument("--baseline-version", required=True)
+    record.add_argument(
+        "--live",
+        action="store_true",
+        help="用真实适配器录制（Neo4j + 活库向量检索 + 真实模型，TICKET-AC-10）",
+    )
+    record.add_argument(
+        "--force",
+        action="store_true",
+        help="允许覆盖已存在的基线文件（不加则拒绝写入，保护 v1/v2）",
+    )
     _add_dirs(record)
 
     replay = sub.add_parser("replay", help="回放基线并输出 MetricsReport")
@@ -98,12 +109,60 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _live_ports_factory() -> tuple[PortsFactory, list[object]]:
+    """真实适配器的注入点（TICKET-AC-10）。
+
+    刻意放在 scripts 侧：`regression/` 整包保持零 `adapters` / `neo4j` / `chroma`
+    依赖（`tests/test_regression_record_replay.py` 的 AST 断言盯着 `ports.py`）。
+
+    返回的工厂**复用同一批实例**——一个 Chroma store、一个 Neo4j driver、
+    一个 LLM client——绝不逐条用例重连。
+    """
+    from adapters import build_graph_store, build_llm, build_vector_store
+    from core.config import get_settings
+
+    settings = get_settings()
+    graph = build_graph_store(settings)
+    retrieval = build_vector_store(settings)
+    llm = build_llm(settings)
+    ports: list[object] = [graph, retrieval, llm]
+
+    def factory(_case) -> tuple[object, object, object]:
+        return graph, retrieval, llm
+
+    return factory, ports
+
+
+async def _record_baseline(
+    args: argparse.Namespace, store: RegressionStore, case_set
+):
+    """录制（可选真实适配器）并关闭它们。"""
+    if not args.live:
+        return await record_case_set(case_set)
+    factory, ports = _live_ports_factory()
+    try:
+        return await record_case_set(case_set, ports_factory=factory)
+    finally:
+        for port in ports:
+            close = getattr(port, "close", None)
+            if callable(close):
+                await close()
+
+
 def _record(args: argparse.Namespace) -> int:
     store = _store(args.cases_dir, args.baselines_dir)
     case_set = store.load_case_set(args.case_set)
-    baseline = asyncio.run(record_case_set(case_set))
-    path = store.write_baseline(baseline, version=args.baseline_version)
-    print(f"已录制基线 {args.baseline_version}：{len(baseline.cases)} 条用例 → {path}")
+    # 先问一次能不能写：`--live` 录一次要十几分钟，不能录完才发现版本被占用。
+    store.ensure_writable(args.baseline_version, force=args.force)
+    baseline = asyncio.run(_record_baseline(args, store, case_set))
+    path = store.write_baseline(
+        baseline, version=args.baseline_version, force=args.force
+    )
+    mode = "真实适配器" if args.live else "离线替身"
+    print(
+        f"已录制基线 {args.baseline_version}（{mode}）："
+        f"{len(baseline.cases)} 条用例 → {path}"
+    )
     return 0
 
 
@@ -184,6 +243,14 @@ def main(argv: list[str] | None = None) -> int:
         return _replay(args)
     except (CaseSetMissing, BaselineMissing) as error:
         print(f"回放失败：{error}", file=sys.stderr)
+        return 1
+    except BaselineExists as error:
+        # 保护已提交的基线：`--live` 一次就是十几分钟与真金白银，别让手滑覆盖掉 v1/v2。
+        print(
+            f"录制失败：基线 {error.version} 已存在；"
+            "要覆盖请显式加 --force。",
+            file=sys.stderr,
+        )
         return 1
     except Exception as error:  # noqa: BLE001 - 命令面把异常转成非零退出
         print(f"回归框架失败：{type(error).__name__}: {error}", file=sys.stderr)

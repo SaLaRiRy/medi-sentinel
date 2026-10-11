@@ -1,0 +1,909 @@
+{
+  "version": "v3",
+  "case_set_version": "v3",
+  "created_at": "2026-10-11T09:46:52.664570+00:00",
+  "cases": [
+    {
+      "id": "rf-chest-pain",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1001,
+        "message": "胸口剧痛，出冷汗，喘不上气",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1001
+        },
+        {
+          "type": "trace",
+          "trace_id": "28a7fa25eb494d58b60068312c716213"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "chest-pain",
+              "matched_surface": "胸口剧痛",
+              "severity": "emergency",
+              "label": "急性胸痛"
+            },
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：急性胸痛、呼吸困难。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "28a7fa25eb494d58b60068312c716213"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "chest-pain",
+              "matched_surface": "胸口剧痛",
+              "severity": "emergency",
+              "label": "急性胸痛"
+            },
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "28a7fa25eb494d58b60068312c716213",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"胸口剧痛，出冷汗，喘不上气\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='chest-pain', matched_surface='胸口剧痛', severity='emergency', label='急性胸痛'), RedFlagMatch(id='dyspnea', matched_surface='喘不上气', severity=…",
+          "started_at": "2026-10-11T09:46:52.663272Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "chest-pain",
+                "matched_surface": "胸口剧痛",
+                "severity": "emergency",
+                "label": "急性胸痛"
+              },
+              {
+                "id": "dyspnea",
+                "matched_surface": "喘不上气",
+                "severity": "emergency",
+                "label": "呼吸困难"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-severe-bleeding",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1002,
+        "message": "突然大量出血，止都止不住",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1002
+        },
+        {
+          "type": "trace",
+          "trace_id": "22f9214524dd417f9d5b9fe326c29518"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "severe-bleeding",
+              "matched_surface": "大量出血",
+              "severity": "emergency",
+              "label": "大出血"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：大出血。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "22f9214524dd417f9d5b9fe326c29518"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "severe-bleeding",
+              "matched_surface": "大量出血",
+              "severity": "emergency",
+              "label": "大出血"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "22f9214524dd417f9d5b9fe326c29518",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"突然大量出血，止都止不住\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='severe-bleeding', matched_surface='大量出血', severity='emergency', label='大出血')] level='emergency' decision='intercept' message='检测到需要立即处…",
+          "started_at": "2026-10-11T09:46:52.663614Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "severe-bleeding",
+                "matched_surface": "大量出血",
+                "severity": "emergency",
+                "label": "大出血"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-altered-consciousness",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1003,
+        "message": "家人突然意识不清，怎么叫都叫不醒",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1003
+        },
+        {
+          "type": "trace",
+          "trace_id": "a1ace3b84a104a71bc322a9af70b17c2"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "意识不清",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：意识障碍。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "a1ace3b84a104a71bc322a9af70b17c2"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "意识不清",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "a1ace3b84a104a71bc322a9af70b17c2",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"家人突然意识不清，怎么叫都叫不醒\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='altered-consciousness', matched_surface='意识不清', severity='emergency', label='意识障碍')] level='emergency' decision='intercept' message='检…",
+          "started_at": "2026-10-11T09:46:52.663748Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "altered-consciousness",
+                "matched_surface": "意识不清",
+                "severity": "emergency",
+                "label": "意识障碍"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-severe-headache",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1004,
+        "message": "剧烈头痛，还一直呕吐",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1004
+        },
+        {
+          "type": "trace",
+          "trace_id": "6c0389a412b64ce89e18579bd67f5f30"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "urgent",
+          "red_flags": [
+            {
+              "id": "severe-headache",
+              "matched_surface": "剧烈头痛",
+              "severity": "urgent",
+              "label": "剧烈头痛"
+            }
+          ],
+          "message": "检测到需要尽快就医的警示信号：剧烈头痛。请尽快到医院就诊；症状加重时立即拨打 120。",
+          "suggested_action": "尽快到医院就诊，由医生当面评估；症状加重时立即拨打 120。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "6c0389a412b64ce89e18579bd67f5f30"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "urgent",
+          "red_flags": [
+            {
+              "id": "severe-headache",
+              "matched_surface": "剧烈头痛",
+              "severity": "urgent",
+              "label": "剧烈头痛"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "6c0389a412b64ce89e18579bd67f5f30",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"剧烈头痛，还一直呕吐\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='severe-headache', matched_surface='剧烈头痛', severity='urgent', label='剧烈头痛')] level='urgent' decision='intercept' message='检测到需要尽快就医的警示信…",
+          "started_at": "2026-10-11T09:46:52.663852Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "urgent",
+            "red_flags": [
+              {
+                "id": "severe-headache",
+                "matched_surface": "剧烈头痛",
+                "severity": "urgent",
+                "label": "剧烈头痛"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-fever-rash",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1005,
+        "message": "高热3天，全身起皮疹，还喉头水肿喘不上气",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1005
+        },
+        {
+          "type": "trace",
+          "trace_id": "b9c401298f5b47fd98d71151ac05044d"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            },
+            {
+              "id": "anaphylaxis",
+              "matched_surface": "喉头水肿",
+              "severity": "emergency",
+              "label": "严重过敏"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：呼吸困难、严重过敏。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "b9c401298f5b47fd98d71151ac05044d"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "dyspnea",
+              "matched_surface": "喘不上气",
+              "severity": "emergency",
+              "label": "呼吸困难"
+            },
+            {
+              "id": "anaphylaxis",
+              "matched_surface": "喉头水肿",
+              "severity": "emergency",
+              "label": "严重过敏"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "b9c401298f5b47fd98d71151ac05044d",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"高热3天，全身起皮疹，还喉头水肿喘不上气\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='dyspnea', matched_surface='喘不上气', severity='emergency', label='呼吸困难'), RedFlagMatch(id='anaphylaxis', matched_surface='喉头水肿', severity…",
+          "started_at": "2026-10-11T09:46:52.663948Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "dyspnea",
+                "matched_surface": "喘不上气",
+                "severity": "emergency",
+                "label": "呼吸困难"
+              },
+              {
+                "id": "anaphylaxis",
+                "matched_surface": "喉头水肿",
+                "severity": "emergency",
+                "label": "严重过敏"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    },
+    {
+      "id": "rf-seizure",
+      "group": "red_flag",
+      "red_flag": true,
+      "input": {
+        "session_id": 1006,
+        "message": "突然四肢抽搐，口吐白沫",
+        "explicit_symptoms": [],
+        "profile_allergy": null,
+        "profile_records": []
+      },
+      "duration_ms": 1,
+      "route": {
+        "skills_run": [
+          "safety-gate"
+        ],
+        "skills_skipped": [
+          {
+            "skill": "symptom-normalization",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "vector-retrieval",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "graph-inference",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          },
+          {
+            "skill": "orchestration",
+            "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+          }
+        ]
+      },
+      "frames": [
+        {
+          "type": "session",
+          "session_id": 1006
+        },
+        {
+          "type": "trace",
+          "trace_id": "670a8701e4404e6b8c0a6d2c2296ca73"
+        },
+        {
+          "type": "route",
+          "skills_run": [
+            "safety-gate"
+          ],
+          "skills_skipped": [
+            {
+              "skill": "symptom-normalization",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "vector-retrieval",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "graph-inference",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            },
+            {
+              "skill": "orchestration",
+              "reason": "安全门拦截（红旗命中）：全链路短路，不执行归一化、检索、图谱与大模型"
+            }
+          ]
+        },
+        {
+          "type": "safety",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "抽搐",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ],
+          "message": "检测到需要立即处理的急症信号：意识障碍。请立即拨打 120 或前往最近的急诊科，不要自行等待或自行用药。",
+          "suggested_action": "立即拨打 120 或前往最近的急诊科就诊。"
+        },
+        {
+          "type": "done",
+          "references": [],
+          "graph": [],
+          "coverage_note": null,
+          "degraded": [],
+          "cost_time": 0,
+          "trace_id": "670a8701e4404e6b8c0a6d2c2296ca73"
+        }
+      ],
+      "skills": {
+        "safety-gate": {
+          "rule_version": "safety-gate-rules-v1",
+          "decision": "intercept",
+          "level": "emergency",
+          "red_flags": [
+            {
+              "id": "altered-consciousness",
+              "matched_surface": "抽搐",
+              "severity": "emergency",
+              "label": "意识障碍"
+            }
+          ]
+        }
+      },
+      "ports": {
+        "graph": [],
+        "retrieval": []
+      },
+      "llm_chunks": [],
+      "spans": [
+        {
+          "trace_id": "670a8701e4404e6b8c0a6d2c2296ca73",
+          "name": "safety-gate",
+          "status": "ok",
+          "duration_ms": 0,
+          "input_digest": "{\"message\": \"突然四肢抽搐，口吐白沫\"}",
+          "output_digest": "\"rule_version='safety-gate-rules-v1' red_flags=[RedFlagMatch(id='altered-consciousness', matched_surface='抽搐', severity='emergency', label='意识障碍')] level='emergency' decision='intercept' message='检测到…",
+          "started_at": "2026-10-11T09:46:52.664063Z",
+          "detail": {
+            "rule_version": "safety-gate-rules-v1",
+            "decision": "intercept",
+            "level": "emergency",
+            "red_flags": [
+              {
+                "id": "altered-consciousness",
+                "matched_surface": "抽搐",
+                "severity": "emergency",
+                "label": "意识障碍"
+              }
+            ]
+          }
+        }
+      ],
+      "answer": "",
+      "exemptions": []
+    }
+  ],
+  "exempt_divergences": [
+    "A-1",
+    "A-2",
+    "A-3",
+    "A-4",
+    "A-5",
+    "A-6",
+    "A-7",
+    "A-8"
+  ],
+  "recorded_divergences": [
+    "H-1",
+    "H-2",
+    "H-3",
+    "H-4",
+    "H-5",
+    "H-6",
+    "H-7",
+    "H-8",
+    "H-9",
+    "H-10",
+    "H-11",
+    "H-12",
+    "H-13",
+    "H-14"
+  ]
+}
