@@ -170,7 +170,12 @@ async def record_case(case: RegressionCase) -> BaselineCase:
 
     started = time.perf_counter()
     frames = [
-        frame async for frame in orchestrator.run(request, session_id=case.session_id)
+        frame
+        async for frame in orchestrator.run(
+            request,
+            session_id=case.session_id,
+            profile=case.input().patient_profile(),
+        )
     ]
     # 记录耗时以毫秒向上取整并夹到 ≥1：一次完成的问诊耗时非零，而离线确定性
     # 端口下的亚毫秒样本若截断成 0，P95 指标就失去意义（ticket 023 §8 的

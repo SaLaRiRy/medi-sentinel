@@ -248,7 +248,10 @@ async def _stream(
     done: dict | None = None
     try:
         async for frame in orchestrator.run(
-            payload, session_id=opened.session_id, history=tuple(opened.history)
+            payload,
+            session_id=opened.session_id,
+            history=tuple(opened.history),
+            profile=opened.profile,
         ):
             if frame["type"] == "content":
                 answer.append(frame["content"])

@@ -20,13 +20,56 @@ from repositories.consult import (
     ConsultRepository,
     session_title,
 )
-from skills.orchestration import HISTORY_LIMIT, ChatRequest, ChatTurn
+from models.accounts import UserRow
+from repositories.health_records import HealthRecordRepository
+from skills.orchestration import HISTORY_LIMIT, ChatRequest, ChatTurn, PatientProfile
+
+#: 档案段取最近几条既往记录（提示词的限长在 `prompt.py`，这里只决定取多少条）。
+PROFILE_RECORD_LIMIT = 3
 
 
 @dataclass(frozen=True)
 class OpenedTurn:
     session_id: int
     history: tuple[ChatTurn, ...]
+    #: 串行预取的患者档案（TICKET-AC-07）；匿名会话为 `None`。
+    profile: PatientProfile | None = None
+
+
+def _record_summary(record) -> str:
+    """一条档案压成一行摘要：日期 + 类型 + 诊断 + 处理。"""
+    row = record.row
+    when = row.visit_date or (row.create_time.date() if row.create_time else None)
+    parts = [row.record_type or "就诊记录"]
+    if row.diagnosis:
+        parts.append(f"诊断 {row.diagnosis}")
+    if row.treatment:
+        parts.append(f"处理 {row.treatment}")
+    joined = "，".join(parts)
+    return f"{when} {joined}" if when else joined
+
+
+async def load_patient_profile(
+    session: AsyncSession, *, user_id: int | None
+) -> PatientProfile | None:
+    """串行读一次本人的档案（TICKET-AC-07）。
+
+    刻意**不**新增端口：调用点在 `open_turn` 里，与 `history` 一样是**串行预取传值**
+    （`orchestrator.run(..., profile=...)`），因此 `OrchestrationPorts` 的构造点、
+    `gather` 的位置索引与回放 FIFO 全都不受影响。
+    """
+    if user_id is None:
+        return None
+    user = await session.get(UserRow, user_id)
+    if user is None:
+        return None
+    records = await HealthRecordRepository(session).list_for_user(user_id)
+    return PatientProfile(
+        allergy_history=(user.allergy_history or None),
+        records=tuple(
+            _record_summary(record) for record in records[:PROFILE_RECORD_LIMIT]
+        ),
+    )
 
 
 async def open_turn(
@@ -52,6 +95,7 @@ async def open_turn(
     return OpenedTurn(
         session_id=consult_session.id,
         history=tuple(ChatTurn(role=row.role, content=row.content) for row in history),
+        profile=await load_patient_profile(session, user_id=user_id),
     )
 
 

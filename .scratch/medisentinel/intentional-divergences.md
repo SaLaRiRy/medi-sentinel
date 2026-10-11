@@ -36,6 +36,7 @@
 | A-5 | §3.6-4 | 子图 `depth` 参数：存在但无效（实际只返回一跳）→ **真实生效**（1..`MAX_DEPTH`=5） | `FUNCTIONAL_SPEC.md:1534` | `server/api/v1/graph.py:124`；`server/graph/neo4j_adapter.py:29,91-98` | ai-chain |
 | A-6 | §3.6-5 | 图谱结果截断：静默截为 5 条 → **规则显式化**（前 10 条回传 `done`、前 5 条进提示词，`PROMPT_GRAPH_LIMIT=5`，随 trace/`SKILL.md` 声明） | `FUNCTIONAL_SPEC.md:1021,1535` | `server/skills/graph_inference/inference.py:14-15,83`；`server/skills/orchestration/prompt.py:10-11,36` | ai-chain |
 | A-7 | §3.6-6 | 外部依赖不可用：检索 / 图谱不可用即**整体失败** → **降级不阻断**（失败支路记 `degraded`，问答继续，`done.degraded` 标注） | `FUNCTIONAL_SPEC.md:1366-1367` | `server/skills/orchestration/skill.py:263-272,326` | ai-chain |
+| A-8 | AC-07 | 提示词新增 `[个人健康档案]` 段（过敏史 + 最近 3 条档案，限长 600 字、固定围栏 + 注入声明），档案由请求串行预取传入 | `FUNCTIONAL_SPEC.md` 无「个人档案进提示词」的概念（`t_user.allergy_history` 从不进提示词） | `server/skills/orchestration/prompt.py`（`PatientProfile` / `profile_fragment` / `build_prompt`）；`server/services/chat.py::load_patient_profile`；`server/api/v1/chat.py` | ai-chain |
 
 ## http-contract 子集（023 只记录，024 消费）
 
@@ -83,6 +84,7 @@
 |---|---|---|---|---|---|
 | S-1 | AC-02 | 检索从「纯向量单路」→ **向量 + BM25 双路 RRF 融合**，并引入最低命中阈值（原实现显式声明「无最低命中阈值，距离再大的命中也照常保留」） | `FUNCTIONAL_SPEC.md` 无融合概念（只有向量检索一条路） | `server/rag/hybrid.py`（新增）；`server/adapters.py::build_vector_store`；对照 `server/skills/vector_retrieval/retrieval.py:43-44` | stack |
 | S-2 | AC-04 | 融合后的前若干条命中再经**本地交叉编码器重排**（`bge-reranker-base`，onnxruntime，默认关闭、不可用时保持原序） | `FUNCTIONAL_SPEC.md` 无重排概念 | `server/rag/rerank.py`（新增）；`server/rag/hybrid.py::_rerank`；`server/adapters.py::build_vector_store` | stack |
+| S-3 | AC-07 | 编排入口新增**带默认值的关键字参数** `profile`（与 `history` 同一套串行预取传值，**不新增端口**），提示词装配多一段受围栏保护的档案段 | —（机制变更，不是 legacy 行为修复） | `server/skills/orchestration/skill.py`（`Orchestrator.run` / `_run`）；`server/skills/orchestration/prompt.py`；`server/regression/schema.py`（`CaseInput.patient_profile`） | stack |
 
 ---
 
@@ -118,3 +120,5 @@
 - 2026-10-11：新增 H-13（AC-05 医生端 AI 上下文端点 + `POST /consults` 的
   `session_id` 与 404 分支）与 S-2（AC-04 本地 ONNX 重排）。
 - 2026-10-11：新增 H-14（AC-06 工单沉淀为档案 + 撤回软删 + `source`/`consult_id`）。
+- 2026-10-11：新增 A-8（AC-07 档案进提示词，进问诊回放口径）与 S-3（AC-07 编排入口的
+  串行预取参数，机制层面）。

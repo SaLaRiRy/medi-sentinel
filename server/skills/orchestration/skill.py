@@ -24,7 +24,12 @@ from pydantic import BaseModel, Field
 
 from skills.graph_inference import GraphInferenceOutput, GraphInferenceSkill
 from skills.orchestration.frames import coverage_note, done_payload, safety_payload
-from skills.orchestration.prompt import ChatTurn, build_context, build_prompt
+from skills.orchestration.prompt import (
+    ChatTurn,
+    PatientProfile,
+    build_context,
+    build_prompt,
+)
 from skills.ports import GraphPort, LlmPort, RetrievalPort
 from skills.protocol import SkillContext, SkillOutcome
 from skills.safety_gate import SafetyGateOutput, SafetyGateSkill
@@ -116,6 +121,7 @@ class Orchestrator:
         *,
         session_id: int,
         history: Sequence[ChatTurn] = (),
+        profile: PatientProfile | None = None,
     ) -> AsyncIterator[dict]:
         started = time.perf_counter()
         started_at = datetime.now(UTC)
@@ -125,6 +131,7 @@ class Orchestrator:
             request,
             session_id=session_id,
             history=history,
+            profile=profile,
             trace_id=trace_id,
             started=started,
             summary=summary,
@@ -186,6 +193,7 @@ class Orchestrator:
         *,
         session_id: int,
         history: Sequence[ChatTurn],
+        profile: PatientProfile | None,
         trace_id: str,
         started: float,
         summary: dict,
@@ -287,6 +295,7 @@ class Orchestrator:
             history=history,
             message=request.message,
             context=build_context(references, candidates),
+            profile=profile,
         )
 
         # ⑤ the only model call, streamed straight onto the wire.

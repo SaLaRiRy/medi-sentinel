@@ -24,7 +24,7 @@ from regression.schema import default_store
 def test_registry_parses_the_two_scoped_subsets():
     registry = load_registry()
 
-    assert ai_chain_ids(registry) == [f"A-{index}" for index in range(1, 8)]
+    assert ai_chain_ids(registry) == [f"A-{index}" for index in range(1, 9)]
     assert http_contract_ids(registry) == [f"H-{index}" for index in range(1, 15)]
 
 
@@ -32,7 +32,7 @@ def test_registry_parses_the_stack_subset_without_exempting_it():
     """`stack` 只登记：既不进豁免集，也不进 024 的消费集。"""
     registry = load_registry()
 
-    assert stack_ids(registry) == [f"S-{index}" for index in range(1, 3)]
+    assert stack_ids(registry) == [f"S-{index}" for index in range(1, 4)]
     assert set(stack_ids(registry)).isdisjoint(ai_chain_ids(registry))
     assert set(stack_ids(registry)).isdisjoint(http_contract_ids(registry))
 

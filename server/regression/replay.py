@@ -78,7 +78,11 @@ async def replay_case(case: BaselineCase) -> CaseRun:
     )
     frames = [
         frame
-        async for frame in orchestrator.run(request, session_id=case.input.session_id)
+        async for frame in orchestrator.run(
+            request,
+            session_id=case.input.session_id,
+            profile=case.input.patient_profile(),
+        )
     ]
 
     safety = _frame_of(frames, "safety")

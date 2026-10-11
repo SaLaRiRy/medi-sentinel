@@ -13,6 +13,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from skills.orchestration import PatientProfile
+
 CaseGroup = Literal["red_flag", "llm", "degraded", "boundary"]
 BranchMode = Literal["hits", "unavailable"]
 
@@ -23,6 +25,17 @@ class CaseInput(BaseModel):
     session_id: int
     message: str
     explicit_symptoms: list[str] = Field(default_factory=list)
+    #: 注入提示词的个人档案（TICKET-AC-07）；两者都空表示这次问诊没有档案。
+    profile_allergy: str | None = None
+    profile_records: list[str] = Field(default_factory=list)
+
+    def patient_profile(self) -> PatientProfile | None:
+        if not self.profile_allergy and not self.profile_records:
+            return None
+        return PatientProfile(
+            allergy_history=self.profile_allergy,
+            records=tuple(self.profile_records),
+        )
 
 
 class RegressionCase(BaseModel):
@@ -33,6 +46,8 @@ class RegressionCase(BaseModel):
     message: str
     session_id: int
     explicit_symptoms: list[str] = Field(default_factory=list)
+    profile_allergy: str | None = None
+    profile_records: list[str] = Field(default_factory=list)
     graph: BranchMode = "hits"
     retrieval: BranchMode = "hits"
     answer: list[str] = Field(default_factory=list)
@@ -44,6 +59,8 @@ class RegressionCase(BaseModel):
             session_id=self.session_id,
             message=self.message,
             explicit_symptoms=list(self.explicit_symptoms),
+            profile_allergy=self.profile_allergy,
+            profile_records=list(self.profile_records),
         )
 
 
