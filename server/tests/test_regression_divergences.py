@@ -32,7 +32,7 @@ def test_registry_parses_the_stack_subset_without_exempting_it():
     """`stack` 只登记：既不进豁免集，也不进 024 的消费集。"""
     registry = load_registry()
 
-    assert stack_ids(registry) == [f"S-{index}" for index in range(1, 5)]
+    assert stack_ids(registry) == [f"S-{index}" for index in range(1, 6)]
     assert set(stack_ids(registry)).isdisjoint(ai_chain_ids(registry))
     assert set(stack_ids(registry)).isdisjoint(http_contract_ids(registry))
 

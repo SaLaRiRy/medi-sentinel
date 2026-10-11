@@ -86,6 +86,7 @@
 | S-2 | AC-04 | 融合后的前若干条命中再经**本地交叉编码器重排**（`bge-reranker-base`，onnxruntime，默认关闭、不可用时保持原序） | `FUNCTIONAL_SPEC.md` 无重排概念 | `server/rag/rerank.py`（新增）；`server/rag/hybrid.py::_rerank`；`server/adapters.py::build_vector_store` | stack |
 | S-3 | AC-07 | 编排入口新增**带默认值的关键字参数** `profile`（与 `history` 同一套串行预取传值，**不新增端口**），提示词装配多一段受围栏保护的档案段 | —（机制变更，不是 legacy 行为修复） | `server/skills/orchestration/skill.py`（`Orchestrator.run` / `_run`）；`server/skills/orchestration/prompt.py`；`server/regression/schema.py`（`CaseInput.patient_profile`） | stack |
 | S-4 | AC-08 | 生成链路加**超时重试**（只在首字节之前，指数退避、总预算 <10s）与**备用模型故障转移**（同一 key 换模型名，主模型未吐字才切）；`SPEC.md` §5.2 措辞由「生成不可降级」改为「先故障转移、全部执行单元不可用才 503」；顺带删除 `Settings` 里三个从不生效的分块/检索配置 | —（框架级生成策略变更） | `server/skills/llm_http.py`；`server/skills/fallback_llm.py`（新增）；`server/adapters.py::build_llm`；`server/core/config.py` | stack |
+| S-5 | AC-09 | 生成适配器多一个 **LangChain 实现**（`ChatOpenAI.astream()`），由 `llm_backend=http\|langchain` 切换；`HttpLlmAdapter` 保留为对照。这一步其实让实现回到 `SPEC.md` 3.1「LangChain 异步调用」，同时**推翻** `llm_http.py` 当初的「不引入 langchain」自我决定 | `SPEC.md:116`（技术栈表本就要求 LangChain）；对照 `server/skills/llm_http.py:5` 的旧注释 | `server/skills/langchain_llm.py`（新增）；`server/adapters.py::build_llm`；`server/core/config.py`；`server/requirements.txt` | stack |
 
 ---
 
@@ -124,3 +125,4 @@
 - 2026-10-11：新增 A-8（AC-07 档案进提示词，进问诊回放口径）与 S-3（AC-07 编排入口的
   串行预取参数，机制层面）。
 - 2026-10-11：新增 S-4（AC-08 超时重试 + 备用模型故障转移 + 死配置清理）。
+- 2026-10-11：新增 S-5（AC-09 LangChain 生成适配器，可切换，HttpLlmAdapter 保留）。

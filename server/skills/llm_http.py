@@ -2,7 +2,11 @@
 
 以 `httpx.AsyncClient` 直连兼容 OpenAI 的 `{base_url}/chat/completions`
 （`stream=true`），把上游 SSE 的增量分块逐段产出为 `LlmPort.stream` 的异步
-迭代器。全异步、无同步阻塞 I/O，不引入 langchain（SPEC.md 3.1 / 4.1 B-3）。
+迭代器。全异步、无同步阻塞 I/O。
+
+手写而不是用 LangChain 的依据是 **SPEC.md 4.1 B-3**（端口与适配器分离）；
+3.1 的技术栈表其实要求 LangChain 异步调用——TICKET-AC-09 已补上
+`skills/langchain_llm.py`，本文件保留为可切换的对照实现。
 
 上游异常按 B-3 的契约外抛：超时统一为 `TimeoutError`（→ `error` 504），其余
 不可用异常原样外抛（→ `error` 503）。

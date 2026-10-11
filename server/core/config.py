@@ -39,6 +39,8 @@ class Settings(BaseSettings):
     #: 备用模型名（TICKET-AC-08）：主模型不可用且尚未吐字时切换执行单元。
     #: 走**同一个 API key**，留空即禁用故障转移。
     fallback_llm_model: str = ""
+    #: 生成适配器的实现：`http`（手写 httpx，默认）或 `langchain`（TICKET-AC-09）。
+    llm_backend: str = "http"
     embedding_model: str = "text-embedding-v4"
     embedding_dimensions: int = 2048
     embedding_batch_size: int = 10
