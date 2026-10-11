@@ -143,10 +143,13 @@ async def test_an_unreachable_adapter_ends_the_stream_with_a_503_error_frame():
 
 
 def test_build_llm_returns_the_real_adapter_when_key_and_base_url_are_set():
+    # TICKET-AC-09 起默认后端是 langchain；本文件测的是 **http** 那条实现，
+    # 因此显式选它（默认分支由 test_langchain_llm.py 覆盖）。
     llm = build_llm(
         Settings(
             openai_api_key="test-key",
             openai_base_url="https://llm.example.com/v1",
+            llm_backend="http",
         )
     )
 
@@ -173,6 +176,7 @@ async def test_create_app_wires_the_configured_llm_adapter_and_closes_it_on_shut
             database_url="sqlite+aiosqlite:///:memory:",
             openai_api_key="test-key",
             openai_base_url="https://llm.example.com/v1",
+            llm_backend="http",
         )
     )
     async with app.router.lifespan_context(app):

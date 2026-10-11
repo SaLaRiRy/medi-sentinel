@@ -225,6 +225,8 @@ def test_build_llm_wraps_a_fallback_only_when_configured():
         "openai_api_key": "k",
         "openai_base_url": "https://api.test/v1",
         "llm_model": "main",
+        # 本测试测的是「要不要包故障转移」，与用哪个后端无关，固定成 http。
+        "llm_backend": "http",
     }
     plain = build_llm(Settings(_env_file=None, **base))
     wrapped = build_llm(Settings(_env_file=None, fallback_llm_model="backup", **base))

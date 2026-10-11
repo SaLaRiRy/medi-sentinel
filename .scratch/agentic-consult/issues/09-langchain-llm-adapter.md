@@ -90,3 +90,20 @@ TICKET-025 的验收项写着「不引入 langchain」，`llm_http.py` 的注释
 ### divergence
 
 `S-5`（scope `stack`）已登记；`stack_ids` 断言同步 `range(1, 5)` → `range(1, 6)`。
+
+### 追加（同日）：默认后端切到 LangChain
+
+真机冒烟（`.env` 里的真实密钥，两个后端各发一次流式请求）：
+
+```
+--- http: 1 段 -> '你好'
+--- langchain: 1 段 -> '你好'
+```
+
+两个后端对真实端点都通、输出一致。既然 `SPEC.md` 3.1 本来就要求「LangChain 异步调用」，
+把默认值留成 `http` 等于票 09 没接上，因此 `llm_backend` 默认改为 **`langchain`**，
+`http` 保留为可切换的对照实现（`.env` 里 `LLM_BACKEND=http` 即可退回）。
+
+连带同步了两处既有断言：`test_llm_http_adapter.py` 的两条用例改为显式
+`llm_backend="http"`（它们测的是 http 那条实现），`test_llm_retry_fallback.py`
+的装配用例同样固定后端。全量 **959 passed**。

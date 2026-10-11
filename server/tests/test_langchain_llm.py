@@ -145,7 +145,7 @@ async def test_it_is_a_drop_in_replacement_for_the_http_adapter():
 # --- 装配 ---------------------------------------------------------------------
 
 
-def test_build_llm_switches_the_backend_by_configuration():
+def test_build_llm_defaults_to_langchain_and_can_switch_back_to_http():
     from adapters import build_llm
 
     base = {
@@ -154,10 +154,10 @@ def test_build_llm_switches_the_backend_by_configuration():
         "llm_model": "main",
     }
     by_default = build_llm(Settings(_env_file=None, **base))
-    by_config = build_llm(Settings(_env_file=None, llm_backend="langchain", **base))
+    by_config = build_llm(Settings(_env_file=None, llm_backend="http", **base))
 
-    assert isinstance(by_default, HttpLlmAdapter)
-    assert isinstance(by_config, LangChainLlmAdapter)
+    assert isinstance(by_default, LangChainLlmAdapter)
+    assert isinstance(by_config, HttpLlmAdapter)
 
 
 def test_the_fallback_wraps_whichever_backend_is_chosen():
