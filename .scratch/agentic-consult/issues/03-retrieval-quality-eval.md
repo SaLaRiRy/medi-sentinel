@@ -15,7 +15,8 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: 2cd5924
 
 ## 验收清单
 

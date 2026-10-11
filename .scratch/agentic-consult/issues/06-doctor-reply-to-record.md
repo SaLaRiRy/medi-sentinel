@@ -17,7 +17,8 @@
 
 **Blocked by:** 05（需要工单 ↔ 会话/患者关联）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: e80e8e8
 
 ## 验收清单
 

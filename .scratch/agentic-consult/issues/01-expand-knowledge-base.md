@@ -9,7 +9,8 @@
 
 **Blocked by:** 无（第一票）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: c67d185
 
 ## 交付物
 

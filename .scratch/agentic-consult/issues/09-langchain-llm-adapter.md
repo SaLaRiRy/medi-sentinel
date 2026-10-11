@@ -11,7 +11,8 @@
 
 **Blocked by:** 08（降级链稳定后再换底层执行单元）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: f0da157
 
 ## 必须写进票内的决策理由
 

@@ -25,7 +25,8 @@
 
 **Blocked by:** 06（并依赖 02 的 `stack_ids()`）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: 30d1c5b
 
 ## 验收清单
 

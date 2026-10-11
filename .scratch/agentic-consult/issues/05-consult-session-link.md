@@ -15,7 +15,8 @@
 
 **Blocked by:** 无（与 01–04 独立）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: e184fa9
 
 ## 已拍板的决策：新端点做归属校验
 

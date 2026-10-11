@@ -20,7 +20,8 @@
 
 **Blocked by:** 02（要有融合后的候选集）、03（要有可量的指标）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: f7912ff
 
 ## 关键设计约束：必须做成「可回放」，但不一定新增端口
 

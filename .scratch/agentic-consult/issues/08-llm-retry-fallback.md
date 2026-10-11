@@ -36,7 +36,8 @@
 
 **Blocked by:** 无
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: 7ea1a3c
 
 ## 验收清单
 

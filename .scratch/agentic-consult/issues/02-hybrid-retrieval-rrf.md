@@ -21,7 +21,8 @@
 
 **Blocked by:** 01（池子要先够大才有排序可言）
 
-**Status:** ready-for-agent
+**Status:** done
+Completed: db9eba7
 
 ## 第一件事：登记册解析器支持 `stack` 族（否则本票起的 `S-*` 全是空转）
 
