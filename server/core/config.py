@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     llm_model: str = "qwen3.8-flash"
+    #: 备用模型名（TICKET-AC-08）：主模型不可用且尚未吐字时切换执行单元。
+    #: 走**同一个 API key**，留空即禁用故障转移。
+    fallback_llm_model: str = ""
     embedding_model: str = "text-embedding-v4"
     embedding_dimensions: int = 2048
     embedding_batch_size: int = 10
@@ -45,10 +48,10 @@ class Settings(BaseSettings):
     # directory holding `onnx/model.onnx` + `tokenizer.json` to switch it on.
     rerank_model_dir: str = ""
 
-    # Chunking and retrieval parameters (FUNCTIONAL_SPEC 5.5 / 6.6).
-    chunk_size: int = 500
-    chunk_overlap: int = 80
-    retrieval_top_k: int = 5
+    # 分块与检索参数**不在这里**（TICKET-AC-08 删掉了三个死配置）：
+    # `chunk_size` / `chunk_overlap` 是 `rag/chunking.py` 的模块常量，
+    # `retrieval_top_k` 是 `skills/vector_retrieval/retrieval.py::RETRIEVAL_TOP_K`。
+    # 以前它们在这里也有一份，但生产路径从不读——「配置了却不生效」比没有更糟。
 
     # Token rules keep the reference behaviour (FUNCTIONAL_SPEC 5.8): HS256 and a
     # 24-hour lifetime. The signing key is a credential and comes from the

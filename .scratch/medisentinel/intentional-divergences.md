@@ -85,6 +85,7 @@
 | S-1 | AC-02 | 检索从「纯向量单路」→ **向量 + BM25 双路 RRF 融合**，并引入最低命中阈值（原实现显式声明「无最低命中阈值，距离再大的命中也照常保留」） | `FUNCTIONAL_SPEC.md` 无融合概念（只有向量检索一条路） | `server/rag/hybrid.py`（新增）；`server/adapters.py::build_vector_store`；对照 `server/skills/vector_retrieval/retrieval.py:43-44` | stack |
 | S-2 | AC-04 | 融合后的前若干条命中再经**本地交叉编码器重排**（`bge-reranker-base`，onnxruntime，默认关闭、不可用时保持原序） | `FUNCTIONAL_SPEC.md` 无重排概念 | `server/rag/rerank.py`（新增）；`server/rag/hybrid.py::_rerank`；`server/adapters.py::build_vector_store` | stack |
 | S-3 | AC-07 | 编排入口新增**带默认值的关键字参数** `profile`（与 `history` 同一套串行预取传值，**不新增端口**），提示词装配多一段受围栏保护的档案段 | —（机制变更，不是 legacy 行为修复） | `server/skills/orchestration/skill.py`（`Orchestrator.run` / `_run`）；`server/skills/orchestration/prompt.py`；`server/regression/schema.py`（`CaseInput.patient_profile`） | stack |
+| S-4 | AC-08 | 生成链路加**超时重试**（只在首字节之前，指数退避、总预算 <10s）与**备用模型故障转移**（同一 key 换模型名，主模型未吐字才切）；`SPEC.md` §5.2 措辞由「生成不可降级」改为「先故障转移、全部执行单元不可用才 503」；顺带删除 `Settings` 里三个从不生效的分块/检索配置 | —（框架级生成策略变更） | `server/skills/llm_http.py`；`server/skills/fallback_llm.py`（新增）；`server/adapters.py::build_llm`；`server/core/config.py` | stack |
 
 ---
 
@@ -122,3 +123,4 @@
 - 2026-10-11：新增 H-14（AC-06 工单沉淀为档案 + 撤回软删 + `source`/`consult_id`）。
 - 2026-10-11：新增 A-8（AC-07 档案进提示词，进问诊回放口径）与 S-3（AC-07 编排入口的
   串行预取参数，机制层面）。
+- 2026-10-11：新增 S-4（AC-08 超时重试 + 备用模型故障转移 + 死配置清理）。

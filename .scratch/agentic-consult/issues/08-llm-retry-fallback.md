@@ -65,3 +65,56 @@
 - 帧序不变量（`SPEC.md` §5.5 六条）在任何失败路径下都成立。
 
 ## Comments
+
+**完成（2026-10-11）。** 生成链路加了两环：首字节前的超时重试，以及备用模型故障转移。
+
+### 交付
+
+| 文件 | 变更 |
+|---|---|
+| `server/skills/llm_http.py` | `stream()` 内加**首字节前**重试：指数退避 0.5→1.0（上限 4 s）、最多 2 次重试、重试开销预算 <9 s；`HTTPStatusError` 不重试；**已吐字绝不重试** |
+| `server/skills/fallback_llm.py`（新增） | `FallbackLlmAdapter`：主模型失败且**未吐字**才切备；已吐字直接外抛；`close()` 释放两端 |
+| `server/core/config.py` | 新增 `fallback_llm_model`（空 = 禁用）；**删除** `chunk_size` / `chunk_overlap` / `retrieval_top_k` 三个死配置 |
+| `server/adapters.py` | `build_llm` 在配了备用模型时包一层故障转移 |
+| `server/.env.example` | `FALLBACK_LLM_MODEL` |
+| `SPEC.md` §5.2 | 「生成不可降级」→「先**故障转移**（换执行单元，生成能力不降级），全部执行单元不可用才 503；超时 504」 |
+| `skills/ports.py`、`skills/orchestration/skill.py` | 三处 docstring 同步（故障转移 ≠ 降级） |
+| 登记册 | `S-4`（scope `stack`） |
+
+### 硬约束怎么落的
+
+- **已吐字绝不重试**：重试循环维护 `emitted` 标志，一旦推出过任何 `content` 分块，
+  超时/断连都直接按契约外抛。`orchestration/skill.py` 是边收边推，重试会让前端
+  看到两段拼接的回答。
+- **错误契约不变**：httpx 的 `TimeoutException` 仍翻译成 `TimeoutError` → 504
+  （重试耗尽后同样）；真实网络异常原样外抛 → 503；上游明确回 4xx/5xx 不重试。
+- **预算语义**：`RETRY_BUDGET_SECONDS = 9.0` 约束的是**重试开销**（退避之和），
+  单次请求自身的超时由构造参数 `timeout` 控制——限额是「再加几次重试」，不是「整轮最多 10 秒」。
+- **故障转移走同一 key 换模型名**（已定决定），不引入第二套凭据。
+
+### 死配置（顺带修）
+
+`Settings.chunk_size` / `chunk_overlap` / `retrieval_top_k` 生产路径从不读
+（真正生效的是 `rag/chunking.py::CHUNK_SIZE/CHUNK_OVERLAP` 与
+`vector_retrieval/retrieval.py::RETRIEVAL_TOP_K`）。三个字段**删除**，原处留注释指路，
+测试断言它们已不在 `Settings` 上——「配置了却不生效」比没有更糟。
+
+### TDD
+
+`server/tests/test_llm_retry_fallback.py` **11 项**：连接错误重试成功 / 达上限 /
+首字节前超时→`TimeoutError` / **已吐字不重试** / HTTP 状态码不重试 /
+故障转移成功 / 已吐字不换模型 / 主模型健康不触碰备 / 双失败仍外抛 / 装配分支 / 死配置已删。
+全部走 `httpx.MockTransport`，退避用假 `sleep` 记账（不让测试真等 1.5 秒）。
+
+实现中踩到的真问题：`[DONE]` 之后 `aiter_lines()` 会提前退出，
+「流中途断」必须用**不带 `[DONE]`** 的前缀构造，否则那个错误永远不会浮出水面
+（第一版测试就是这么假绿的）。
+
+### 套件
+
+- 后端 `pytest -q --basetemp=.tmp\pytest-user` → **947 passed**
+- 前端未改动（本票无 UI 变更）
+
+### divergence
+
+`S-4`（scope `stack`）已登记；`stack_ids` 断言同步 `range(1, 4)` → `range(1, 5)`。

@@ -38,6 +38,11 @@ class LlmPort(Protocol):
     deadline passes (→ `error` code 504, the timeout itself is infrastructure,
     SPEC.md 4.1 B-3), any other exception when the model is unavailable
     (→ `error` code 503).
+
+    Swapping the *executing unit* is not degradation: a fail-over adapter
+    (`skills/fallback_llm.py`, TICKET-AC-08) may switch models while generation
+    itself stays available — that is why SPEC.md 5.2 still reads "generation
+    cannot degrade".
     """
 
     def stream(self, prompt: str) -> AsyncIterator[str]: ...

@@ -11,7 +11,9 @@ model (SPEC.md 3.4).
 Degradation and failure are different outcomes (SPEC.md 5.2): the enhancement
 branches may be unavailable without ending the consult — they degrade, the `done`
 frame names them, and no error code is produced. Generation cannot degrade, so it
-ends the stream with an `error` frame instead (TICKET-009).
+ends the stream with an `error` frame instead (TICKET-009). Switching the
+*executing unit* (a fail-over model, TICKET-AC-08) is not degradation: the port
+below may quietly change models while generation stays available.
 """
 
 import asyncio
@@ -56,6 +58,7 @@ SAFETY_INTERCEPT_REASON = (
 )
 
 # Generation failure codes (SPEC.md 5.2). Degraded branches produce no code at all.
+# 故障转移（换执行单元）不改变这里：它要么成功产出内容，要么按同一份契约外抛。
 LLM_UNAVAILABLE_CODE = 503
 LLM_TIMEOUT_CODE = 504
 INTERNAL_ERROR_CODE = 500

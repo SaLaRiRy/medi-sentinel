@@ -14,6 +14,7 @@ from rag.chroma_adapter import ChromaVectorStore, OpenAiCompatibleEmbedder
 from rag.hybrid import HybridRetriever
 from rag.rerank import OnnxReranker
 from rag.store import VectorStore
+from skills.fallback_llm import FallbackLlmAdapter
 from skills.llm_http import HttpLlmAdapter
 from skills.ports import LlmPort, UnavailableLlmPort
 
@@ -56,9 +57,20 @@ def build_llm(settings: Settings) -> LlmPort:
     stays in place (TICKET-009). With both set the app talks to the real model.
     """
     if settings.openai_api_key and settings.openai_base_url:
-        return HttpLlmAdapter(
+        primary = HttpLlmAdapter(
             base_url=settings.openai_base_url,
             api_key=settings.openai_api_key,
             model=settings.llm_model,
         )
+        if settings.fallback_llm_model:
+            # 故障转移：同一 key 换模型名，生成能力不降级（TICKET-AC-08）。
+            return FallbackLlmAdapter(
+                primary,
+                HttpLlmAdapter(
+                    base_url=settings.openai_base_url,
+                    api_key=settings.openai_api_key,
+                    model=settings.fallback_llm_model,
+                ),
+            )
+        return primary
     return UnavailableLlmPort()
