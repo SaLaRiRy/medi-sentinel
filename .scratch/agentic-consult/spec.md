@@ -31,6 +31,11 @@
 | [07](issues/07-profile-context-prompt.md) | 闭环 C：档案反哺提示词 + 录基线 v2 | 06 | ready-for-agent |
 | [08](issues/08-llm-retry-fallback.md) | 降级容错：超时重试 + 备用模型故障转移 | — | ready-for-agent |
 | [09](issues/09-langchain-llm-adapter.md) | （可选、最后）LangChain 换 `LlmPort` adapter | 08 | ready-for-agent |
+| [10](issues/10-live-baseline-recording.md) | 活库重录回归基线（只录数据，分两阶段） | — | needs-triage（待用户复核） |
+
+> 票 10 是 01–09 落地之后另开的：它修的是**基线真实性**（v1/v2 录在替身上），
+> 不属原计划四段改造。**AC-11**（修确定性幻觉层的上下文缺陷）只留占位，
+> 等票 10 阶段二落地后再开——见 `map.md` 的「待办占位」。
 
 ## 3. 已拍定的决定（**不要再讨论方向**）
 
