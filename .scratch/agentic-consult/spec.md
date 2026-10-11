@@ -33,7 +33,7 @@
 | [09](issues/09-langchain-llm-adapter.md) | （可选、最后）LangChain 换 `LlmPort` adapter | 08 | ready-for-agent |
 | [10](issues/10-live-baseline-recording.md) | 活库重录回归基线（只录数据，分两阶段） | — | done（`e370da9`） |
 | [11](issues/11-hallucination-context-fix.md) | 修确定性幻觉层的判定上下文（并入图谱片段） | 10 | done（`37a1c22`） |
-| [12](issues/12-assertion-extraction-calibers.md) | 断言抽取口径对照（**第一步只测量**） | 11 | done（第一步；第二步见 `map.md` 的 AC-13 占位） |
+| [12](issues/12-assertion-extraction-calibers.md) | 断言抽取口径对照（**第一步只测量**） | 11 | done（`42a6405`；第二步见 `map.md` 的 AC-13 占位） |
 
 > 票 10 是 01–09 落地之后另开的：它修的是**基线真实性**（v1/v2 录在替身上），
 > 不属原计划四段改造。**AC-11**（修确定性幻觉层的上下文缺陷）只留占位，
