@@ -5,6 +5,9 @@ httpx>=0.27
 sqlalchemy[asyncio]>=2.0
 alembic>=1.14
 aiomysql>=0.2
+# MySQL 8 默认的 caching_sha2_password 认证需要它做 RSA 交换，
+# 否则连接直接抛 RuntimeError（aiomysql 的 rsa extra）。
+cryptography>=43
 pydantic>=2.9
 pydantic-settings>=2.6
 python-multipart>=0.0.12

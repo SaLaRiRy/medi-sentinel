@@ -34,12 +34,23 @@
 
 ## 界面预览
 
-**患者端**：首页概览 · AI 问诊 · 个人中心
+**患者端**：首页概览 · AI 问诊 · 健康档案（带**来源**标注） · 人工问诊（可**关联 AI 会话**）
 
 <p align="center">
   <img src="./docs/images/patient-home.png" width="32%" alt="患者首页" />
   <img src="./docs/images/ai-chat.png" width="32%" alt="AI 问诊" />
-  <img src="./docs/images/profile.png" width="32%" alt="个人中心" />
+  <img src="./docs/images/records.png" width="32%" alt="健康档案（来源标注）" />
+</p>
+
+<p align="center">
+  <img src="./docs/images/consult.png" width="48%" alt="人工问诊（关联 AI 会话）" />
+  <img src="./docs/images/profile.png" width="48%" alt="个人中心" />
+</p>
+
+**医生端**：人工问诊 —— 打开「AI 上下文」能看到患者这次 AI 问诊的候选疾病、引用与原始主诉，并在同一个弹窗里把结论**确认沉淀为档案**（来源可标为"医生确认 AI 建议"）
+
+<p align="center">
+  <img src="./docs/images/doctor-ai-context.png" width="54%" alt="医生端 AI 上下文与档案沉淀" />
 </p>
 
 **管理端**：数据概览 · 知识库管理 · 预约管理
