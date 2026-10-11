@@ -9,7 +9,8 @@ B-3 适配器**（`adapters.build_graph_store` / `build_vector_store` / `build_l
 
 **Blocked by:** 无（依赖 MySQL / Neo4j / 真实 API key 三样在线）
 
-**Status:** ready-for-agent（票面已复核通过）—— 阶段一**已完成**，等用户确认后进阶段二
+**Status:** done
+Completed: e370da9
 
 ---
 
