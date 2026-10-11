@@ -10,6 +10,8 @@
 **Status:** done
 Completed: 37a1c22
 
+> 📌 **对外引用以 [`../METRICS.md`](../METRICS.md) 为准**；本票内的数字只作过程留痕。
+
 ---
 
 ## 0. 靶子（AC-10 实测，可直接复现）

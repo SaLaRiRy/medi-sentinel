@@ -69,7 +69,7 @@ def test_the_four_calibers_report_the_measured_numbers(baseline):
     assert current.token_free == 867
     assert current.evaluable_ratio == pytest.approx(0.3157, abs=0.001)
     assert current.marked_unsupported == 33
-    assert current.marked_over_all == pytest.approx(0.0261, abs=0.001)
+    assert current.marked_over_all == pytest.approx(0.0260, abs=0.0002)
     # 口径②③ 只改 evaluable，不改分母
     assert by_name["② 排除行首列表编号"].evaluable == 211
     # ③ 的可判定条数比 .tmp 首版探针（189）多 7 条：单位窗口从 4 字符放宽到 6 字符后，
