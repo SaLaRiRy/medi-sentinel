@@ -118,6 +118,16 @@ Completed: 30d1c5b
   脚本化用例是无损的**，不是漂移。
 - v2 基线的 `exempt_divergences` 是 `A-1…A-8`（含新的 A-8）。
 
+⚠️ **别把 v2 说成"真实基线"**：`regression/record.py::fixture_ports`（`:137-142`）
+返回的仍是 `FixtureGraphPort` / `FixtureRetrievalPort` / `ScriptedLlmPort` 三个假替身，
+`record_case`（`:153`）直接用它——整个 `regression/` 目录里搜
+`build_vector_store` / `build_llm` / `build_graph_store` 零命中。
+所以 **v2 与 v1 一样录在替身上**：本票相对 v1 的真增量只有
+`evidence_match_rate`（回放自检 = 回放与录制一致），**不等于基线变真**；
+「拦截率 100% / 误拦率 0%」仍然来自替身。
+（票 03 的检索质量指标不受影响——那一条跑的是真实 `RetrievalPort` + 活库嵌入。）
+把基线真实化的可行性探查已做，结论见 map.md 的「已知局限」与 AC-10 候选探查。
+
 ### TDD
 
 `server/tests/test_prompt_profile.py` **11 项**：逐字护栏 1 / 空档案 1 / 内容 1 /

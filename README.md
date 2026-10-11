@@ -96,12 +96,14 @@ Monorepo，前后端分离，无共享代码、无统一构建：
 
 | 层 | 技术 |
 |---|---|
-| 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / httpx 异步调用兼容 OpenAI 的 LLM 与嵌入服务 |
+| 后端 | Python / FastAPI（全异步路由）/ SQLAlchemy 2.0 `AsyncSession` / LangChain（`ChatOpenAI.astream()`）流式调用兼容 OpenAI 的 LLM，嵌入走 httpx 异步调用 |
 | 数据 | MySQL（14 个实体）/ Neo4j 异步驱动（医学知识图谱）/ Chroma 本地持久化（向量索引） |
 | AI | 兼容 OpenAI 接口的大模型与嵌入服务 |
 | 前端 | Vue 3 + Vite + Vue Router + Pinia + Element Plus（按需引入），仅通过 RESTful API（含 SSE）通信；图表为自绘内联 SVG，无第三方图表依赖 |
 
 **配置**：连接串、口令与密钥一律经环境变量注入，由 `server/.env` 提供——`core.config.Settings` 读取，样例见 `server/.env.example`。`DATABASE_URL` 必填；缺失时后端启动即报错，不再退回源码里的默认值（TICKET-027）。
+
+**生成适配器**：默认走 LangChain（`LLM_BACKEND=langchain`，对齐 `SPEC.md` §3.1「LangChain 异步调用」）；把 `LLM_BACKEND` 设为 `http` 可退回手写 httpx 的等价实现——两者对同一段内容的增量产出逐字相同，且都保留 `HttpLlmAdapter` 那份异常契约（超时 → 504、不可用 → 503）。备用模型故障转移见 `FALLBACK_LLM_MODEL`。
 
 ## 启动方式
 

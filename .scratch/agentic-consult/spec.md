@@ -185,6 +185,38 @@
 | 回归录制/回放 | `cd server; .venv\Scripts\python.exe scripts\regression.py record\|replay --case-set v1 --baseline-version v1` |
 | 知识库灌数 | `cd server; .venv\Scripts\python.exe scripts\init_knowledge.py` |
 
+### 8.1 检索质量口径（**引用时必须带条件**）
+
+票 03 的标注集在**两种配置**下有两个不同的 `recall@5`。汇总、简历、面试回答里
+**禁止只写 1.0000**——把 `RERANK_MODEL_DIR` 留空跑一遍就是 0.9833，当场对不上。
+
+| 配置 | recall@1 | recall@5 | MRR | 单次检索中位 |
+|---|---|---|---|---|
+| **默认路径**（不重排，线上真实跑法） | 0.9833 | **0.9833** | 1.0000 | 204.9 ms |
+| N=8 / maxlen=512（填了 `RERANK_MODEL_DIR`） | 0.9833 | **1.0000** | 1.0000 | 1442.1 ms |
+
+正确的说法：
+
+> 重排已实现并实测：`recall@5` 从 0.9833 提升到 1.0000（30 条标注中多召回 1 篇文档），
+> 代价为每次检索 +1.24 s，故默认关闭（填 `RERANK_MODEL_DIR` 可开）。
+
+**同样不能藏的是「没有提升」的部分**：重排对 `recall@1` 与 `MRR` **零提升**——
+票 02 的 RRF 融合早就把首条命中文档排在第 1 位了，重排唯一的作用是把多标签用例
+q13 的第二篇文档拉回 top-5。这条比"有提升"更值钱，别在汇总里省略。
+
+### 8.2 基线真实性的已知局限
+
+`server/regression/record.py::fixture_ports` 返回的是 `FixtureGraphPort` /
+`FixtureRetrievalPort` / `ScriptedLlmPort` 三个**假替身**，因此：
+
+- ❌ 基线里的「红旗拦截率 100% / 误拦率 0%」来自**替身**，不是活库实测；
+- ✅ 票 03 的检索质量数字（recall / MRR / 阈值标定）**是真的**——它跑的是真实
+  `RetrievalPort` + 活库嵌入；
+- ✅ `evidence_match_rate`（回放自检）是真实增量，但它只说明"回放与录制一致"，
+  **不等于基线变真了**。
+
+活库重录的可行性探查见「AC-10 候选」的探查结论（票面另开时再登记）。
+
 ## 变更记录
 
 - 2026-10-11：建档。落 9 张票（01–08 必做、09 可选）、九项已定决定、6 条硬约束、

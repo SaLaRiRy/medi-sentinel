@@ -57,6 +57,18 @@
 - **契约变更的连锁**：票 03 给 `MetricsReport` 加字段、票 05/06 加端点，
   两者都会让 `contracts/openapi.json` 重导；前者还要确认前端契约测试能否解析新字段。
 
+### 已知局限（别当成已完成）
+
+- **回归基线仍然是假替身**：`regression/record.py::fixture_ports`（`:137-142`）返回
+  `FixtureGraphPort` / `FixtureRetrievalPort` / `ScriptedLlmPort`，`record_case`（`:153`）
+  直接用它。所以 `baselines/v1.json` **与 `v2.json` 一样**录在替身上——
+  「拦截率 100% / 误拦率 0%」**不是**活库数字。v2 相对 v1 的真增量只有
+  `evidence_match_rate`（回放自检），那不代表基线变真。
+  **不要把 v2 说成"真实基线"。**
+- 票 03 的检索质量指标不受这条影响：它跑的是真实 `RetrievalPort` + 活库嵌入。
+- **检索质量必须带条件引用**：`recall@5 = 0.9833`（默认）/ `1.0000`（开重排）。
+  详见 spec.md §8.1。
+
 ## 自动执行约定（2026-10-11 用户授权，睡前进度自持）
 
 用户授权：**自主跑完 01→09（含可选的 09）**；遇到选择一律取本文件与票面写明的推荐值；
