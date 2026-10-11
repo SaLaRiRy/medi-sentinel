@@ -40,6 +40,19 @@ CANDIDATE = {
 TARGET_ASSERTION = "知识图谱初步提示：慢性肾炎（覆盖率约0.50，科室：肾内科，依据症状：高血压）。"
 
 
+def _candidates(count: int, prefix: str = "候选") -> list[dict]:
+    return [
+        {
+            "disease": f"{prefix}{index}",
+            "match_count": 1,
+            "coverage": 0.1 * index,
+            "department": "内科",
+            "matched_symptoms": ["头痛"],
+        }
+        for index in range(1, count + 1)
+    ]
+
+
 # --- 数据值并入 ---------------------------------------------------------------
 
 
@@ -75,6 +88,34 @@ def test_the_skill_detail_wins_because_it_carries_the_coverage():
     )
 
     assert "0.50" in values
+
+
+def test_only_the_prompt_injected_candidates_are_used():
+    """模型只看到前 `PROMPT_GRAPH_LIMIT` 条——判定上下文不许超出这个集合。"""
+    from skills.orchestration import PROMPT_GRAPH_LIMIT
+
+    case = _case(candidates=_candidates(PROMPT_GRAPH_LIMIT + 5))
+
+    values = _graph_values(case)
+    context = _context_of(case)
+
+    assert f"候选{PROMPT_GRAPH_LIMIT}" in values
+    assert f"候选{PROMPT_GRAPH_LIMIT + 1}" not in context
+    assert f"候选{PROMPT_GRAPH_LIMIT + 5}" not in context
+
+
+def test_the_port_fallback_is_truncated_too():
+    from skills.orchestration import PROMPT_GRAPH_LIMIT
+
+    records = [
+        {"disease": f"疾病{index}", "department": "内科", "matched_symptoms": []}
+        for index in range(1, PROMPT_GRAPH_LIMIT + 4)
+    ]
+
+    values = _graph_values(_case(graph_records=records))
+
+    assert values.count(f"疾病{PROMPT_GRAPH_LIMIT}") == 1
+    assert f"疾病{PROMPT_GRAPH_LIMIT + 1}" not in values
 
 
 def test_an_empty_graph_leaves_the_context_unchanged():

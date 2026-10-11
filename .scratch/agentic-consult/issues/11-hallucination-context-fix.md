@@ -174,3 +174,25 @@ v3 的 `llm-explicit-symptoms` 用例里，真实回答中有一条断言：
 `server/tests/test_hallucination_context.py` 11 项：数据值并入 / **模板词不得出现** /
 端口回退 / skill 优先 / 空图谱不退化 / 靶子断言变成有据 / 真幻觉仍被抓 /
 **total 不随上下文变化** / 全 20 条 v3 上下文无模板词 / 真数据回归 / drift 仍是恒真式。
+
+### 追加修正（同日，用户复核后）：候选必须截断到提示词注入的 5 条
+
+用户指出本票实现只做了一半的「模型看到什么就只拿什么判」：`_graph_records` 取的是
+`skills["graph-inference"]["candidates"]` 的**全量**，而提示词只注入前
+`PROMPT_GRAPH_LIMIT = 5` 条（`prompt.build_context`）。v3 里候选数 > 5 的用例有
+**7/20**——第 6–10 条是**模型从未见过的候选**，模型凭自身知识说出它们却会被判"有据"，
+方向是把比率**调松**。
+
+修正：`_graph_records` 现在按 `PROMPT_GRAPH_LIMIT` 截断（skill 输出与端口回退两条路都截），
+并把这条不变量写进它的 docstring；新增两项测试钉住
+（`test_only_the_prompt_injected_candidates_are_used`、`test_the_port_fallback_is_truncated_too`）。
+常量**引用** `skills.orchestration.PROMPT_GRAPH_LIMIT`，不复制数字。
+
+**A'（前 5 条）vs A（全量）实测**：`total 400 / 无据 33 / ratio 0.0825` **两版完全相同**
+（`A' − A = 0`）。也就是说截断**不改变当前数值**，但它是**正确性**要求而不是数值优化——
+`A'` 是正式实现。
+
+**同时更正上一轮对剩余 33 条的分类**：我按"**缺失** token 全是数字"分得 26/7，
+用户按"**全部** token 全是数字"分得 **24/9**；差的 2 条是**含词表项但缺的是数字**
+（如 `['高血压','6']`——`高血压` 在上下文里，是列表编号 `6` 不支持导致整条失败，
+`metrics.py:168` 的 `all(...)` 是全匹配）。**"含词表项"不等于"真幻觉"**，用户的口径更准。

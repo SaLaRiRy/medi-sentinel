@@ -21,7 +21,12 @@ from regression.metrics import (
 )
 from regression.ports import ReplayGraphPort, ReplayLlmPort, ReplayRetrievalPort
 from regression.schema import Baseline, BaselineCase
-from skills.orchestration import ChatRequest, OrchestrationPorts, Orchestrator
+from skills.orchestration import (
+    PROMPT_GRAPH_LIMIT,
+    ChatRequest,
+    OrchestrationPorts,
+    Orchestrator,
+)
 from skills.trace import InMemoryTraceSink, degraded_branches
 
 #: 身份 / 墙钟字段：每次运行必然不同，永不比较（ticket 023 §8）。
@@ -64,6 +69,12 @@ _GRAPH_TEMPLATE_WORDS = ("知识图谱", "推理结果", "覆盖率", "科室", 
 def _graph_records(case: BaselineCase) -> list[Mapping[str, Any]]:
     """本次问诊**实际拿到**的图谱候选（不是整张图谱）。
 
+    **并且截断到提示词真正注入的条数**（`PROMPT_GRAPH_LIMIT`，TICKET-AC-11 修正）：
+    提示词只喂前若干条候选（`prompt.build_context` 里的 `candidates[:PROMPT_GRAPH_LIMIT]`），
+    若这里取全量，判定上下文里就会存在**模型从未见过的候选**——模型凭自身知识说出
+    第 6–10 名的候选病名也会被判"有据"，那是把幻觉率**调松**。
+    「模型看到什么，就只拿什么判」这条不变量要求两侧取同一个集合。
+
     优先用录制下来的 `graph-inference` 结构化输出：它带 `coverage`，而那正是
     提示词喂给模型的字段（`ports["graph"]` 的原始端口返回只有
     `disease` / `department` / `matched_symptoms`，`coverage` 与 `match_count`
@@ -72,13 +83,15 @@ def _graph_records(case: BaselineCase) -> list[Mapping[str, Any]]:
     detail = case.skills.get("graph-inference") or {}
     candidates = detail.get("candidates")
     if isinstance(candidates, list) and candidates:
-        return [item for item in candidates if isinstance(item, Mapping)]
+        return [
+            item for item in candidates if isinstance(item, Mapping)
+        ][:PROMPT_GRAPH_LIMIT]
     records: list[Mapping[str, Any]] = []
     for response in case.ports.get("graph", []):
         for record in response:
             if isinstance(record, Mapping):
                 records.append(record)
-    return records
+    return records[:PROMPT_GRAPH_LIMIT]
 
 
 def _graph_values(case: BaselineCase) -> list[str]:
